@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Deel jouw foto's</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --white: #ffffff;
+      --offwhite: #f4faf5;
+      --light: #e8f5ea;
+      --mint: #b2ddb8;
+      --green: #3a7d44;
+      --deep: #1e4d28;
+      --text: #1a3320;
+      --muted: #6a9070;
+    }
+
+    body {
+      min-height: 100vh;
+      background: var(--offwhite);
+      font-family: 'Georgia', serif;
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ── Header ── */
+    .header {
+      width: 100%;
+      background: linear-gradient(160deg, var(--deep) 0%, var(--green) 100%);
+      color: white;
+      text-align: center;
+      padding: 2.5rem 1.5rem 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    .header-icon { font-size: 2rem; margin-bottom: 0.4rem; position: relative; }
+    .header h1 {
+      font-size: 1.8rem; font-weight: normal;
+      letter-spacing: 0.05em; position: relative;
+    }
+    .header p {
+      margin-top: 0.4rem; font-size: 0.95rem;
+      opacity: 0.85; font-style: italic; position: relative;
+    }
+    .green-line {
+      width: 60px; height: 2px;
+      background: var(--mint);
+      margin: 0.8rem auto 0; position: relative;
+    }
+
+    /* ── Card ── */
+    .card {
+      background: var(--white);
+      border-radius: 16px;
+      box-shadow: 0 4px 30px rgba(30, 77, 40, 0.10);
+      padding: 2rem 1.75rem;
+      width: 92%; max-width: 520px;
+      margin: 1.8rem 0;
+    }
+
+    /* ── Form ── */
+    label {
+      display: block; font-size: 0.82rem;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--deep); margin-bottom: 0.4rem;
+      font-family: Arial, sans-serif;
+    }
+    input[type="text"], textarea {
+      width: 100%; padding: 0.75rem 1rem;
+      border: 1.5px solid var(--mint); border-radius: 8px;
+      font-size: 1rem; font-family: Georgia, serif;
+      color: var(--text); background: var(--offwhite);
+      transition: border-color 0.2s; outline: none;
+    }
+    input[type="text"]:focus, textarea:focus { border-color: var(--green); }
+    textarea { resize: vertical; min-height: 70px; }
+    .field { margin-bottom: 1.25rem; }
+
+    /* ── Drop zone ── */
+    .drop-zone {
+      border: 2px dashed var(--mint); border-radius: 12px;
+      padding: 2.5rem 1.5rem; text-align: center;
+      cursor: pointer; transition: background 0.2s, border-color 0.2s;
+      background: var(--offwhite); margin-bottom: 1.25rem; position: relative;
+    }
+    .drop-zone.drag-over { background: var(--light); border-color: var(--green); }
+    .drop-zone input[type="file"] {
+      position: absolute; inset: 0; opacity: 0;
+      cursor: pointer; width: 100%; height: 100%;
+    }
+    .drop-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+    .drop-zone h3 { font-size: 1rem; color: var(--deep); font-weight: normal; }
+    .drop-zone p { font-size: 0.82rem; color: var(--muted); margin-top: 0.3rem; font-family: Arial, sans-serif; }
+
+    /* ── Preview grid ── */
+    .preview-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      gap: 8px; margin-bottom: 1.25rem;
+    }
+    .preview-item {
+      position: relative; aspect-ratio: 1;
+      border-radius: 8px; overflow: hidden; background: var(--light);
+    }
+    .preview-item img { width: 100%; height: 100%; object-fit: cover; }
+    .preview-item .remove-btn {
+      position: absolute; top: 3px; right: 3px;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: rgba(0,0,0,0.55); color: #fff; border: none;
+      font-size: 12px; cursor: pointer; display: flex;
+      align-items: center; justify-content: center; line-height: 1;
+    }
+    .file-count { font-size: 0.82rem; color: var(--green); margin-bottom: 1rem; font-family: Arial, sans-serif; }
+
+    /* ── Button ── */
+    .btn-upload {
+      width: 100%; padding: 0.9rem;
+      background: linear-gradient(135deg, var(--green), var(--deep));
+      color: #fff; border: none; border-radius: 10px;
+      font-size: 1.05rem; font-family: Georgia, serif;
+      cursor: pointer; letter-spacing: 0.04em;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    .btn-upload:hover { opacity: 0.92; }
+    .btn-upload:active { transform: scale(0.98); }
+    .btn-upload:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ── Progress ── */
+    .progress-wrap { margin-top: 1rem; display: none; }
+    .progress-bar-bg { height: 8px; background: var(--light); border-radius: 4px; overflow: hidden; }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--green), var(--mint));
+      width: 0%; transition: width 0.3s; border-radius: 4px;
+    }
+    .progress-label { font-size: 0.8rem; color: var(--green); margin-top: 0.4rem; text-align: center; font-family: Arial, sans-serif; }
+
+    /* ── Success ── */
+    .success-screen { display: none; text-align: center; padding: 1rem 0; }
+    .success-icon { font-size: 3.5rem; margin-bottom: 0.8rem; }
+    .success-screen h2 { font-size: 1.5rem; color: var(--deep); font-weight: normal; }
+    .success-screen p { margin-top: 0.5rem; color: var(--muted); font-size: 0.95rem; font-family: Arial, sans-serif; }
+    .btn-again {
+      margin-top: 1.5rem; padding: 0.7rem 2rem;
+      background: transparent; border: 1.5px solid var(--green);
+      color: var(--green); border-radius: 8px;
+      font-family: Georgia, serif; font-size: 0.95rem; cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .btn-again:hover { background: var(--green); color: #fff; }
+
+    /* ── Error ── */
+    .error-msg {
+      background: #fde8e8; border: 1px solid #f5a3a3; color: #c0392b;
+      border-radius: 8px; padding: 0.7rem 1rem; font-size: 0.87rem;
+      margin-bottom: 1rem; font-family: Arial, sans-serif; display: none;
+    }
+
+    /* ── Footer ── */
+    .footer { text-align: center; padding: 1.5rem; font-size: 0.78rem; color: var(--muted); font-family: Arial, sans-serif; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-icon">🌿</div>
+  <h1>Deel jouw foto's</h1>
+  <p>Help ons deze dag onvergetelijk te maken</p>
+  <div class="green-line"></div>
+</div>
+
+<div class="card">
+  <div class="error-msg" id="errorMsg"></div>
+
+  <form id="uploadForm">
+    <div class="field">
+      <label for="nameInput">Jouw naam *</label>
+      <input type="text" id="nameInput" placeholder="Jan & Marie" autocomplete="name" required />
+    </div>
+    <div class="field">
+      <label for="messageInput">Berichtje (optioneel)</label>
+      <textarea id="messageInput" placeholder="Een lieve wens of herinnering..."></textarea>
+    </div>
+
+    <label>Foto's toevoegen *</label>
+    <div class="drop-zone" id="dropZone">
+      <input type="file" id="fileInput" accept="image/*" multiple capture="environment" />
+      <div class="drop-icon">📷</div>
+      <h3>Tik hier om foto's te kiezen</h3>
+      <p>of sleep ze hiernaartoe &bull; max 50 MB per foto</p>
+    </div>
+
+    <div id="previewGrid" class="preview-grid"></div>
+    <div id="fileCount" class="file-count" style="display:none"></div>
+
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
+      <div class="progress-label" id="progressLabel">Uploaden...</div>
+    </div>
+
+    <button type="submit" class="btn-upload" id="uploadBtn">Foto's versturen</button>
+  </form>
+
+  <div class="success-screen" id="successScreen">
+    <div class="success-icon">🌿</div>
+    <h2>Dankjewel!</h2>
+    <p id="successMsg">Jouw foto's zijn veilig ontvangen.<br>Geniet van de dag!</p>
+    <button class="btn-again" onclick="resetForm()">Meer foto's toevoegen</button>
+  </div>
+</div>
+
+<div class="footer">Met liefde gemaakt voor deze speciale dag &hearts;</div>
+
+<script>
+  const fileInput = document.getElementById('fileInput');
+  const dropZone = document.getElementById('dropZone');
+  const previewGrid = document.getElementById('previewGrid');
+  const fileCount = document.getElementById('fileCount');
+  const uploadForm = document.getElementById('uploadForm');
+  const uploadBtn = document.getElementById('uploadBtn');
+  const progressWrap = document.getElementById('progressWrap');
+  const progressFill = document.getElementById('progressFill');
+  const progressLabel = document.getElementById('progressLabel');
+  const successScreen = document.getElementById('successScreen');
+  const errorMsg = document.getElementById('errorMsg');
+
+  let selectedFiles = [];
+
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault(); dropZone.classList.remove('drag-over');
+    addFiles([...e.dataTransfer.files]);
+  });
+  fileInput.addEventListener('change', () => { addFiles([...fileInput.files]); fileInput.value = ''; });
+
+  function addFiles(files) {
+    const imageFiles = files.filter(f => f.type.startsWith('image/') || /\.(heic|heif)$/i.test(f.name));
+    imageFiles.forEach(f => {
+      if (!selectedFiles.find(sf => sf.name === f.name && sf.size === f.size)) selectedFiles.push(f);
+    });
+    renderPreviews();
+  }
+
+  function renderPreviews() {
+    previewGrid.innerHTML = '';
+    selectedFiles.forEach((file, i) => {
+      const item = document.createElement('div');
+      item.className = 'preview-item';
+      const img = document.createElement('img');
+      const reader = new FileReader();
+      reader.onload = e => img.src = e.target.result;
+      reader.readAsDataURL(file);
+      const btn = document.createElement('button');
+      btn.className = 'remove-btn'; btn.innerHTML = '&times;'; btn.type = 'button';
+      btn.onclick = () => { selectedFiles.splice(i, 1); renderPreviews(); };
+      item.appendChild(img); item.appendChild(btn); previewGrid.appendChild(item);
+    });
+    if (selectedFiles.length > 0) {
+      fileCount.style.display = 'block';
+      fileCount.textContent = `${selectedFiles.length} foto${selectedFiles.length !== 1 ? "'s" : ''} geselecteerd`;
+    } else { fileCount.style.display = 'none'; }
+  }
+
+  function showError(msg) {
+    errorMsg.textContent = msg; errorMsg.style.display = 'block';
+    setTimeout(() => errorMsg.style.display = 'none', 5000);
+  }
+
+  uploadForm.addEventListener('submit', async (e) => {
+    e.preventDefault(); errorMsg.style.display = 'none';
+    const name = document.getElementById('nameInput').value.trim();
+    if (!name) return showError('Vul alsjeblieft jouw naam in.');
+    if (selectedFiles.length === 0) return showError('Voeg minstens één foto toe.');
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('message', document.getElementById('messageInput').value.trim());
+    selectedFiles.forEach(f => formData.append('photos', f));
+    uploadBtn.disabled = true;
+    progressWrap.style.display = 'block';
+    progressFill.style.width = '5%';
+    progressLabel.textContent = "Foto's uploaden...";
+    try {
+      let prog = 5;
+      const progInterval = setInterval(() => {
+        prog = Math.min(prog + Math.random() * 8, 88);
+        progressFill.style.width = prog + '%';
+      }, 400);
+      const res = await fetch('/api/upload', { method: 'POST', body: formData });
+      clearInterval(progInterval);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Upload mislukt');
+      progressFill.style.width = '100%';
+      progressLabel.textContent = 'Klaar!';
+      setTimeout(() => {
+        uploadForm.style.display = 'none';
+        document.getElementById('successMsg').innerHTML =
+          `<strong>${data.count} foto${data.count !== 1 ? "'s" : ''}</strong> veilig ontvangen.<br>Geniet van de dag!`;
+        successScreen.style.display = 'block';
+      }, 600);
+    } catch (err) {
+      progressWrap.style.display = 'none'; uploadBtn.disabled = false;
+      showError(err.message || 'Er ging iets mis. Probeer opnieuw.');
+    }
+  });
+
+  function resetForm() {
+    selectedFiles = []; renderPreviews();
+    document.getElementById('nameInput').value = '';
+    document.getElementById('messageInput').value = '';
+    progressWrap.style.display = 'none'; progressFill.style.width = '0%';
+    uploadBtn.disabled = false; successScreen.style.display = 'none';
+    uploadForm.style.display = 'block';
+  }
+</script>
+</body>
+</html>
