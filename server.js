@@ -20,7 +20,7 @@ const bannerDir  = path.join(__dirname, 'public', 'banner');
 const dataFile     = path.join(dataDir, 'photos.json');
 const settingsFile = path.join(dataDir, 'settings.json');
 if (!fs.existsSync(dataFile))     fs.writeFileSync(dataFile,     JSON.stringify([]));
-if (!fs.existsSync(settingsFile)) fs.writeFileSync(settingsFile, JSON.stringify({ theme: 'green', bannerUrl: null, guestPassword: '' }));
+if (!fs.existsSync(settingsFile)) fs.writeFileSync(settingsFile, JSON.stringify({ theme: 'green', bannerUrl: null, guestPassword: '', welcomeTitle: '', welcomeSubtitle: '' }));
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -101,7 +101,7 @@ app.post('/api/upload', upload.array('photos', 30), (req, res) => {
 // Authenticated callers (dashboard) also receive the actual guest password.
 app.get('/api/settings', (req, res) => {
   const s = readSettings();
-  const out = { theme: s.theme, bannerUrl: s.bannerUrl, hasGuestPassword: !!s.guestPassword };
+  const out = { theme: s.theme, bannerUrl: s.bannerUrl, hasGuestPassword: !!s.guestPassword, welcomeTitle: s.welcomeTitle || '', welcomeSubtitle: s.welcomeSubtitle || '' };
   if (req.query.password === DASHBOARD_PASSWORD) out.guestPassword = s.guestPassword || '';
   res.json(out);
 });

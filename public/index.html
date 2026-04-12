@@ -146,8 +146,8 @@
 
 <div class="header">
   <div class="header-icon" id="headerIcon">🌿</div>
-  <h1>Deel jouw foto's</h1>
-  <p>Help ons deze dag onvergetelijk te maken</p>
+  <h1 id="headerTitle">Deel jouw foto's</h1>
+  <p id="headerSubtitle">Help ons deze dag onvergetelijk te maken</p>
   <div class="accent-line"></div>
 </div>
 
@@ -243,7 +243,9 @@
     try {
       const r = await fetch('/api/settings');
       const s = await r.json();
-      if (s.theme)     applyTheme(s.theme);
+      if (s.theme)          applyTheme(s.theme);
+      if (s.welcomeTitle)   document.getElementById('headerTitle').textContent    = s.welcomeTitle;
+      if (s.welcomeSubtitle) document.getElementById('headerSubtitle').textContent = s.welcomeSubtitle;
       if (s.bannerUrl) {
         document.getElementById('bannerImg').src = s.bannerUrl;
         document.getElementById('bannerWrap').style.display = 'block';

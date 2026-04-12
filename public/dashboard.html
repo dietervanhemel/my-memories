@@ -213,6 +213,9 @@
     }
     .pw-field-wrap input:focus { border-color: var(--accent); }
     .pw-hint { font-size: 0.75rem; color: var(--muted); margin-top: 0.4rem; }
+    .field label { display: block; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--deep); margin-bottom: 0.35rem; }
+    .field input[type="text"] { width: 100%; padding: 0.65rem 0.9rem; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.95rem; outline: none; transition: border-color 0.2s; }
+    .field input[type="text"]:focus { border-color: var(--accent); }
 
     /* Save button */
     .save-btn {
@@ -376,6 +379,22 @@
             </div>
           </div>
           <div class="save-msg" id="bannerSaveMsg">✓ Banner opgeslagen!</div>
+        </div>
+
+        <!-- Welcome message -->
+        <div class="custom-card">
+          <h3>Welkomstbericht</h3>
+          <p>Pas de tekst bovenaan de upload pagina van gasten aan.</p>
+          <div class="field" style="margin-bottom:1rem">
+            <label for="welcomeTitle">Titel</label>
+            <input type="text" id="welcomeTitle" placeholder="Deel jouw foto's" />
+          </div>
+          <div class="field" style="margin-bottom:0">
+            <label for="welcomeSubtitle">Ondertitel</label>
+            <input type="text" id="welcomeSubtitle" placeholder="Help ons deze dag onvergetelijk te maken" />
+          </div>
+          <button class="save-btn" onclick="saveWelcomeMessage()">Opslaan</button>
+          <div class="save-msg" id="welcomeSaveMsg">✓ Bericht opgeslagen!</div>
         </div>
 
         <!-- Guest password -->
@@ -617,6 +636,9 @@
     const s = await r.json();
     if (s.theme) { selectedTheme = s.theme; applyTheme(s.theme); markSelectedTheme(s.theme); }
     if (s.bannerUrl) showBannerPreview(s.bannerUrl, false);
+    // Welcome message
+    document.getElementById('welcomeTitle').value    = s.welcomeTitle    || '';
+    document.getElementById('welcomeSubtitle').value = s.welcomeSubtitle || '';
     // Guest password
     const hasPw = !!s.guestPassword;
     document.getElementById('guestPwToggle').checked = hasPw;
@@ -689,6 +711,18 @@
     if (!confirm('Banner verwijderen?')) return;
     const r = await fetch(`/api/banner?password=${encodeURIComponent(password)}`,{method:'DELETE'});
     if (r.ok) { document.getElementById('bannerPreview').style.display='none'; pendingBannerFile=null; }
+  }
+
+  // ── Welcome message ──
+  async function saveWelcomeMessage() {
+    const r = await fetch(`/api/settings?password=${encodeURIComponent(password)}`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        welcomeTitle:    document.getElementById('welcomeTitle').value.trim(),
+        welcomeSubtitle: document.getElementById('welcomeSubtitle').value.trim()
+      })
+    });
+    if (r.ok) flash('welcomeSaveMsg');
   }
 
   // ── Guest password ──
