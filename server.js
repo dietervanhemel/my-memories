@@ -20,7 +20,7 @@ const bannerDir  = path.join(__dirname, 'public', 'banner');
 const dataFile     = path.join(dataDir, 'photos.json');
 const settingsFile = path.join(dataDir, 'settings.json');
 if (!fs.existsSync(dataFile))     fs.writeFileSync(dataFile,     JSON.stringify([]));
-if (!fs.existsSync(settingsFile)) fs.writeFileSync(settingsFile, JSON.stringify({ theme: 'green', bannerUrl: null, guestPassword: '', welcomeTitle: '', welcomeSubtitle: '' }));
+if (!fs.existsSync(settingsFile)) fs.writeFileSync(settingsFile, JSON.stringify({ theme: 'green', eventType: '', bannerUrl: null, guestPassword: '', welcomeTitle: '', welcomeSubtitle: '' }));
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -101,7 +101,7 @@ app.post('/api/upload', upload.array('photos', 30), (req, res) => {
 // Authenticated callers (dashboard) also receive the actual guest password.
 app.get('/api/settings', (req, res) => {
   const s = readSettings();
-  const out = { theme: s.theme, bannerUrl: s.bannerUrl, hasGuestPassword: !!s.guestPassword, welcomeTitle: s.welcomeTitle || '', welcomeSubtitle: s.welcomeSubtitle || '' };
+  const out = { theme: s.theme, eventType: s.eventType || '', bannerUrl: s.bannerUrl, hasGuestPassword: !!s.guestPassword, welcomeTitle: s.welcomeTitle || '', welcomeSubtitle: s.welcomeSubtitle || '' };
   if (req.query.password === DASHBOARD_PASSWORD) out.guestPassword = s.guestPassword || '';
   res.json(out);
 });
@@ -183,6 +183,7 @@ app.post('/api/settings', auth, (req, res) => {
   if (req.body.theme            !== undefined) s.theme            = req.body.theme;
   if (req.body.bannerUrl        !== undefined) s.bannerUrl        = req.body.bannerUrl;
   if (req.body.guestPassword    !== undefined) s.guestPassword    = req.body.guestPassword;
+  if (req.body.eventType        !== undefined) s.eventType        = req.body.eventType;
   if (req.body.welcomeTitle     !== undefined) s.welcomeTitle     = req.body.welcomeTitle;
   if (req.body.welcomeSubtitle  !== undefined) s.welcomeSubtitle  = req.body.welcomeSubtitle;
   writeSettings(s);

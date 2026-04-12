@@ -158,6 +158,31 @@
     /* ── Customization ── */
     .custom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
     @media (max-width: 900px) { .custom-grid { grid-template-columns: 1fr; } }
+    .full-width { grid-column: 1 / -1; }
+
+    /* Event type cards */
+    .event-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.85rem; }
+    @media (max-width: 800px) { .event-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 500px) { .event-grid { grid-template-columns: repeat(2, 1fr); } }
+    .event-card {
+      border-radius: 12px; overflow: hidden; cursor: pointer;
+      border: 3px solid transparent; transition: transform 0.15s, border-color 0.2s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.09); background: #fff;
+    }
+    .event-card:hover { transform: translateY(-3px); }
+    .event-card.selected { border-color: var(--accent); }
+    .event-card-top {
+      height: 72px; display: flex; align-items: center; justify-content: center;
+      font-size: 2.2rem; position: relative;
+    }
+    .event-card-check {
+      position: absolute; top: 5px; right: 8px; font-size: 0.95rem;
+      color: #fff; display: none; background: rgba(0,0,0,0.25);
+      border-radius: 50%; width: 20px; height: 20px;
+      align-items: center; justify-content: center; line-height: 20px; text-align: center;
+    }
+    .event-card.selected .event-card-check { display: flex; }
+    .event-card-label { padding: 0.5rem 0.4rem 0.6rem; font-size: 0.74rem; font-weight: bold; text-align: center; }
     .custom-card { background: #fff; border-radius: 12px; padding: 1.5rem; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
     .custom-card h3 { font-family: Georgia, serif; font-size: 1rem; color: var(--deep); font-weight: normal; margin-bottom: 0.3rem; }
     .custom-card > p { font-size: 0.82rem; color: var(--muted); margin-bottom: 1.2rem; }
@@ -352,6 +377,15 @@
       <div class="topbar"><h1>Uiterlijk</h1></div>
       <div class="custom-grid">
 
+        <!-- Event type selector (full width) -->
+        <div class="custom-card full-width">
+          <h3>Type evenement</h3>
+          <p>Kies het type evenement. Dit past de kleuren, iconen en teksten van de upload pagina automatisch aan.</p>
+          <div class="event-grid" id="eventGrid"></div>
+          <button class="save-btn" onclick="saveEventType()">Evenementtype opslaan</button>
+          <div class="save-msg" id="eventSaveMsg">✓ Evenementtype opgeslagen!</div>
+        </div>
+
         <!-- Theme picker -->
         <div class="custom-card">
           <h3>Kleurenthema</h3>
@@ -430,24 +464,36 @@
 </div>
 
 <script>
-  // ── Theme definitions ──
-  const THEMES = {
-    green:    { name:'Groen & Wit',     icon:'🌿', emoji:'🌿', accent:'#3a7d44', deep:'#1e4d28', bg:'#f4faf5', light:'#e8f5ea', border:'#b2ddb8', text:'#1a3320', muted:'#6a9070', sidebar:'#163620', mint:'#b2ddb8' },
-    rose:     { name:'Roos & Goud',     icon:'🌹', emoji:'🌹', accent:'#c9806b', deep:'#5c3d2e', bg:'#fff8f0', light:'#f2d7d0', border:'#f2d7d0', text:'#3a2a20', muted:'#a08070', sidebar:'#281808', mint:'#e8c4b0' },
-    navy:     { name:'Marine & Goud',   icon:'⚓',  emoji:'⚓',  accent:'#2c4a8a', deep:'#1a2d5a', bg:'#f0f4fa', light:'#dde6f5', border:'#9ab0d8', text:'#1a2040', muted:'#6070a0', sidebar:'#0e1c38', mint:'#9ab0d8' },
-    lavender: { name:'Lavendel',         icon:'💜', emoji:'💜', accent:'#8050a8', deep:'#4a2870', bg:'#faf0ff', light:'#ecddf5', border:'#c8a8e0', text:'#301848', muted:'#8068a0', sidebar:'#1e0e30', mint:'#c8a8e0' },
-    sage:     { name:'Salie & Crème',   icon:'🌾', emoji:'🌾', accent:'#7a6040', deep:'#4a3820', bg:'#faf6f0', light:'#ede8d8', border:'#c0b090', text:'#302818', muted:'#907858', sidebar:'#221808', mint:'#c0b090' },
-    midnight: { name:'Midnight & Goud', icon:'✨', emoji:'✨', accent:'#b09030', deep:'#1a1a10', bg:'#f8f8f6', light:'#eeeee8', border:'#c8b870', text:'#201c08', muted:'#807040', sidebar:'#0c0c08', mint:'#c8b870' },
+  // ── Event type definitions ──
+  const EVENT_TYPES = {
+    wedding:     { name:'Bruiloft',      icon:'💍', accent:'#c9806b', deep:'#5c3d2e', bg:'#fff8f0', light:'#faeae4', border:'#e8c4b0', text:'#3a2a20', muted:'#a08070', sidebar:'#2a1508', mint:'#e8c4b0', defaultTitle:"Deel jouw bruiloftsfoto's",    defaultSubtitle:'Help ons deze dag onvergetelijk te maken' },
+    birthday:    { name:'Verjaardag',    icon:'🎂', accent:'#e0407a', deep:'#8b1048', bg:'#fff0f7', light:'#fddaec', border:'#f4a8cc', text:'#3a0820', muted:'#c060a0', sidebar:'#520030', mint:'#f4a8cc', defaultTitle:"Deel jouw verjaardagsfoto's", defaultSubtitle:'Vier mee en deel de mooiste momenten!' },
+    babyshower:  { name:'Baby Shower',   icon:'👶', accent:'#5ba3d0', deep:'#1e5f88', bg:'#f0f8ff', light:'#d4eaf8', border:'#9acce8', text:'#103050', muted:'#5888a8', sidebar:'#0a2a40', mint:'#9acce8', defaultTitle:"Deel jouw foto's",             defaultSubtitle:'Welkom het nieuwe leven met ons!' },
+    anniversary: { name:'Jubileum',      icon:'🥂', accent:'#b09030', deep:'#6a5010', bg:'#fdf8ee', light:'#f5e8b8', border:'#d8c078', text:'#302008', muted:'#907830', sidebar:'#302008', mint:'#d8c078', defaultTitle:"Deel jouw jubileumfoto's",    defaultSubtitle:'Samen vieren we dit bijzondere moment' },
+    graduation:  { name:'Afstuderen',   icon:'🎓', accent:'#2c4a8a', deep:'#1a2d5a', bg:'#f0f4fa', light:'#dde6f5', border:'#9ab0d8', text:'#1a2040', muted:'#6070a0', sidebar:'#0e1c38', mint:'#9ab0d8', defaultTitle:"Deel jouw afstudeerfoto's",   defaultSubtitle:'Gefeliciteerd met dit geweldige moment!' },
+    christmas:   { name:'Kerst',         icon:'🎄', accent:'#c0392b', deep:'#7a1510', bg:'#fff8f8', light:'#fde0d8', border:'#e8a090', text:'#381008', muted:'#a05048', sidebar:'#3d0808', mint:'#6ab860', defaultTitle:"Deel jouw kerstfoto's",        defaultSubtitle:'Maak deze feestdagen onvergetelijk' },
+    corporate:   { name:'Bedrijfsfeest', icon:'🎉', accent:'#1a7ab0', deep:'#0d4a70', bg:'#f0f7ff', light:'#d4e8f8', border:'#80bce0', text:'#0a2840', muted:'#4880a8', sidebar:'#082030', mint:'#80bce0', defaultTitle:"Deel jouw foto's",             defaultSubtitle:'Deel de hoogtepunten van dit feest' },
   };
 
-  let password          = '';
-  let allData           = [];
-  let selectedTheme     = 'green';
-  let pendingBannerFile = null;
+  // ── Fine-tune colour themes (can override event type colours) ──
+  const THEMES = {
+    green:    { name:'Groen & Wit',     icon:'🌿', accent:'#3a7d44', deep:'#1e4d28', bg:'#f4faf5', light:'#e8f5ea', border:'#b2ddb8', text:'#1a3320', muted:'#6a9070', sidebar:'#163620', mint:'#b2ddb8' },
+    rose:     { name:'Roos & Goud',     icon:'🌹', accent:'#c9806b', deep:'#5c3d2e', bg:'#fff8f0', light:'#f2d7d0', border:'#f2d7d0', text:'#3a2a20', muted:'#a08070', sidebar:'#281808', mint:'#e8c4b0' },
+    navy:     { name:'Marine & Goud',   icon:'⚓',  accent:'#2c4a8a', deep:'#1a2d5a', bg:'#f0f4fa', light:'#dde6f5', border:'#9ab0d8', text:'#1a2040', muted:'#6070a0', sidebar:'#0e1c38', mint:'#9ab0d8' },
+    lavender: { name:'Lavendel',         icon:'💜', accent:'#8050a8', deep:'#4a2870', bg:'#faf0ff', light:'#ecddf5', border:'#c8a8e0', text:'#301848', muted:'#8068a0', sidebar:'#1e0e30', mint:'#c8a8e0' },
+    sage:     { name:'Salie & Crème',   icon:'🌾', accent:'#7a6040', deep:'#4a3820', bg:'#faf6f0', light:'#ede8d8', border:'#c0b090', text:'#302818', muted:'#907858', sidebar:'#221808', mint:'#c0b090' },
+    midnight: { name:'Midnight & Goud', icon:'✨', accent:'#b09030', deep:'#1a1a10', bg:'#f8f8f6', light:'#eeeee8', border:'#c8b870', text:'#201c08', muted:'#807040', sidebar:'#0c0c08', mint:'#c8b870' },
+  };
 
-  // Apply theme to the entire dashboard (main area + sidebar)
-  function applyTheme(name) {
-    const t = THEMES[name] || THEMES.green;
+  let password           = '';
+  let allData            = [];
+  let selectedTheme      = 'green';
+  let selectedEventType  = '';
+  let pendingBannerFile  = null;
+
+  // Apply a colour palette to the entire dashboard (accepts a theme or event-type object)
+  function applyTheme(nameOrObj) {
+    const t = (typeof nameOrObj === 'string') ? (THEMES[nameOrObj] || EVENT_TYPES[nameOrObj] || THEMES.green) : nameOrObj;
     const r = document.documentElement;
     r.style.setProperty('--bg',      t.bg);
     r.style.setProperty('--light',   t.light);
@@ -456,9 +502,8 @@
     r.style.setProperty('--deep',    t.deep);
     r.style.setProperty('--text',    t.text);
     r.style.setProperty('--muted',   t.muted);
-    r.style.setProperty('--sidebar', t.sidebar);
-    r.style.setProperty('--mint',    t.mint);
-    // Update sidebar icon
+    r.style.setProperty('--sidebar', t.sidebar || '#163620');
+    r.style.setProperty('--mint',    t.mint    || t.border);
     const si = document.getElementById('sidebarIcon');
     const li = document.getElementById('loginIcon');
     if (si) si.textContent = t.icon;
@@ -486,6 +531,7 @@
           document.getElementById('urlInput').value = window.location.origin;
           refreshAll();
           loadCurrentSettings();
+          buildEventGrid();
           buildThemeGrid();
         } else {
           document.getElementById('loginError').style.display = 'block';
@@ -630,12 +676,56 @@
   function downloadQR() { const a=document.createElement('a'); a.href=document.getElementById('qrImage').src; a.download='trouw-qrcode.png'; a.click(); }
   function copyUrl()    { navigator.clipboard.writeText(document.getElementById('qrUrl').textContent).then(()=>alert('Link gekopieerd!')); }
 
+  // ── Event type picker ──
+  function buildEventGrid() {
+    document.getElementById('eventGrid').innerHTML = Object.entries(EVENT_TYPES).map(([key, e]) => `
+      <div class="event-card" id="ecard-${key}" onclick="selectEventType('${key}')">
+        <div class="event-card-top" style="background:linear-gradient(135deg,${e.deep},${e.accent})">
+          <span>${e.icon}</span>
+          <span class="event-card-check">✓</span>
+        </div>
+        <div class="event-card-label" style="background:${e.bg};color:${e.deep}">${e.name}</div>
+      </div>`).join('');
+    if (selectedEventType) markSelectedEvent(selectedEventType);
+  }
+
+  function selectEventType(key) {
+    selectedEventType = key;
+    markSelectedEvent(key);
+    applyTheme(EVENT_TYPES[key]); // live dashboard preview
+    // Pre-fill welcome fields with event defaults if currently empty
+    const t = document.getElementById('welcomeTitle');
+    const s = document.getElementById('welcomeSubtitle');
+    if (!t.value) t.value = EVENT_TYPES[key].defaultTitle;
+    if (!s.value) s.value = EVENT_TYPES[key].defaultSubtitle;
+  }
+
+  function markSelectedEvent(key) {
+    document.querySelectorAll('.event-card').forEach(c => c.classList.remove('selected'));
+    document.getElementById('ecard-' + key)?.classList.add('selected');
+  }
+
+  async function saveEventType() {
+    if (!selectedEventType) { alert('Selecteer eerst een evenementtype.'); return; }
+    const r = await fetch(`/api/settings?password=${encodeURIComponent(password)}`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ eventType: selectedEventType })
+    });
+    if (r.ok) flash('eventSaveMsg');
+  }
+
   // ── Customization: settings load ──
   async function loadCurrentSettings() {
     const r = await fetch(`/api/settings?password=${encodeURIComponent(password)}`);
     const s = await r.json();
     if (s.theme) { selectedTheme = s.theme; applyTheme(s.theme); markSelectedTheme(s.theme); }
     if (s.bannerUrl) showBannerPreview(s.bannerUrl, false);
+    // Event type
+    if (s.eventType && EVENT_TYPES[s.eventType]) {
+      selectedEventType = s.eventType;
+      applyTheme(EVENT_TYPES[s.eventType]);
+      markSelectedEvent(s.eventType);
+    }
     // Welcome message
     document.getElementById('welcomeTitle').value    = s.welcomeTitle    || '';
     document.getElementById('welcomeSubtitle').value = s.welcomeSubtitle || '';
