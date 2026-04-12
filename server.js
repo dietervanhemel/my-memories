@@ -1,11 +1,11 @@
 const express = require('express');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+const multer  = require('multer');
+const path    = require('path');
+const fs      = require('fs');
 const { v4: uuidv4 } = require('uuid');
-const QRCode = require('qrcode');
+const QRCode  = require('qrcode');
 
-const app = express();
+const app  = express();
 const PORT = process.env.PORT || 3000;
 
 // Dashboard password — change this!
@@ -17,37 +17,42 @@ const dataDir    = path.join(__dirname, 'data');
 const bannerDir  = path.join(__dirname, 'public', 'banner');
 [uploadsDir, dataDir, bannerDir].forEach(d => { if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true }); });
 
-const dataFile     = path.join(dataDir, 'photos.json');
-const settingsFile = path.join(dataDir, 'settings.json');
-if (!fs.existsSync(dataFile))     fs.writeFileSync(dataFile,     JSON.stringify([]));
-if (!fs.existsSync(settingsFile)) fs.writeFileSync(settingsFile, JSON.stringify({ theme: 'green', eventType: '', bannerUrl: null, guestPassword: '', welcomeTitle: '', welcomeSubtitle: '' }));
+const eventsFile = path.join(dataDir, 'events.json');
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-function readData() {
-  try { return JSON.parse(fs.readFileSync(dataFile, 'utf-8')); } catch { return []; }
+function readEvents() {
+  try { return JSON.parse(fs.readFileSync(eventsFile, 'utf-8')); } catch { return []; }
 }
-function writeData(data) { fs.writeFileSync(dataFile, JSON.stringify(data, null, 2)); }
-
-function readSettings() {
-  try { return JSON.parse(fs.readFileSync(settingsFile, 'utf-8')); }
-  catch { return { theme: 'green', bannerUrl: null }; }
-}
-function writeSettings(s) { fs.writeFileSync(settingsFile, JSON.stringify(s, null, 2)); }
+function writeEvents(data) { fs.writeFileSync(eventsFile, JSON.stringify(data, null, 2)); }
 
 function auth(req, res, next) {
   if (req.query.password !== DASHBOARD_PASSWORD) return res.status(401).json({ error: 'Niet geautoriseerd' });
   next();
 }
 
+// ─── One-time migration from legacy single-event files ───────────────────────
+
+if (!fs.existsSync(eventsFile)) {
+  let s = { theme: 'green', eventType: '', bannerUrl: null, guestPassword: '', welcomeTitle: '', welcomeSubtitle: '' };
+  let p = [];
+  try { s = JSON.parse(fs.readFileSync(path.join(dataDir, 'settings.json'), 'utf-8')); } catch {}
+  try { p = JSON.parse(fs.readFileSync(path.join(dataDir, 'photos.json'),   'utf-8')); } catch {}
+  writeEvents([{
+    id: uuidv4(), name: s.welcomeTitle || 'Mijn evenement', createdAt: new Date().toISOString(),
+    theme: s.theme || 'green', eventType: s.eventType || '', bannerUrl: s.bannerUrl || null,
+    guestPassword: s.guestPassword || '', welcomeTitle: s.welcomeTitle || '', welcomeSubtitle: s.welcomeSubtitle || '',
+    photos: p
+  }]);
+}
+
 // ─── Multer: photos ──────────────────────────────────────────────────────────
 
-const photoStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadsDir),
-  filename:    (req, file, cb) => cb(null, `${uuidv4()}${path.extname(file.originalname).toLowerCase()}`)
-});
 const upload = multer({
-  storage: photoStorage,
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, uploadsDir),
+    filename:    (req, file, cb) => cb(null, `${uuidv4()}${path.extname(file.originalname).toLowerCase()}`)
+  }),
   limits: { fileSize: 50 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const ok = /jpeg|jpg|png|gif|webp|heic|heif/.test(path.extname(file.originalname).toLowerCase())
@@ -58,11 +63,13 @@ const upload = multer({
 
 // ─── Multer: banner ──────────────────────────────────────────────────────────
 
-const bannerStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, bannerDir),
-  filename:    (req, file, cb) => cb(null, 'banner' + path.extname(file.originalname).toLowerCase())
+const bannerUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, bannerDir),
+    filename:    (req, file, cb) => cb(null, `banner-${req.params.eid}${path.extname(file.originalname).toLowerCase()}`)
+  }),
+  limits: { fileSize: 10 * 1024 * 1024 }
 });
-const bannerUpload = multer({ storage: bannerStorage, limits: { fileSize: 10 * 1024 * 1024 } });
 
 // ─── Middleware ──────────────────────────────────────────────────────────────
 
@@ -70,52 +77,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(uploadsDir));
 
-// ─── Public routes ───────────────────────────────────────────────────────────
-
-// Guest photo upload
-app.post('/api/upload', upload.array('photos', 30), (req, res) => {
-  const { name, message } = req.body;
-  if (!name?.trim()) return res.status(400).json({ error: 'Naam is verplicht' });
-  if (!req.files?.length) return res.status(400).json({ error: "Geen foto's ontvangen" });
-
-  const data  = readData();
-  const entry = {
-    id: uuidv4(),
-    name: name.trim(),
-    message: (message || '').trim(),
-    uploadedAt: new Date().toISOString(),
-    photos: req.files.map(f => ({
-      id: uuidv4(),
-      filename: f.filename,
-      originalName: f.originalname,
-      size: f.size,
-      uploadedAt: new Date().toISOString()
-    }))
-  };
-  data.push(entry);
-  writeData(data);
-  res.json({ success: true, count: req.files.length, uploadId: entry.id });
-});
-
-// Public settings — guests see theme + banner + whether a password is required.
-// Authenticated callers (dashboard) also receive the actual guest password.
-app.get('/api/settings', (req, res) => {
-  const s = readSettings();
-  const out = { theme: s.theme, eventType: s.eventType || '', bannerUrl: s.bannerUrl, hasGuestPassword: !!s.guestPassword, welcomeTitle: s.welcomeTitle || '', welcomeSubtitle: s.welcomeSubtitle || '' };
-  if (req.query.password === DASHBOARD_PASSWORD) out.guestPassword = s.guestPassword || '';
-  res.json(out);
-});
-
-// Guest password verification (public — never reveals the password itself)
-app.post('/api/verify-guest-password', (req, res) => {
-  const s = readSettings();
-  if (!s.guestPassword) return res.json({ success: true }); // no password set
-  req.body.password === s.guestPassword
-    ? res.json({ success: true })
-    : res.status(401).json({ error: 'Onjuist wachtwoord' });
-});
-
-// ─── Protected routes ────────────────────────────────────────────────────────
+// ─── Auth ────────────────────────────────────────────────────────────────────
 
 app.post('/api/auth', (req, res) => {
   req.body.password === DASHBOARD_PASSWORD
@@ -123,93 +85,181 @@ app.post('/api/auth', (req, res) => {
     : res.status(401).json({ error: 'Onjuist wachtwoord' });
 });
 
-app.get('/api/photos', auth, (req, res) => res.json(readData()));
+// ─── Events CRUD (protected) ─────────────────────────────────────────────────
 
-app.get('/api/stats', auth, (req, res) => {
-  const data = readData();
-  const totalPhotos = data.reduce((s, e) => s + e.photos.length, 0);
-  const totalSize   = data.reduce((s, e) => s + e.photos.reduce((x, p) => x + p.size, 0), 0);
-  res.json({ totalUploaders: data.length, totalPhotos, totalSizeMB: (totalSize / 1048576).toFixed(1) });
+// List all events (summary — no photo payloads)
+app.get('/api/events', auth, (req, res) => {
+  const events = readEvents();
+  res.json(events.map(e => ({
+    id: e.id, name: e.name, createdAt: e.createdAt,
+    eventType: e.eventType || '', theme: e.theme || 'green',
+    totalUploaders: (e.photos || []).length,
+    totalPhotos: (e.photos || []).reduce((s, u) => s + u.photos.length, 0)
+  })));
 });
 
-// Delete single photo
-app.delete('/api/photos/:uploadId/:photoId', auth, (req, res) => {
-  const data  = readData();
-  const entry = data.find(e => e.id === req.params.uploadId);
-  if (!entry) return res.status(404).json({ error: 'Niet gevonden' });
-  const photo = entry.photos.find(p => p.id === req.params.photoId);
-  if (!photo) return res.status(404).json({ error: 'Foto niet gevonden' });
-  const fp = path.join(uploadsDir, photo.filename);
-  if (fs.existsSync(fp)) fs.unlinkSync(fp);
-  entry.photos = entry.photos.filter(p => p.id !== req.params.photoId);
-  if (!entry.photos.length) data.splice(data.indexOf(entry), 1);
-  writeData(data);
-  res.json({ success: true });
+// Create new event
+app.post('/api/events', auth, (req, res) => {
+  if (!req.body.name?.trim()) return res.status(400).json({ error: 'Naam is verplicht' });
+  const events = readEvents();
+  const evt = {
+    id: uuidv4(), name: req.body.name.trim(), createdAt: new Date().toISOString(),
+    theme: 'green', eventType: '', bannerUrl: null,
+    guestPassword: '', welcomeTitle: req.body.name.trim(), welcomeSubtitle: '', photos: []
+  };
+  events.push(evt);
+  writeEvents(events);
+  res.json({ success: true, id: evt.id, name: evt.name, createdAt: evt.createdAt, eventType: '', theme: 'green', totalUploaders: 0, totalPhotos: 0 });
 });
 
-// Delete entire upload group
-app.delete('/api/uploads/:uploadId', auth, (req, res) => {
-  const data = readData();
-  const idx  = data.findIndex(e => e.id === req.params.uploadId);
+// Delete event
+app.delete('/api/events/:eid', auth, (req, res) => {
+  const events = readEvents();
+  const idx    = events.findIndex(e => e.id === req.params.eid);
   if (idx === -1) return res.status(404).json({ error: 'Niet gevonden' });
-  data[idx].photos.forEach(p => {
-    const fp = path.join(uploadsDir, p.filename);
-    if (fs.existsSync(fp)) fs.unlinkSync(fp);
-  });
-  data.splice(idx, 1);
-  writeData(data);
-  res.json({ success: true });
-});
-
-// QR code
-app.get('/api/qrcode', auth, async (req, res) => {
-  const baseUrl = req.query.url || `http://localhost:${PORT}`;
-  try {
-    const settings = readSettings();
-    // Use theme accent colour for QR dots (fallback dark green)
-    const THEME_COLORS = {
-      green: '#1e4d28', rose: '#5c3d2e', navy: '#1a2d5a',
-      lavender: '#4a2870', sage: '#4a3820', midnight: '#1a1a10'
-    };
-    const dark = THEME_COLORS[settings.theme] || '#1e4d28';
-    const qr = await QRCode.toDataURL(baseUrl, { width: 400, margin: 2, color: { dark, light: '#ffffff' } });
-    res.json({ qr, url: baseUrl });
-  } catch { res.status(500).json({ error: 'QR generatie mislukt' }); }
-});
-
-// Save settings (theme, bannerUrl, guestPassword)
-app.post('/api/settings', auth, (req, res) => {
-  const s = readSettings();
-  if (req.body.theme            !== undefined) s.theme            = req.body.theme;
-  if (req.body.bannerUrl        !== undefined) s.bannerUrl        = req.body.bannerUrl;
-  if (req.body.guestPassword    !== undefined) s.guestPassword    = req.body.guestPassword;
-  if (req.body.eventType        !== undefined) s.eventType        = req.body.eventType;
-  if (req.body.welcomeTitle     !== undefined) s.welcomeTitle     = req.body.welcomeTitle;
-  if (req.body.welcomeSubtitle  !== undefined) s.welcomeSubtitle  = req.body.welcomeSubtitle;
-  writeSettings(s);
-  res.json({ success: true });
-});
-
-// Upload banner image
-app.post('/api/upload-banner', auth, bannerUpload.single('banner'), (req, res) => {
-  if (!req.file) return res.status(400).json({ error: 'Geen bestand ontvangen' });
-  const bannerUrl = '/banner/' + req.file.filename;
-  const s = readSettings();
-  s.bannerUrl = bannerUrl;
-  writeSettings(s);
-  res.json({ success: true, bannerUrl });
-});
-
-// Remove banner
-app.delete('/api/banner', auth, (req, res) => {
-  const s = readSettings();
-  if (s.bannerUrl) {
-    const fp = path.join(__dirname, 'public', s.bannerUrl);
+  (events[idx].photos || []).forEach(u => u.photos.forEach(p => {
+    const fp = path.join(uploadsDir, p.filename); if (fs.existsSync(fp)) fs.unlinkSync(fp);
+  }));
+  if (events[idx].bannerUrl) {
+    const fp = path.join(__dirname, 'public', events[idx].bannerUrl);
     if (fs.existsSync(fp)) fs.unlinkSync(fp);
   }
-  s.bannerUrl = null;
-  writeSettings(s);
+  events.splice(idx, 1);
+  writeEvents(events);
   res.json({ success: true });
+});
+
+// ─── Public: guest page (event-scoped) ───────────────────────────────────────
+
+app.get('/api/events/:eid/settings', (req, res) => {
+  const evt = readEvents().find(e => e.id === req.params.eid);
+  if (!evt) return res.status(404).json({ error: 'Niet gevonden' });
+  const out = { theme: evt.theme || 'green', eventType: evt.eventType || '', bannerUrl: evt.bannerUrl || null,
+    hasGuestPassword: !!evt.guestPassword, welcomeTitle: evt.welcomeTitle || '', welcomeSubtitle: evt.welcomeSubtitle || '' };
+  if (req.query.password === DASHBOARD_PASSWORD) out.guestPassword = evt.guestPassword || '';
+  res.json(out);
+});
+
+app.post('/api/events/:eid/verify-guest-password', (req, res) => {
+  const evt = readEvents().find(e => e.id === req.params.eid);
+  if (!evt) return res.status(404).json({ error: 'Niet gevonden' });
+  if (!evt.guestPassword) return res.json({ success: true });
+  req.body.password === evt.guestPassword
+    ? res.json({ success: true })
+    : res.status(401).json({ error: 'Onjuist wachtwoord' });
+});
+
+app.post('/api/events/:eid/upload', upload.array('photos', 30), (req, res) => {
+  const events = readEvents();
+  const idx    = events.findIndex(e => e.id === req.params.eid);
+  if (idx === -1) return res.status(404).json({ error: 'Evenement niet gevonden' });
+  if (!req.body.name?.trim()) return res.status(400).json({ error: 'Naam is verplicht' });
+  if (!req.files?.length)     return res.status(400).json({ error: "Geen foto's ontvangen" });
+  const entry = {
+    id: uuidv4(), name: req.body.name.trim(), message: (req.body.message || '').trim(),
+    uploadedAt: new Date().toISOString(),
+    photos: req.files.map(f => ({ id: uuidv4(), filename: f.filename, originalName: f.originalname, size: f.size, uploadedAt: new Date().toISOString() }))
+  };
+  if (!events[idx].photos) events[idx].photos = [];
+  events[idx].photos.push(entry);
+  writeEvents(events);
+  res.json({ success: true, count: req.files.length, uploadId: entry.id });
+});
+
+// ─── Protected: photos & stats (event-scoped) ────────────────────────────────
+
+app.get('/api/events/:eid/photos', auth, (req, res) => {
+  const evt = readEvents().find(e => e.id === req.params.eid);
+  if (!evt) return res.status(404).json({ error: 'Niet gevonden' });
+  res.json(evt.photos || []);
+});
+
+app.get('/api/events/:eid/stats', auth, (req, res) => {
+  const evt = readEvents().find(e => e.id === req.params.eid);
+  if (!evt) return res.status(404).json({ error: 'Niet gevonden' });
+  const photos = evt.photos || [];
+  const totalPhotos = photos.reduce((s, u) => s + u.photos.length, 0);
+  const totalSize   = photos.reduce((s, u) => s + u.photos.reduce((x, p) => x + p.size, 0), 0);
+  res.json({ totalUploaders: photos.length, totalPhotos, totalSizeMB: (totalSize / 1048576).toFixed(1) });
+});
+
+app.delete('/api/events/:eid/photos/:uid/:pid', auth, (req, res) => {
+  const events = readEvents();
+  const ei     = events.findIndex(e => e.id === req.params.eid);
+  if (ei === -1) return res.status(404).json({ error: 'Niet gevonden' });
+  const entry  = (events[ei].photos || []).find(u => u.id === req.params.uid);
+  if (!entry) return res.status(404).json({ error: 'Niet gevonden' });
+  const photo  = entry.photos.find(p => p.id === req.params.pid);
+  if (!photo) return res.status(404).json({ error: 'Niet gevonden' });
+  const fp = path.join(uploadsDir, photo.filename); if (fs.existsSync(fp)) fs.unlinkSync(fp);
+  entry.photos = entry.photos.filter(p => p.id !== req.params.pid);
+  if (!entry.photos.length) events[ei].photos = events[ei].photos.filter(u => u.id !== req.params.uid);
+  writeEvents(events);
+  res.json({ success: true });
+});
+
+app.delete('/api/events/:eid/uploads/:uid', auth, (req, res) => {
+  const events = readEvents();
+  const ei     = events.findIndex(e => e.id === req.params.eid);
+  if (ei === -1) return res.status(404).json({ error: 'Niet gevonden' });
+  const idx    = (events[ei].photos || []).findIndex(u => u.id === req.params.uid);
+  if (idx === -1) return res.status(404).json({ error: 'Niet gevonden' });
+  events[ei].photos[idx].photos.forEach(p => { const fp = path.join(uploadsDir, p.filename); if (fs.existsSync(fp)) fs.unlinkSync(fp); });
+  events[ei].photos.splice(idx, 1);
+  writeEvents(events);
+  res.json({ success: true });
+});
+
+// ─── Protected: settings, banner, QR ─────────────────────────────────────────
+
+app.post('/api/events/:eid/settings', auth, (req, res) => {
+  const events = readEvents();
+  const ei     = events.findIndex(e => e.id === req.params.eid);
+  if (ei === -1) return res.status(404).json({ error: 'Niet gevonden' });
+  ['name','theme','bannerUrl','guestPassword','eventType','welcomeTitle','welcomeSubtitle'].forEach(k => {
+    if (req.body[k] !== undefined) events[ei][k] = req.body[k];
+  });
+  writeEvents(events);
+  res.json({ success: true });
+});
+
+app.post('/api/events/:eid/upload-banner', auth, bannerUpload.single('banner'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'Geen bestand ontvangen' });
+  const events = readEvents();
+  const ei     = events.findIndex(e => e.id === req.params.eid);
+  if (ei === -1) return res.status(404).json({ error: 'Niet gevonden' });
+  if (events[ei].bannerUrl) {
+    const fp = path.join(__dirname, 'public', events[ei].bannerUrl);
+    if (fs.existsSync(fp)) fs.unlinkSync(fp);
+  }
+  events[ei].bannerUrl = '/banner/' + req.file.filename;
+  writeEvents(events);
+  res.json({ success: true, bannerUrl: events[ei].bannerUrl });
+});
+
+app.delete('/api/events/:eid/banner', auth, (req, res) => {
+  const events = readEvents();
+  const ei     = events.findIndex(e => e.id === req.params.eid);
+  if (ei === -1) return res.status(404).json({ error: 'Niet gevonden' });
+  if (events[ei].bannerUrl) {
+    const fp = path.join(__dirname, 'public', events[ei].bannerUrl);
+    if (fs.existsSync(fp)) fs.unlinkSync(fp);
+  }
+  events[ei].bannerUrl = null;
+  writeEvents(events);
+  res.json({ success: true });
+});
+
+app.get('/api/events/:eid/qrcode', auth, async (req, res) => {
+  const baseUrl = req.query.url || `http://localhost:${PORT}`;
+  try {
+    const evt = readEvents().find(e => e.id === req.params.eid);
+    const COLORS = { green:'#1e4d28', rose:'#5c3d2e', navy:'#1a2d5a', lavender:'#4a2870', sage:'#4a3820', midnight:'#1a1a10' };
+    const dark   = COLORS[(evt && evt.theme) || 'green'] || '#1e4d28';
+    const url    = `${baseUrl}?event=${req.params.eid}`;
+    const qr     = await QRCode.toDataURL(url, { width: 400, margin: 2, color: { dark, light: '#ffffff' } });
+    res.json({ qr, url });
+  } catch { res.status(500).json({ error: 'QR generatie mislukt' }); }
 });
 
 app.listen(PORT, () => {

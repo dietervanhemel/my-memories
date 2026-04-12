@@ -319,10 +319,22 @@
     document.getElementById('headerIcon').textContent = t.icon;
   }
 
-  // ── Boot: load settings, apply event type / theme, banner, password gate ──
+  // ── Boot: read event ID from URL, load settings ──
+  const eventId = new URLSearchParams(location.search).get('event');
+
   (async () => {
+    if (!eventId) {
+      // No event ID — show a friendly message instead of the upload form
+      document.getElementById('uploadCard').style.display = 'none';
+      document.getElementById('headerTitle').textContent  = 'My Memories';
+      document.getElementById('headerSubtitle').textContent = 'Scan de QR code van jouw evenement om foto\'s te uploaden.';
+      const di = document.getElementById('dropIcon');
+      if (di) di.textContent = '📷';
+      return;
+    }
     try {
-      const r = await fetch('/api/settings');
+      const r = await fetch(`/api/events/${eventId}/settings`);
+      if (!r.ok) throw new Error('Evenement niet gevonden');
       const s = await r.json();
       if (s.eventType && EVENT_TYPES[s.eventType]) {
         applyEventType(s.eventType, s.welcomeTitle, s.welcomeSubtitle);
@@ -347,7 +359,7 @@
     const pw  = document.getElementById('guestPwInput').value;
     const err = document.getElementById('pwErrorMsg');
     try {
-      const r = await fetch('/api/verify-guest-password', {
+      const r = await fetch(`/api/events/${eventId}/verify-guest-password`, {
         method: 'POST', headers: {'Content-Type':'application/json'},
         body: JSON.stringify({ password: pw })
       });
@@ -422,7 +434,7 @@
     try {
       let prog = 5;
       const iv = setInterval(() => { prog = Math.min(prog + Math.random()*8, 88); progressFill.style.width = prog+'%'; }, 400);
-      const res  = await fetch('/api/upload', { method:'POST', body:fd });
+      const res  = await fetch(`/api/events/${eventId}/upload`, { method:'POST', body:fd });
       clearInterval(iv);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Upload mislukt');

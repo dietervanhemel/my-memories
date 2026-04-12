@@ -7,7 +7,6 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* ── Theme variables — overridden by applyTheme() on login ── */
     :root {
       --sidebar:  #163620;
       --sidebar-w: 240px;
@@ -56,10 +55,19 @@
       color: #c8e6cc; padding: 1.5rem 0; overflow-y: auto; z-index: 100;
       transition: background 0.4s;
     }
-    .sidebar-logo { text-align: center; padding: 0 1rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 1rem; }
+    .sidebar-logo { text-align: center; padding: 0 1rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 0.5rem; }
     .sidebar-logo .icon { font-size: 1.8rem; }
     .sidebar-logo h2 { font-family: Georgia, serif; font-size: 1rem; color: var(--mint); margin-top: 0.3rem; font-weight: normal; }
     .sidebar-logo p  { font-size: 0.72rem; color: rgba(255,255,255,0.35); margin-top: 0.2rem; }
+    .current-event-bar {
+      padding: 0.55rem 1.5rem 0.65rem;
+      background: rgba(255,255,255,0.06);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      margin-bottom: 0.25rem;
+      display: none;
+    }
+    #app.event-active .current-event-bar { display: block; }
+    .current-event-bar span { font-size: 0.76rem; color: var(--mint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
     .nav-item {
       display: flex; align-items: center; gap: 0.7rem;
       padding: 0.7rem 1.5rem; cursor: pointer; font-size: 0.88rem;
@@ -68,6 +76,15 @@
     .nav-item:hover { background: rgba(255,255,255,0.07); }
     .nav-item.active { background: rgba(255,255,255,0.12); border-left-color: var(--mint); color: var(--mint); }
     .nav-icon { font-size: 1.1rem; width: 20px; text-align: center; }
+
+    /* Show/hide nav items based on state */
+    .nav-back  { display: none; border-left-color: transparent !important; color: rgba(255,255,255,0.5) !important; font-size: 0.82rem !important; }
+    .nav-back:hover { color: #fff !important; }
+    .event-nav { display: none; }
+    .nav-home  { display: flex; }
+    #app.event-active .nav-back  { display: flex; }
+    #app.event-active .nav-home  { display: none; }
+    #app.event-active .event-nav { display: flex; }
 
     .main { margin-left: var(--sidebar-w); padding: 2rem; min-height: 100vh; transition: background 0.4s; }
 
@@ -79,6 +96,29 @@
     .btn-primary { background: var(--accent); color: #fff; }
     .btn-outline  { background: #fff; border: 1.5px solid var(--border); color: var(--deep); }
     .btn-danger   { background: #e74c3c; color: #fff; font-size: 0.8rem; padding: 0.4rem 0.8rem; }
+
+    /* ── Events list ── */
+    .events-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 1.25rem; }
+    .elc {
+      background: #fff; border-radius: 14px; overflow: hidden;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07); cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.2s;
+    }
+    .elc:hover { transform: translateY(-3px); box-shadow: 0 6px 24px rgba(0,0,0,0.13); }
+    .elc-header { height: 82px; display: flex; align-items: center; justify-content: center; font-size: 2.6rem; }
+    .elc-body { padding: 1rem 1.25rem 0.6rem; }
+    .elc-body h3 { font-size: 1.05rem; color: var(--deep); margin-bottom: 0.25rem; }
+    .elc-meta { font-size: 0.78rem; color: var(--muted); line-height: 1.5; }
+    .elc-footer { padding: 0.75rem 1.25rem 1rem; display: flex; gap: 0.5rem; }
+    .new-event-card {
+      border: 2.5px dashed var(--border); border-radius: 14px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 0.5rem; padding: 2rem; cursor: pointer; color: var(--muted);
+      transition: border-color 0.2s, color 0.2s; min-height: 190px; background: transparent;
+    }
+    .new-event-card:hover { border-color: var(--accent); color: var(--accent); }
+    .new-event-card .plus { font-size: 2.5rem; line-height: 1; }
+    .new-event-card p { font-size: 0.88rem; text-align: center; }
 
     /* ── Stats ── */
     .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
@@ -160,10 +200,13 @@
     @media (max-width: 900px) { .custom-grid { grid-template-columns: 1fr; } }
     .full-width { grid-column: 1 / -1; }
 
-    /* Event type cards */
+    /* Event type / theme cards */
     .event-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.85rem; }
     @media (max-width: 800px) { .event-grid { grid-template-columns: repeat(3, 1fr); } }
     @media (max-width: 500px) { .event-grid { grid-template-columns: repeat(2, 1fr); } }
+    .theme-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.85rem; }
+    @media (max-width: 900px) { .theme-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 500px) { .theme-grid { grid-template-columns: repeat(2, 1fr); } }
     .event-card {
       border-radius: 12px; overflow: hidden; cursor: pointer;
       border: 3px solid transparent; transition: transform 0.15s, border-color 0.2s;
@@ -183,24 +226,10 @@
     }
     .event-card.selected .event-card-check { display: flex; }
     .event-card-label { padding: 0.5rem 0.4rem 0.6rem; font-size: 0.74rem; font-weight: bold; text-align: center; }
+
     .custom-card { background: #fff; border-radius: 12px; padding: 1.5rem; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
     .custom-card h3 { font-family: Georgia, serif; font-size: 1rem; color: var(--deep); font-weight: normal; margin-bottom: 0.3rem; }
     .custom-card > p { font-size: 0.82rem; color: var(--muted); margin-bottom: 1.2rem; }
-
-    /* Theme swatches */
-    .theme-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
-    .theme-swatch {
-      border-radius: 10px; overflow: hidden; cursor: pointer;
-      border: 3px solid transparent; transition: border-color 0.2s, transform 0.15s; background: #fff;
-      box-shadow: 0 1px 6px rgba(0,0,0,0.08);
-    }
-    .theme-swatch:hover { transform: translateY(-2px); }
-    .theme-swatch.selected { border-color: var(--accent); }
-    .swatch-bar   { height: 44px; }
-    .swatch-body  { padding: 0.45rem 0.6rem; font-size: 0.75rem; font-weight: bold; }
-    .swatch-sub   { font-size: 0.68rem; font-weight: normal; opacity: 0.7; margin-top: 1px; }
-    .swatch-check { float: right; display: none; }
-    .theme-swatch.selected .swatch-check { display: inline; }
 
     /* Banner upload */
     .banner-drop {
@@ -242,7 +271,6 @@
     .field input[type="text"] { width: 100%; padding: 0.65rem 0.9rem; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.95rem; outline: none; transition: border-color 0.2s; }
     .field input[type="text"]:focus { border-color: var(--accent); }
 
-    /* Save button */
     .save-btn {
       display: block; width: 100%; margin-top: 1.25rem;
       background: linear-gradient(135deg, var(--accent), var(--deep));
@@ -251,6 +279,24 @@
     }
     .save-btn:hover { opacity: 0.9; }
     .save-msg { font-size: 0.82rem; color: var(--accent); margin-top: 0.6rem; text-align: center; display: none; }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+      display: flex; align-items: center; justify-content: center; z-index: 300;
+    }
+    .modal-box {
+      background: #fff; border-radius: 16px; padding: 2rem 2rem 1.75rem;
+      width: 400px; max-width: 95vw; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .modal-box h3 { font-family: Georgia, serif; font-size: 1.2rem; color: var(--deep); margin-bottom: 1.25rem; font-weight: normal; }
+    .modal-box input[type="text"] {
+      width: 100%; padding: 0.75rem 1rem; border: 1.5px solid var(--border);
+      border-radius: 8px; font-size: 1rem; outline: none; transition: border-color 0.2s; margin-bottom: 1rem;
+    }
+    .modal-box input[type="text"]:focus { border-color: var(--accent); }
+    .modal-actions { display: flex; gap: 0.6rem; }
+    .modal-error { font-size: 0.82rem; color: #c0392b; margin-top: 0.5rem; display: none; }
 
     /* ── Lightbox ── */
     #lightbox {
@@ -291,19 +337,44 @@
       <h2>My Memories</h2>
       <p>Beheer dashboard</p>
     </div>
-    <div class="nav-item active" onclick="showSection('overview')"  id="nav-overview">  <span class="nav-icon">📊</span> Overzicht</div>
-    <div class="nav-item"       onclick="showSection('uploaders')" id="nav-uploaders"> <span class="nav-icon">👥</span> Gasten</div>
-    <div class="nav-item"       onclick="showSection('photos')"    id="nav-photos">    <span class="nav-icon">🖼️</span> Alle foto's</div>
-    <div class="nav-item"       onclick="showSection('qr')"        id="nav-qr">        <span class="nav-icon">📱</span> QR code</div>
-    <div class="nav-item"       onclick="showSection('customize')" id="nav-customize"> <span class="nav-icon">🎨</span> Uiterlijk</div>
+
+    <!-- Current event indicator (only when event selected) -->
+    <div class="current-event-bar">
+      <span id="currentEventName">–</span>
+    </div>
+
+    <!-- Back to events list -->
+    <div class="nav-item nav-back" onclick="backToEvents()">
+      <span class="nav-icon">◀</span> Alle evenementen
+    </div>
+    <!-- Events list home (only when no event selected) -->
+    <div class="nav-item nav-home active" id="nav-home">
+      <span class="nav-icon">🗓️</span> Evenementen
+    </div>
+
+    <!-- Event-scoped nav (hidden until event selected) -->
+    <div class="nav-item event-nav" onclick="showSection('overview')"  id="nav-overview">  <span class="nav-icon">📊</span> Overzicht</div>
+    <div class="nav-item event-nav" onclick="showSection('uploaders')" id="nav-uploaders"> <span class="nav-icon">👥</span> Gasten</div>
+    <div class="nav-item event-nav" onclick="showSection('photos')"    id="nav-photos">    <span class="nav-icon">🖼️</span> Alle foto's</div>
+    <div class="nav-item event-nav" onclick="showSection('qr')"        id="nav-qr">        <span class="nav-icon">📱</span> QR code</div>
+    <div class="nav-item event-nav" onclick="showSection('customize')" id="nav-customize"> <span class="nav-icon">🎨</span> Uiterlijk</div>
   </div>
 
   <div class="main">
 
-    <!-- ─── Overview ─── -->
-    <div class="section active" id="section-overview">
+    <!-- ─── Events list ─── -->
+    <div class="section active" id="section-events">
       <div class="topbar">
-        <h1>Overzicht</h1>
+        <h1>Evenementen</h1>
+        <button class="btn btn-primary" onclick="showCreateModal()">+ Nieuw evenement</button>
+      </div>
+      <div class="events-grid" id="eventsList"></div>
+    </div>
+
+    <!-- ─── Overview (per event) ─── -->
+    <div class="section" id="section-overview">
+      <div class="topbar">
+        <h1 id="overviewTitle">Overzicht</h1>
         <button class="btn btn-outline" onclick="refreshAll()">↻ Vernieuwen</button>
       </div>
       <div class="stats-grid">
@@ -356,7 +427,7 @@
       <div class="topbar"><h1>QR Code</h1></div>
       <div class="qr-section">
         <h3>Upload link voor gasten</h3>
-        <p>Gasten scannen deze QR code om direct foto's te uploaden.</p>
+        <p>Gasten scannen deze QR code om direct foto's te uploaden. De link bevat automatisch het evenement-ID.</p>
         <div class="url-input-wrap">
           <input type="text" id="urlInput" placeholder="https://jouw-domein.nl" />
           <button class="btn btn-primary" onclick="generateQR()">Genereer</button>
@@ -377,28 +448,28 @@
       <div class="topbar"><h1>Uiterlijk</h1></div>
       <div class="custom-grid">
 
-        <!-- Event type selector (full width) -->
+        <!-- 1. Kleurenthema (full width, ABOVE event type) -->
         <div class="custom-card full-width">
-          <h3>Type evenement</h3>
-          <p>Kies het type evenement. Dit past de kleuren, iconen en teksten van de upload pagina automatisch aan.</p>
-          <div class="event-grid" id="eventGrid"></div>
-          <button class="save-btn" onclick="saveEventType()">Evenementtype opslaan</button>
-          <div class="save-msg" id="eventSaveMsg">✓ Evenementtype opgeslagen!</div>
-        </div>
-
-        <!-- Theme picker -->
-        <div class="custom-card">
           <h3>Kleurenthema</h3>
-          <p>Kies een thema voor de upload pagina én het dashboard. Klik een thema aan voor een directe preview.</p>
+          <p>Kies een basiskleur voor het dashboard én de upload pagina. Klik voor een directe preview.</p>
           <div class="theme-grid" id="themeGrid"></div>
           <button class="save-btn" onclick="saveTheme()">Thema opslaan</button>
           <div class="save-msg" id="themeSaveMsg">✓ Thema opgeslagen!</div>
         </div>
 
-        <!-- Banner upload -->
+        <!-- 2. Type evenement (full width) -->
+        <div class="custom-card full-width">
+          <h3>Type evenement</h3>
+          <p>Kies het type evenement. Dit past kleuren, iconen en teksten van de upload pagina automatisch aan.</p>
+          <div class="event-grid" id="eventGrid"></div>
+          <button class="save-btn" onclick="saveEventType()">Evenementtype opslaan</button>
+          <div class="save-msg" id="eventSaveMsg">✓ Evenementtype opgeslagen!</div>
+        </div>
+
+        <!-- 3. Banner -->
         <div class="custom-card">
           <h3>Bannerafbeelding</h3>
-          <p>Foto die bovenaan de upload pagina van gasten getoond wordt (bijv. een bruidsfoto).</p>
+          <p>Foto die bovenaan de upload pagina van gasten getoond wordt.</p>
           <div class="banner-drop" id="bannerDrop">
             <input type="file" id="bannerFileInput" accept="image/*" />
             <div style="font-size:2rem;margin-bottom:0.3rem">🖼️</div>
@@ -415,7 +486,7 @@
           <div class="save-msg" id="bannerSaveMsg">✓ Banner opgeslagen!</div>
         </div>
 
-        <!-- Welcome message -->
+        <!-- 4. Welkomstbericht -->
         <div class="custom-card">
           <h3>Welkomstbericht</h3>
           <p>Pas de tekst bovenaan de upload pagina van gasten aan.</p>
@@ -431,10 +502,10 @@
           <div class="save-msg" id="welcomeSaveMsg">✓ Bericht opgeslagen!</div>
         </div>
 
-        <!-- Guest password -->
+        <!-- 5. Guest password -->
         <div class="custom-card">
           <h3>Upload wachtwoord</h3>
-          <p>Gasten moeten eerst een wachtwoord invoeren voordat ze foto's kunnen uploaden. Laat leeg voor vrije toegang.</p>
+          <p>Gasten moeten eerst een wachtwoord invoeren. Laat leeg voor vrije toegang.</p>
           <div class="toggle-row">
             <label class="toggle-switch">
               <input type="checkbox" id="guestPwToggle" onchange="toggleGuestPwField()" />
@@ -444,11 +515,23 @@
           </div>
           <div class="pw-field-wrap" id="guestPwFieldWrap">
             <label for="guestPwValue">Wachtwoord voor gasten</label>
-            <input type="text" id="guestPwValue" placeholder="bijv. trouwerij2024" />
-            <div class="pw-hint">Gasten zien dit wachtwoord niet — jij deelt het zelf (bv. op de uitnodiging of tafelkaartje).</div>
+            <input type="text" id="guestPwValue" placeholder="bijv. feest2025" />
+            <div class="pw-hint">Jij deelt dit zelf met gasten (bv. op de uitnodiging).</div>
           </div>
           <button class="save-btn" onclick="saveGuestPassword()">Opslaan</button>
           <div class="save-msg" id="guestPwSaveMsg">✓ Instellingen opgeslagen!</div>
+        </div>
+
+        <!-- 6. Event name -->
+        <div class="custom-card">
+          <h3>Naam evenement</h3>
+          <p>Interne naam voor dit evenement in het dashboard.</p>
+          <div class="field" style="margin-bottom:0">
+            <label for="eventNameInput">Naam</label>
+            <input type="text" id="eventNameInput" placeholder="bijv. Bruiloft Jan & Marie" />
+          </div>
+          <button class="save-btn" onclick="saveEventName()">Opslaan</button>
+          <div class="save-msg" id="eventNameSaveMsg">✓ Naam opgeslagen!</div>
         </div>
 
       </div>
@@ -461,6 +544,20 @@
 <div id="lightbox" onclick="closeLightbox()">
   <span id="lightboxClose" onclick="closeLightbox()">&times;</span>
   <img id="lightboxImg" src="" alt="" />
+</div>
+
+<!-- Create event modal -->
+<div class="modal-overlay" id="createModal" style="display:none" onclick="if(event.target===this)closeCreateModal()">
+  <div class="modal-box">
+    <h3>Nieuw evenement aanmaken</h3>
+    <input type="text" id="newEventName" placeholder="bijv. Bruiloft Jan & Marie"
+           onkeydown="if(event.key==='Enter')createEvent()" />
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="createEvent()">Aanmaken</button>
+      <button class="btn btn-outline" onclick="closeCreateModal()">Annuleren</button>
+    </div>
+    <div class="modal-error" id="createModalError"></div>
+  </div>
 </div>
 
 <script>
@@ -476,7 +573,6 @@
     nieuwjaar:   { name:'Nieuwjaar',     icon:'🎆', accent:'#c8a020', deep:'#1a0a40', bg:'#f8f4ff', light:'#e8d8f8', border:'#c0a0e0', text:'#1a0a30', muted:'#8060b0', sidebar:'#0a0520', mint:'#c8a020', defaultTitle:"Deel jouw nieuwjaarsfoto's",   defaultSubtitle:'Op een geweldig nieuw jaar samen!' },
   };
 
-  // ── Fine-tune colour themes (can override event type colours) ──
   const THEMES = {
     green:    { name:'Groen & Wit',     icon:'🌿', accent:'#3a7d44', deep:'#1e4d28', bg:'#f4faf5', light:'#e8f5ea', border:'#b2ddb8', text:'#1a3320', muted:'#6a9070', sidebar:'#163620', mint:'#b2ddb8' },
     rose:     { name:'Roos & Goud',     icon:'🌹', accent:'#c9806b', deep:'#5c3d2e', bg:'#fff8f0', light:'#f2d7d0', border:'#f2d7d0', text:'#3a2a20', muted:'#a08070', sidebar:'#281808', mint:'#e8c4b0' },
@@ -486,13 +582,14 @@
     midnight: { name:'Midnight & Goud', icon:'✨', accent:'#b09030', deep:'#1a1a10', bg:'#f8f8f6', light:'#eeeee8', border:'#c8b870', text:'#201c08', muted:'#807040', sidebar:'#0c0c08', mint:'#c8b870' },
   };
 
-  let password           = '';
-  let allData            = [];
-  let selectedTheme      = 'green';
-  let selectedEventType  = '';
-  let pendingBannerFile  = null;
+  let password          = '';
+  let allData           = [];
+  let selectedTheme     = 'green';
+  let selectedEventType = '';
+  let currentEventId    = null;
+  let pendingBannerFile = null;
 
-  // Apply a colour palette to the entire dashboard (accepts a theme or event-type object)
+  // ── Theme application ──
   function applyTheme(nameOrObj) {
     const t = (typeof nameOrObj === 'string') ? (THEMES[nameOrObj] || EVENT_TYPES[nameOrObj] || THEMES.green) : nameOrObj;
     const r = document.documentElement;
@@ -511,12 +608,12 @@
     if (li) li.textContent = t.icon;
   }
 
-  // Pre-apply theme on login screen (fetch public settings)
+  // Pre-apply default theme on login screen
   (async () => {
     try {
-      const r = await fetch('/api/settings');
-      const s = await r.json();
-      if (s.theme) applyTheme(s.theme);
+      // Use first event's settings if available
+      const r = await fetch('/api/events?password=__noop__');
+      // Just apply default green; real theme loads after login
     } catch {}
   })();
 
@@ -530,10 +627,9 @@
           document.getElementById('loginOverlay').style.display = 'none';
           document.getElementById('app').style.display = 'flex';
           document.getElementById('urlInput').value = window.location.origin;
-          refreshAll();
-          loadCurrentSettings();
           buildEventGrid();
           buildThemeGrid();
+          loadEventsList();
         } else {
           document.getElementById('loginError').style.display = 'block';
         }
@@ -543,16 +639,119 @@
   // ── Navigation ──
   function showSection(name) {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.querySelectorAll('.nav-item.event-nav').forEach(n => n.classList.remove('active'));
     document.getElementById('section-' + name).classList.add('active');
-    document.getElementById('nav-' + name).classList.add('active');
+    const navEl = document.getElementById('nav-' + name);
+    if (navEl) navEl.classList.add('active');
+  }
+
+  // ── Events list ──
+  async function loadEventsList() {
+    const r = await fetch(`/api/events?password=${encodeURIComponent(password)}`);
+    const events = await r.json();
+    renderEventsList(events);
+  }
+
+  function renderEventsList(events) {
+    const grid = document.getElementById('eventsList');
+    const cards = events.map(e => {
+      const et   = EVENT_TYPES[e.eventType] || null;
+      const th   = THEMES[e.theme] || THEMES.green;
+      const icon = et ? et.icon : th.icon;
+      const grad = et
+        ? `linear-gradient(135deg,${et.deep},${et.accent})`
+        : `linear-gradient(135deg,${th.deep},${th.accent})`;
+      const date = new Date(e.createdAt).toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'});
+      return `
+        <div class="elc" onclick="openEvent('${e.id}')">
+          <div class="elc-header" style="background:${grad}">${icon}</div>
+          <div class="elc-body">
+            <h3>${esc(e.name)}</h3>
+            <div class="elc-meta">
+              Aangemaakt ${date}<br>
+              ${e.totalUploaders} gast${e.totalUploaders!==1?'en':''} &bull; ${e.totalPhotos} foto${e.totalPhotos!==1?"'s":''}
+            </div>
+          </div>
+          <div class="elc-footer">
+            <button class="btn btn-primary" onclick="event.stopPropagation();openEvent('${e.id}')">Open →</button>
+            <button class="btn btn-danger"  onclick="event.stopPropagation();deleteEvent('${e.id}','${esc(e.name)}')">Verwijder</button>
+          </div>
+        </div>`;
+    }).join('');
+
+    const newCard = `
+      <div class="new-event-card" onclick="showCreateModal()">
+        <div class="plus">＋</div>
+        <p>Nieuw evenement aanmaken</p>
+      </div>`;
+
+    grid.innerHTML = cards + newCard;
+  }
+
+  async function openEvent(id) {
+    currentEventId = id;
+    document.getElementById('app').classList.add('event-active');
+    document.querySelector('.nav-home').classList.remove('active');
+    // Load data and settings for this event
+    await Promise.all([refreshAll(), loadCurrentSettings()]);
+    showSection('overview');
+  }
+
+  function backToEvents() {
+    currentEventId = null;
+    document.getElementById('app').classList.remove('event-active');
+    document.querySelectorAll('.nav-item.event-nav').forEach(n => n.classList.remove('active'));
+    document.querySelector('.nav-home').classList.add('active');
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.getElementById('section-events').classList.add('active');
+    loadEventsList(); // refresh list (stats may have changed)
+    // Reset QR
+    document.getElementById('qrOutput').style.display = 'none';
+  }
+
+  // ── Create event modal ──
+  function showCreateModal() {
+    document.getElementById('newEventName').value = '';
+    document.getElementById('createModalError').style.display = 'none';
+    document.getElementById('createModal').style.display = 'flex';
+    setTimeout(() => document.getElementById('newEventName').focus(), 50);
+  }
+  function closeCreateModal() {
+    document.getElementById('createModal').style.display = 'none';
+  }
+  async function createEvent() {
+    const name = document.getElementById('newEventName').value.trim();
+    const errEl = document.getElementById('createModalError');
+    if (!name) { errEl.textContent = 'Vul een naam in.'; errEl.style.display = 'block'; return; }
+    errEl.style.display = 'none';
+    const r = await fetch(`/api/events?password=${encodeURIComponent(password)}`, {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ name })
+    });
+    const d = await r.json();
+    if (d.success) {
+      closeCreateModal();
+      await openEvent(d.id);
+    } else {
+      errEl.textContent = d.error || 'Aanmaken mislukt.'; errEl.style.display = 'block';
+    }
+  }
+
+  async function deleteEvent(id, name) {
+    if (!confirm(`Evenement "${name}" en alle bijbehorende foto's verwijderen?`)) return;
+    const r = await fetch(`/api/events/${id}?password=${encodeURIComponent(password)}`, { method: 'DELETE' });
+    if (r.ok) await loadEventsList();
+    else alert('Verwijderen mislukt.');
   }
 
   // ── Data ──
-  async function refreshAll() { await Promise.all([loadStats(), loadData()]); }
+  async function refreshAll() {
+    if (!currentEventId) return;
+    document.getElementById('currentEventName').textContent = '…';
+    await Promise.all([loadStats(), loadData()]);
+  }
 
   async function loadStats() {
-    const r = await fetch(`/api/stats?password=${encodeURIComponent(password)}`);
+    const r = await fetch(`/api/events/${currentEventId}/stats?password=${encodeURIComponent(password)}`);
     const d = await r.json();
     document.getElementById('stat-uploaders').textContent = d.totalUploaders;
     document.getElementById('stat-photos').textContent    = d.totalPhotos;
@@ -560,7 +759,7 @@
   }
 
   async function loadData() {
-    const r = await fetch(`/api/photos?password=${encodeURIComponent(password)}`);
+    const r = await fetch(`/api/events/${currentEventId}/photos?password=${encodeURIComponent(password)}`);
     allData = await r.json();
     renderUploaders(); renderPhotos(); renderRecent(); updateGuestDatalist();
   }
@@ -653,24 +852,24 @@
   // ── Deletes ──
   async function deleteUpload(id) {
     if (!confirm("Alle foto's van deze gast verwijderen?")) return;
-    const r = await fetch(`/api/uploads/${id}?password=${encodeURIComponent(password)}`,{method:'DELETE'});
+    const r = await fetch(`/api/events/${currentEventId}/uploads/${id}?password=${encodeURIComponent(password)}`,{method:'DELETE'});
     if (r.ok) await refreshAll(); else alert('Verwijderen mislukt');
   }
   async function deletePhoto(uid, pid) {
     if (!confirm('Deze foto verwijderen?')) return;
-    const r = await fetch(`/api/photos/${uid}/${pid}?password=${encodeURIComponent(password)}`,{method:'DELETE'});
+    const r = await fetch(`/api/events/${currentEventId}/photos/${uid}/${pid}?password=${encodeURIComponent(password)}`,{method:'DELETE'});
     if (r.ok) await refreshAll(); else alert('Verwijderen mislukt');
   }
 
   // ── Lightbox ──
   function openLightbox(src) { document.getElementById('lightboxImg').src=src; document.getElementById('lightbox').style.display='flex'; document.body.style.overflow='hidden'; }
   function closeLightbox()   { document.getElementById('lightbox').style.display='none'; document.body.style.overflow=''; }
-  document.addEventListener('keydown', e => { if(e.key==='Escape') closeLightbox(); });
+  document.addEventListener('keydown', e => { if(e.key==='Escape') { closeLightbox(); closeCreateModal(); } });
 
   // ── QR ──
   async function generateQR() {
     const url = document.getElementById('urlInput').value.trim() || window.location.origin;
-    const r   = await fetch(`/api/qrcode?password=${encodeURIComponent(password)}&url=${encodeURIComponent(url)}`);
+    const r   = await fetch(`/api/events/${currentEventId}/qrcode?password=${encodeURIComponent(password)}&url=${encodeURIComponent(url)}`);
     const d   = await r.json();
     if (d.qr) { document.getElementById('qrImage').src=d.qr; document.getElementById('qrUrl').textContent=d.url; document.getElementById('qrOutput').style.display='block'; }
   }
@@ -693,8 +892,7 @@
   function selectEventType(key) {
     selectedEventType = key;
     markSelectedEvent(key);
-    applyTheme(EVENT_TYPES[key]); // live dashboard preview
-    // Pre-fill welcome fields with event defaults if currently empty
+    applyTheme(EVENT_TYPES[key]);
     const t = document.getElementById('welcomeTitle');
     const s = document.getElementById('welcomeSubtitle');
     if (!t.value) t.value = EVENT_TYPES[key].defaultTitle;
@@ -708,33 +906,48 @@
 
   async function saveEventType() {
     if (!selectedEventType) { alert('Selecteer eerst een evenementtype.'); return; }
-    const r = await fetch(`/api/settings?password=${encodeURIComponent(password)}`, {
+    const r = await fetch(`/api/events/${currentEventId}/settings?password=${encodeURIComponent(password)}`, {
       method: 'POST', headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ eventType: selectedEventType })
     });
     if (r.ok) flash('eventSaveMsg');
   }
 
-  // ── Customization: settings load ──
+  // ── Settings load ──
   async function loadCurrentSettings() {
-    const r = await fetch(`/api/settings?password=${encodeURIComponent(password)}`);
+    const r = await fetch(`/api/events/${currentEventId}/settings?password=${encodeURIComponent(password)}`);
     const s = await r.json();
-    if (s.theme) { selectedTheme = s.theme; applyTheme(s.theme); markSelectedTheme(s.theme); }
-    if (s.bannerUrl) showBannerPreview(s.bannerUrl, false);
-    // Event type
+    // Apply theme / event type
     if (s.eventType && EVENT_TYPES[s.eventType]) {
       selectedEventType = s.eventType;
       applyTheme(EVENT_TYPES[s.eventType]);
       markSelectedEvent(s.eventType);
+    } else if (s.theme) {
+      selectedTheme = s.theme;
+      applyTheme(s.theme);
+      markSelectedTheme(s.theme);
     }
-    // Welcome message
+    // Update sidebar event name
+    const evtName = document.getElementById('eventNameInput');
+    if (evtName) evtName.value = s.welcomeTitle || '';
+    // Try to get the actual event name from the list
+    const listR = await fetch(`/api/events?password=${encodeURIComponent(password)}`);
+    const list  = await listR.json();
+    const evt   = list.find(e => e.id === currentEventId);
+    if (evt) {
+      document.getElementById('currentEventName').textContent = evt.name;
+      document.getElementById('overviewTitle').textContent = evt.name;
+      document.getElementById('eventNameInput').value = evt.name;
+    }
+    if (s.bannerUrl) showBannerPreview(s.bannerUrl, false);
+    else { document.getElementById('bannerPreview').style.display = 'none'; pendingBannerFile = null; }
     document.getElementById('welcomeTitle').value    = s.welcomeTitle    || '';
     document.getElementById('welcomeSubtitle').value = s.welcomeSubtitle || '';
-    // Guest password
     const hasPw = !!s.guestPassword;
     document.getElementById('guestPwToggle').checked = hasPw;
     document.getElementById('guestPwFieldWrap').classList.toggle('visible', hasPw);
     if (s.guestPassword) document.getElementById('guestPwValue').value = s.guestPassword;
+    else document.getElementById('guestPwValue').value = '';
   }
 
   // ── Theme picker ──
@@ -753,7 +966,7 @@
   function selectTheme(key) {
     selectedTheme = key;
     markSelectedTheme(key);
-    applyTheme(key); // instant live preview in dashboard
+    applyTheme(key);
   }
 
   function markSelectedTheme(key) {
@@ -762,7 +975,7 @@
   }
 
   async function saveTheme() {
-    const r = await fetch(`/api/settings?password=${encodeURIComponent(password)}`, {
+    const r = await fetch(`/api/events/${currentEventId}/settings?password=${encodeURIComponent(password)}`, {
       method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({theme:selectedTheme})
     });
     if (r.ok) flash('themeSaveMsg');
@@ -792,20 +1005,20 @@
   async function uploadBanner() {
     if (!pendingBannerFile) return;
     const fd = new FormData(); fd.append('banner', pendingBannerFile);
-    const r  = await fetch(`/api/upload-banner?password=${encodeURIComponent(password)}`, {method:'POST',body:fd});
+    const r  = await fetch(`/api/events/${currentEventId}/upload-banner?password=${encodeURIComponent(password)}`, {method:'POST',body:fd});
     const d  = await r.json();
     if (d.success) { pendingBannerFile=null; showBannerPreview(d.bannerUrl,false); flash('bannerSaveMsg'); }
     else alert('Upload mislukt');
   }
   async function removeBanner() {
     if (!confirm('Banner verwijderen?')) return;
-    const r = await fetch(`/api/banner?password=${encodeURIComponent(password)}`,{method:'DELETE'});
+    const r = await fetch(`/api/events/${currentEventId}/banner?password=${encodeURIComponent(password)}`,{method:'DELETE'});
     if (r.ok) { document.getElementById('bannerPreview').style.display='none'; pendingBannerFile=null; }
   }
 
   // ── Welcome message ──
   async function saveWelcomeMessage() {
-    const r = await fetch(`/api/settings?password=${encodeURIComponent(password)}`, {
+    const r = await fetch(`/api/events/${currentEventId}/settings?password=${encodeURIComponent(password)}`, {
       method: 'POST', headers: {'Content-Type':'application/json'},
       body: JSON.stringify({
         welcomeTitle:    document.getElementById('welcomeTitle').value.trim(),
@@ -813,6 +1026,20 @@
       })
     });
     if (r.ok) flash('welcomeSaveMsg');
+  }
+
+  // ── Event name ──
+  async function saveEventName() {
+    const name = document.getElementById('eventNameInput').value.trim();
+    if (!name) return;
+    const r = await fetch(`/api/events/${currentEventId}/settings?password=${encodeURIComponent(password)}`, {
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ name })
+    });
+    if (r.ok) {
+      document.getElementById('currentEventName').textContent = name;
+      document.getElementById('overviewTitle').textContent    = name;
+      flash('eventNameSaveMsg');
+    }
   }
 
   // ── Guest password ──
@@ -825,7 +1052,7 @@
     const enabled = document.getElementById('guestPwToggle').checked;
     const pw      = enabled ? document.getElementById('guestPwValue').value.trim() : '';
     if (enabled && !pw) { alert('Vul een wachtwoord in of zet de schakelaar uit.'); return; }
-    const r = await fetch(`/api/settings?password=${encodeURIComponent(password)}`, {
+    const r = await fetch(`/api/events/${currentEventId}/settings?password=${encodeURIComponent(password)}`, {
       method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({guestPassword:pw})
     });
     if (r.ok) flash('guestPwSaveMsg');
@@ -833,7 +1060,7 @@
 
   // ── Helpers ──
   function flash(id) { const el=document.getElementById(id); el.style.display='block'; setTimeout(()=>el.style.display='none',3000); }
-  function esc(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function esc(str)  { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 </script>
 </body>
 </html>
