@@ -7,44 +7,43 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --white: #ffffff;
-      --offwhite: #f4faf5;
-      --light: #e8f5ea;
-      --mint: #b2ddb8;
-      --green: #3a7d44;
-      --deep: #1e4d28;
-      --text: #1a3320;
-      --muted: #6a9070;
       --sidebar: #163620;
       --sidebar-w: 240px;
+      --accent: #3a7d44;
+      --deep: #1e4d28;
+      --mint: #b2ddb8;
+      --bg: #f4faf5;
+      --light: #e8f5ea;
+      --border: #b2ddb8;
+      --text: #1a3320;
+      --muted: #6a9070;
+      --white: #ffffff;
     }
-    body { font-family: Arial, sans-serif; background: var(--offwhite); color: var(--text); min-height: 100vh; }
+    body { font-family: Arial, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
-    /* ── Login overlay ── */
+    /* ── Login ── */
     #loginOverlay {
       position: fixed; inset: 0;
-      background: linear-gradient(160deg, var(--deep), #0f2415);
+      background: linear-gradient(160deg, #163620, #0a1a0f);
       display: flex; align-items: center; justify-content: center; z-index: 1000;
     }
     .login-box {
-      background: var(--white); border-radius: 16px;
+      background: #fff; border-radius: 16px;
       padding: 2.5rem 2rem; width: 340px; text-align: center;
       box-shadow: 0 20px 60px rgba(0,0,0,0.4);
     }
     .login-box .icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
     .login-box h1 { font-family: Georgia, serif; font-size: 1.5rem; color: var(--deep); margin-bottom: 0.3rem; font-weight: normal; }
-    .login-box p { font-size: 0.85rem; color: var(--muted); margin-bottom: 1.5rem; }
+    .login-box p  { font-size: 0.85rem; color: var(--muted); margin-bottom: 1.5rem; }
     .login-box input {
-      width: 100%; padding: 0.75rem 1rem;
-      border: 1.5px solid var(--mint); border-radius: 8px;
-      font-size: 1rem; margin-bottom: 1rem; background: var(--offwhite); outline: none;
-      transition: border-color 0.2s;
+      width: 100%; padding: 0.75rem 1rem; border: 1.5px solid var(--border);
+      border-radius: 8px; font-size: 1rem; margin-bottom: 1rem; outline: none; transition: border-color 0.2s;
     }
-    .login-box input:focus { border-color: var(--green); }
+    .login-box input:focus { border-color: var(--accent); }
     .login-box button {
       width: 100%; padding: 0.85rem;
-      background: linear-gradient(135deg, var(--green), var(--deep));
-      color: white; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer;
+      background: linear-gradient(135deg, var(--accent), var(--deep));
+      color: #fff; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer;
     }
     .login-error { color: #c0392b; font-size: 0.83rem; margin-top: 0.5rem; display: none; }
 
@@ -55,18 +54,14 @@
       width: var(--sidebar-w); background: var(--sidebar);
       color: #c8e6cc; padding: 1.5rem 0; overflow-y: auto; z-index: 100;
     }
-    .sidebar-logo {
-      text-align: center; padding: 0 1rem 1.5rem;
-      border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 1rem;
-    }
+    .sidebar-logo { text-align: center; padding: 0 1rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 1rem; }
     .sidebar-logo .icon { font-size: 1.8rem; }
     .sidebar-logo h2 { font-family: Georgia, serif; font-size: 1rem; color: var(--mint); margin-top: 0.3rem; font-weight: normal; }
-    .sidebar-logo p { font-size: 0.72rem; color: rgba(255,255,255,0.35); margin-top: 0.2rem; }
+    .sidebar-logo p  { font-size: 0.72rem; color: rgba(255,255,255,0.35); margin-top: 0.2rem; }
     .nav-item {
       display: flex; align-items: center; gap: 0.7rem;
-      padding: 0.7rem 1.5rem; cursor: pointer;
-      font-size: 0.88rem; transition: background 0.15s;
-      border-left: 3px solid transparent;
+      padding: 0.7rem 1.5rem; cursor: pointer; font-size: 0.88rem;
+      transition: background 0.15s; border-left: 3px solid transparent;
     }
     .nav-item:hover { background: rgba(255,255,255,0.06); }
     .nav-item.active { background: rgba(178,221,184,0.12); border-left-color: var(--mint); color: var(--mint); }
@@ -74,81 +69,85 @@
 
     .main { margin-left: var(--sidebar-w); padding: 2rem; min-height: 100vh; }
 
-    /* ── Top bar ── */
-    .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+    /* ── Topbar ── */
+    .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
     .topbar h1 { font-family: Georgia, serif; font-size: 1.5rem; color: var(--deep); font-weight: normal; }
-    .topbar-actions { display: flex; gap: 0.75rem; }
     .btn { padding: 0.55rem 1.1rem; border-radius: 7px; font-size: 0.85rem; cursor: pointer; border: none; transition: opacity 0.15s; }
     .btn:hover { opacity: 0.85; }
-    .btn-primary { background: var(--green); color: white; }
-    .btn-outline { background: white; border: 1.5px solid var(--mint); color: var(--deep); }
-    .btn-danger { background: #e74c3c; color: white; font-size: 0.8rem; padding: 0.4rem 0.8rem; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-outline  { background: #fff; border: 1.5px solid var(--border); color: var(--deep); }
+    .btn-danger   { background: #e74c3c; color: #fff; font-size: 0.8rem; padding: 0.4rem 0.8rem; }
 
-    /* ── Stats cards ── */
+    /* ── Stats ── */
     .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
-    .stat-card { background: white; border-radius: 12px; padding: 1.25rem 1.5rem; box-shadow: 0 2px 12px rgba(30,77,40,0.08); }
+    .stat-card {
+      background: #fff; border-radius: 12px; padding: 1.25rem 1.5rem;
+      box-shadow: 0 2px 12px rgba(30,77,40,0.08);
+      cursor: pointer; transition: box-shadow 0.2s, transform 0.15s;
+    }
+    .stat-card:hover { box-shadow: 0 4px 20px rgba(30,77,40,0.15); transform: translateY(-2px); }
+    .stat-card.plain { cursor: default; }
+    .stat-card.plain:hover { box-shadow: 0 2px 12px rgba(30,77,40,0.08); transform: none; }
     .stat-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 0.4rem; }
     .stat-value { font-size: 2rem; font-family: Georgia, serif; color: var(--deep); }
-    .stat-icon { float: right; font-size: 1.8rem; margin-top: -0.2rem; }
+    .stat-icon  { float: right; font-size: 1.8rem; margin-top: -0.2rem; }
+    .stat-hint  { font-size: 0.72rem; color: var(--accent); margin-top: 0.3rem; font-family: Arial; }
+
+    /* ── Guest search ── */
+    .search-wrap { margin-bottom: 1.25rem; position: relative; }
+    .search-wrap input {
+      width: 100%; padding: 0.7rem 1rem 0.7rem 2.5rem;
+      border: 1.5px solid var(--border); border-radius: 10px;
+      font-size: 0.95rem; outline: none; transition: border-color 0.2s;
+      background: #fff;
+    }
+    .search-wrap input:focus { border-color: var(--accent); }
+    .search-icon { position: absolute; left: 0.8rem; top: 50%; transform: translateY(-50%); font-size: 1rem; pointer-events: none; }
+    .guest-count { font-size: 0.8rem; color: var(--muted); margin-bottom: 1rem; }
 
     /* ── Uploader cards ── */
-    .uploader-card {
-      background: white; border-radius: 12px;
-      margin-bottom: 1rem; overflow: hidden;
-      box-shadow: 0 2px 10px rgba(30,77,40,0.07);
-    }
+    .uploader-card { background: #fff; border-radius: 12px; margin-bottom: 1rem; overflow: hidden; box-shadow: 0 2px 10px rgba(30,77,40,0.07); }
+    .uploader-card.hidden { display: none; }
     .uploader-header {
       display: flex; justify-content: space-between; align-items: flex-start;
-      padding: 1.2rem 1.5rem; gap: 1rem; cursor: pointer;
-      transition: background 0.15s;
+      padding: 1.2rem 1.5rem; gap: 1rem; cursor: pointer; transition: background 0.15s;
     }
-    .uploader-header:hover { background: var(--offwhite); }
+    .uploader-header:hover { background: var(--bg); }
     .uploader-info { flex: 1; }
     .uploader-info h3 { font-size: 1rem; color: var(--deep); margin-bottom: 0.2rem; }
-    .uploader-meta { font-size: 0.78rem; color: var(--muted); margin-bottom: 0.4rem; }
-    .uploader-message { font-size: 0.85rem; color: #3a6040; font-style: italic; background: var(--offwhite); border-radius: 6px; padding: 0.4rem 0.7rem; margin-top: 0.4rem; border-left: 3px solid var(--mint); }
+    .uploader-meta { font-size: 0.78rem; color: var(--muted); margin-bottom: 0.3rem; }
+    .uploader-message { font-size: 0.85rem; color: #3a6040; font-style: italic; background: var(--bg); border-radius: 6px; padding: 0.4rem 0.7rem; margin-top: 0.4rem; border-left: 3px solid var(--mint); }
     .badge { background: var(--light); color: var(--deep); font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 20px; white-space: nowrap; }
     .uploader-actions { display: flex; gap: 0.5rem; align-items: center; flex-shrink: 0; }
-    .expand-arrow { font-size: 0.8rem; color: var(--muted); margin-left: 0.3rem; transition: transform 0.2s; }
+    .expand-arrow { font-size: 0.75rem; color: var(--muted); transition: transform 0.2s; margin-left: 0.2rem; }
     .uploader-card.open .expand-arrow { transform: rotate(180deg); }
 
-    /* ── Guest photo strip ── */
-    .guest-photos {
-      display: none; padding: 0 1.5rem 1.2rem;
-      border-top: 1px solid var(--light);
-    }
+    /* ── Guest photos (expandable) ── */
+    .guest-photos { display: none; padding: 0 1.5rem 1.25rem; border-top: 1px solid var(--light); }
     .uploader-card.open .guest-photos { display: block; }
-    .guest-photo-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-      gap: 8px; margin-top: 1rem;
-    }
-    .guest-photo-item {
-      position: relative; aspect-ratio: 1;
-      border-radius: 8px; overflow: hidden;
-      background: var(--light); cursor: pointer;
-    }
+    .guest-photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; margin-top: 1rem; }
+    .guest-photo-item { position: relative; aspect-ratio: 1; border-radius: 8px; overflow: hidden; background: var(--light); cursor: pointer; }
     .guest-photo-item img { width: 100%; height: 100%; object-fit: cover; transition: opacity 0.15s; }
     .guest-photo-item:hover img { opacity: 0.85; }
     .guest-photo-item .del-btn {
       position: absolute; top: 4px; right: 4px;
-      background: rgba(0,0,0,0.5); color: white;
+      background: rgba(0,0,0,0.5); color: #fff;
       border: none; border-radius: 50%; width: 22px; height: 22px;
       font-size: 13px; cursor: pointer; display: none;
       align-items: center; justify-content: center;
     }
     .guest-photo-item:hover .del-btn { display: flex; }
 
-    /* ── Photo grid (all photos tab) ── */
+    /* ── All photos grid ── */
     .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
-    .photo-card { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(30,77,40,0.07); position: relative; }
+    .photo-card { background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(30,77,40,0.07); position: relative; }
     .photo-card img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; cursor: pointer; transition: opacity 0.15s; }
     .photo-card img:hover { opacity: 0.9; }
     .photo-card .photo-info { padding: 0.5rem 0.75rem; font-size: 0.75rem; color: var(--muted); }
     .photo-card .photo-name { font-weight: bold; color: var(--deep); font-size: 0.82rem; }
     .photo-card .photo-delete {
       position: absolute; top: 6px; right: 6px;
-      background: rgba(0,0,0,0.5); color: white;
+      background: rgba(0,0,0,0.5); color: #fff;
       border: none; border-radius: 50%; width: 26px; height: 26px;
       cursor: pointer; font-size: 14px; display: none;
       align-items: center; justify-content: center;
@@ -156,13 +155,52 @@
     .photo-card:hover .photo-delete { display: flex; }
 
     /* ── QR section ── */
-    .qr-section { background: white; border-radius: 12px; padding: 2rem; text-align: center; box-shadow: 0 2px 12px rgba(30,77,40,0.08); max-width: 480px; }
+    .qr-section { background: #fff; border-radius: 12px; padding: 2rem; text-align: center; box-shadow: 0 2px 12px rgba(30,77,40,0.08); max-width: 480px; }
     .qr-section h3 { font-family: Georgia, serif; font-size: 1.1rem; color: var(--deep); margin-bottom: 0.5rem; font-weight: normal; }
-    .qr-section p { font-size: 0.85rem; color: var(--muted); margin-bottom: 1.5rem; }
-    #qrImage { max-width: 260px; border: 1px solid var(--mint); border-radius: 8px; }
+    .qr-section p  { font-size: 0.85rem; color: var(--muted); margin-bottom: 1.5rem; }
+    #qrImage { max-width: 260px; border: 1px solid var(--border); border-radius: 8px; }
     .url-input-wrap { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
-    .url-input-wrap input { flex: 1; padding: 0.6rem 0.9rem; border: 1.5px solid var(--mint); border-radius: 7px; font-size: 0.9rem; }
-    .qr-url { font-size: 0.8rem; color: var(--green); margin-top: 0.8rem; word-break: break-all; }
+    .url-input-wrap input { flex: 1; padding: 0.6rem 0.9rem; border: 1.5px solid var(--border); border-radius: 7px; font-size: 0.9rem; outline: none; }
+    .url-input-wrap input:focus { border-color: var(--accent); }
+    .qr-url { font-size: 0.8rem; color: var(--accent); margin-top: 0.8rem; word-break: break-all; }
+
+    /* ── Customization ── */
+    .custom-section { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    @media (max-width: 900px) { .custom-section { grid-template-columns: 1fr; } }
+    .custom-card { background: #fff; border-radius: 12px; padding: 1.5rem; box-shadow: 0 2px 12px rgba(30,77,40,0.08); }
+    .custom-card h3 { font-family: Georgia, serif; font-size: 1rem; color: var(--deep); font-weight: normal; margin-bottom: 0.3rem; }
+    .custom-card p  { font-size: 0.82rem; color: var(--muted); margin-bottom: 1.2rem; }
+
+    /* Theme swatches */
+    .theme-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
+    .theme-swatch {
+      border-radius: 10px; overflow: hidden; cursor: pointer;
+      border: 3px solid transparent; transition: border-color 0.2s, transform 0.15s;
+    }
+    .theme-swatch:hover { transform: translateY(-2px); }
+    .theme-swatch.selected { border-color: var(--accent); }
+    .swatch-header { height: 48px; }
+    .swatch-body   { padding: 0.5rem 0.6rem; font-size: 0.75rem; font-weight: bold; }
+    .swatch-name   { font-size: 0.72rem; color: #666; margin-top: 0.1rem; }
+    .check-mark    { float: right; font-size: 0.9rem; display: none; }
+    .theme-swatch.selected .check-mark { display: inline; }
+
+    /* Banner upload */
+    .banner-drop {
+      border: 2px dashed var(--border); border-radius: 10px;
+      padding: 2rem 1rem; text-align: center; cursor: pointer;
+      position: relative; transition: background 0.2s, border-color 0.2s; background: var(--bg);
+    }
+    .banner-drop.drag-over { background: var(--light); border-color: var(--accent); }
+    .banner-drop input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+    .banner-drop p { font-size: 0.85rem; color: var(--muted); margin-top: 0.3rem; }
+    .banner-preview { margin-top: 1rem; border-radius: 8px; overflow: hidden; display: none; }
+    .banner-preview img { width: 100%; max-height: 160px; object-fit: cover; display: block; }
+    .banner-actions { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
+
+    .save-banner { background: linear-gradient(135deg, var(--accent), var(--deep)); color: #fff; border: none; border-radius: 8px; padding: 0.65rem 1.4rem; font-size: 0.9rem; cursor: pointer; margin-top: 1.25rem; width: 100%; }
+    .save-banner:hover { opacity: 0.9; }
+    .save-msg { font-size: 0.82rem; color: var(--accent); margin-top: 0.6rem; text-align: center; display: none; }
 
     /* ── Lightbox ── */
     #lightbox {
@@ -170,7 +208,7 @@
       display: none; align-items: center; justify-content: center; z-index: 200; cursor: pointer;
     }
     #lightbox img { max-width: 95vw; max-height: 92vh; border-radius: 4px; object-fit: contain; }
-    #lightboxClose { position: fixed; top: 20px; right: 24px; color: white; font-size: 2rem; cursor: pointer; z-index: 201; }
+    #lightboxClose { position: fixed; top: 20px; right: 24px; color: #fff; font-size: 2rem; cursor: pointer; z-index: 201; }
 
     /* ── Empty / misc ── */
     .empty { text-align: center; padding: 4rem 2rem; color: var(--muted); font-size: 0.95rem; }
@@ -178,10 +216,7 @@
     .section { display: none; }
     .section.active { display: block; }
 
-    @media (max-width: 700px) {
-      .sidebar { width: 0; overflow: hidden; }
-      .main { margin-left: 0; }
-    }
+    @media (max-width: 700px) { .sidebar { width: 0; overflow: hidden; } .main { margin-left: 0; } }
   </style>
 </head>
 <body>
@@ -206,42 +241,35 @@
       <h2>Trouw Fotoapp</h2>
       <p>Beheer dashboard</p>
     </div>
-    <div class="nav-item active" onclick="showSection('overview')" id="nav-overview">
-      <span class="nav-icon">📊</span> Overzicht
-    </div>
-    <div class="nav-item" onclick="showSection('uploaders')" id="nav-uploaders">
-      <span class="nav-icon">👥</span> Gasten
-    </div>
-    <div class="nav-item" onclick="showSection('photos')" id="nav-photos">
-      <span class="nav-icon">🖼️</span> Alle foto's
-    </div>
-    <div class="nav-item" onclick="showSection('qr')" id="nav-qr">
-      <span class="nav-icon">📱</span> QR code
-    </div>
+    <div class="nav-item active" onclick="showSection('overview')"   id="nav-overview">  <span class="nav-icon">📊</span> Overzicht</div>
+    <div class="nav-item"        onclick="showSection('uploaders')"  id="nav-uploaders"> <span class="nav-icon">👥</span> Gasten</div>
+    <div class="nav-item"        onclick="showSection('photos')"     id="nav-photos">    <span class="nav-icon">🖼️</span> Alle foto's</div>
+    <div class="nav-item"        onclick="showSection('qr')"         id="nav-qr">        <span class="nav-icon">📱</span> QR code</div>
+    <div class="nav-item"        onclick="showSection('customize')"  id="nav-customize"> <span class="nav-icon">🎨</span> Uiterlijk</div>
   </div>
 
   <div class="main">
 
-    <!-- Overview -->
+    <!-- ─── Overview ─── -->
     <div class="section active" id="section-overview">
       <div class="topbar">
         <h1>Overzicht</h1>
-        <div class="topbar-actions">
-          <button class="btn btn-outline" onclick="refreshAll()">↻ Vernieuwen</button>
-        </div>
+        <button class="btn btn-outline" onclick="refreshAll()">↻ Vernieuwen</button>
       </div>
       <div class="stats-grid">
-        <div class="stat-card">
+        <div class="stat-card" onclick="showSection('uploaders')">
           <div class="stat-icon">👥</div>
           <div class="stat-label">Gasten</div>
           <div class="stat-value" id="stat-uploaders">–</div>
+          <div class="stat-hint">Klik om te bekijken →</div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card" onclick="showSection('photos')">
           <div class="stat-icon">📷</div>
           <div class="stat-label">Foto's</div>
           <div class="stat-value" id="stat-photos">–</div>
+          <div class="stat-hint">Klik om te bekijken →</div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card plain">
           <div class="stat-icon">💾</div>
           <div class="stat-label">Totale grootte</div>
           <div class="stat-value" id="stat-size">–</div>
@@ -251,13 +279,21 @@
       <div id="recentList"></div>
     </div>
 
-    <!-- Gasten -->
+    <!-- ─── Gasten ─── -->
     <div class="section" id="section-uploaders">
       <div class="topbar"><h1>Gasten</h1></div>
+      <!-- Search filter -->
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="guestSearch" list="guestNamesList" placeholder="Zoek op naam..."
+               oninput="filterGuests()" autocomplete="off" />
+        <datalist id="guestNamesList"></datalist>
+      </div>
+      <div class="guest-count" id="guestCount"></div>
       <div id="uploadersList"></div>
     </div>
 
-    <!-- Alle foto's -->
+    <!-- ─── Alle foto's ─── -->
     <div class="section" id="section-photos">
       <div class="topbar">
         <h1>Alle foto's</h1>
@@ -266,7 +302,7 @@
       <div id="photoGrid" class="photo-grid"></div>
     </div>
 
-    <!-- QR -->
+    <!-- ─── QR code ─── -->
     <div class="section" id="section-qr">
       <div class="topbar"><h1>QR Code</h1></div>
       <div class="qr-section">
@@ -287,8 +323,45 @@
       </div>
     </div>
 
-  </div>
-</div>
+    <!-- ─── Uiterlijk / Customization ─── -->
+    <div class="section" id="section-customize">
+      <div class="topbar"><h1>Uiterlijk</h1></div>
+      <div class="custom-section">
+
+        <!-- Theme picker -->
+        <div class="custom-card">
+          <h3>Kleurenthema</h3>
+          <p>Kies een thema voor de upload pagina van gasten.</p>
+          <div class="theme-grid" id="themeGrid"></div>
+          <button class="save-banner" onclick="saveTheme()">Thema opslaan</button>
+          <div class="save-msg" id="themeSaveMsg">✓ Thema opgeslagen!</div>
+        </div>
+
+        <!-- Banner upload -->
+        <div class="custom-card">
+          <h3>Bannerafbeelding</h3>
+          <p>Upload een foto die bovenaan de gast-uploadpagina wordt getoond (bijv. een trouwfoto).</p>
+          <div class="banner-drop" id="bannerDrop">
+            <input type="file" id="bannerFileInput" accept="image/*" />
+            <div style="font-size:2rem;margin-bottom:0.4rem">🖼️</div>
+            <strong>Tik of sleep een afbeelding</strong>
+            <p>Max 10 MB &bull; JPG, PNG, WEBP</p>
+          </div>
+          <div class="banner-preview" id="bannerPreview">
+            <img id="bannerPreviewImg" src="" alt="" />
+            <div class="banner-actions">
+              <button class="btn btn-primary" onclick="uploadBanner()">Uploaden</button>
+              <button class="btn btn-danger"  onclick="removeBanner()">Verwijderen</button>
+            </div>
+          </div>
+          <div class="save-msg" id="bannerSaveMsg">✓ Banner opgeslagen!</div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
 
 <!-- Lightbox -->
 <div id="lightbox" onclick="closeLightbox()">
@@ -297,27 +370,41 @@
 </div>
 
 <script>
-  let password = '';
-  let allData = [];
+  // ── Theme definitions ──
+  const THEMES = {
+    green:    { name:'Groen & Wit',      emoji:'🌿', accent:'#3a7d44', deep:'#1e4d28', bg:'#f4faf5', light:'#e8f5ea', border:'#b2ddb8', text:'#1a3320', muted:'#6a9070' },
+    rose:     { name:'Roos & Goud',      emoji:'🌹', accent:'#c9806b', deep:'#5c3d2e', bg:'#fff8f0', light:'#f2d7d0', border:'#f2d7d0', text:'#3a2a20', muted:'#a08070' },
+    navy:     { name:'Marine & Goud',    emoji:'⚓',  accent:'#2c4a8a', deep:'#1a2d5a', bg:'#f0f4fa', light:'#dde6f5', border:'#9ab0d8', text:'#1a2040', muted:'#6070a0' },
+    lavender: { name:'Lavendel',          emoji:'💜', accent:'#8050a8', deep:'#4a2870', bg:'#faf0ff', light:'#ecddf5', border:'#c8a8e0', text:'#301848', muted:'#8068a0' },
+    sage:     { name:'Salie & Crème',    emoji:'🌾', accent:'#7a6040', deep:'#4a3820', bg:'#faf6f0', light:'#ede8d8', border:'#c0b090', text:'#302818', muted:'#907858' },
+    midnight: { name:'Midnight & Goud',  emoji:'✨', accent:'#b09030', deep:'#1a1a10', bg:'#f8f8f6', light:'#eeeee8', border:'#c8b870', text:'#201c08', muted:'#807040' },
+  };
 
+  let password    = '';
+  let allData     = [];
+  let selectedTheme = 'green';
+  let pendingBannerFile = null;
+
+  // ── Login ──
   function doLogin() {
     const pw = document.getElementById('passwordInput').value;
-    fetch('/api/auth', {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ password: pw })
-    }).then(r => r.json()).then(d => {
-      if (d.success) {
-        password = pw;
-        document.getElementById('loginOverlay').style.display = 'none';
-        document.getElementById('app').style.display = 'flex';
-        refreshAll();
-        document.getElementById('urlInput').value = window.location.origin;
-      } else {
-        document.getElementById('loginError').style.display = 'block';
-      }
-    }).catch(() => document.getElementById('loginError').style.display = 'block');
+    fetch('/api/auth', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({password:pw}) })
+      .then(r => r.json()).then(d => {
+        if (d.success) {
+          password = pw;
+          document.getElementById('loginOverlay').style.display = 'none';
+          document.getElementById('app').style.display = 'flex';
+          document.getElementById('urlInput').value = window.location.origin;
+          refreshAll();
+          loadCurrentSettings();
+          buildThemeGrid();
+        } else {
+          document.getElementById('loginError').style.display = 'block';
+        }
+      }).catch(() => document.getElementById('loginError').style.display = 'block');
   }
 
+  // ── Navigation ──
   function showSection(name) {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -325,6 +412,7 @@
     document.getElementById('nav-' + name).classList.add('active');
   }
 
+  // ── Data loading ──
   async function refreshAll() {
     await Promise.all([loadStats(), loadData()]);
   }
@@ -333,8 +421,8 @@
     const r = await fetch(`/api/stats?password=${encodeURIComponent(password)}`);
     const d = await r.json();
     document.getElementById('stat-uploaders').textContent = d.totalUploaders;
-    document.getElementById('stat-photos').textContent = d.totalPhotos;
-    document.getElementById('stat-size').textContent = d.totalSizeMB + ' MB';
+    document.getElementById('stat-photos').textContent    = d.totalPhotos;
+    document.getElementById('stat-size').textContent      = d.totalSizeMB + ' MB';
   }
 
   async function loadData() {
@@ -343,43 +431,40 @@
     renderUploaders();
     renderPhotos();
     renderRecent();
+    updateGuestDatalist();
   }
 
+  // ── Recent uploads (overview) ──
   function renderRecent() {
-    const list = document.getElementById('recentList');
-    const recent = [...allData].sort((a,b) => new Date(b.uploadedAt) - new Date(a.uploadedAt)).slice(0, 5);
-    if (recent.length === 0) {
-      list.innerHTML = '<div class="empty"><span class="empty-icon">📷</span>Nog geen uploads</div>';
-      return;
-    }
-    list.innerHTML = recent.map(e => uploaderCardHTML(e)).join('');
+    const list   = document.getElementById('recentList');
+    const recent = [...allData].sort((a,b) => new Date(b.uploadedAt)-new Date(a.uploadedAt)).slice(0,5);
+    list.innerHTML = recent.length
+      ? recent.map(e => uploaderCardHTML(e)).join('')
+      : '<div class="empty"><span class="empty-icon">📷</span>Nog geen uploads</div>';
   }
 
+  // ── Guest list ──
   function renderUploaders() {
-    const list = document.getElementById('uploadersList');
-    if (allData.length === 0) {
-      list.innerHTML = '<div class="empty"><span class="empty-icon">👥</span>Nog geen gasten</div>';
-      return;
-    }
-    const sorted = [...allData].sort((a,b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
-    list.innerHTML = sorted.map(e => uploaderCardHTML(e)).join('');
+    const list   = document.getElementById('uploadersList');
+    const sorted = [...allData].sort((a,b) => new Date(b.uploadedAt)-new Date(a.uploadedAt));
+    list.innerHTML = sorted.length
+      ? sorted.map(e => uploaderCardHTML(e)).join('')
+      : '<div class="empty"><span class="empty-icon">👥</span>Nog geen gasten</div>';
+    updateGuestCount();
   }
 
   function uploaderCardHTML(e) {
-    const date = new Date(e.uploadedAt);
-    const dateStr = date.toLocaleDateString('nl-NL', {day:'numeric',month:'long',year:'numeric'});
-    const timeStr = date.toLocaleTimeString('nl-NL', {hour:'2-digit',minute:'2-digit'});
+    const date    = new Date(e.uploadedAt);
+    const dateStr = date.toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'});
+    const timeStr = date.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
     const msgHtml = e.message ? `<div class="uploader-message">"${escHtml(e.message)}"</div>` : '';
-
-    // Photo thumbnails inside the card
     const photosHtml = e.photos.map(p => `
       <div class="guest-photo-item" onclick="openLightbox('/uploads/${p.filename}')">
         <img src="/uploads/${p.filename}" alt="${escHtml(p.originalName)}" loading="lazy" />
-        <button class="del-btn" onclick="event.stopPropagation();deletePhoto('${e.id}','${p.id}')" title="Verwijderen">&times;</button>
+        <button class="del-btn" onclick="event.stopPropagation();deletePhoto('${e.id}','${p.id}')">&times;</button>
       </div>`).join('');
-
     return `
-      <div class="uploader-card" id="card-${e.id}">
+      <div class="uploader-card" id="card-${e.id}" data-name="${escHtml(e.name.toLowerCase())}">
         <div class="uploader-header" onclick="toggleCard('${e.id}')">
           <div class="uploader-info">
             <h3>${escHtml(e.name)}</h3>
@@ -387,7 +472,7 @@
             ${msgHtml}
           </div>
           <div class="uploader-actions">
-            <span class="badge">${e.photos.length} foto${e.photos.length !== 1 ? "'s" : ''}</span>
+            <span class="badge">${e.photos.length} foto${e.photos.length!==1?"'s":''}</span>
             <button class="btn btn-danger" onclick="event.stopPropagation();deleteUpload('${e.id}')">Verwijder</button>
             <span class="expand-arrow">▼</span>
           </div>
@@ -399,26 +484,52 @@
   }
 
   function toggleCard(id) {
-    const card = document.getElementById('card-' + id);
-    card.classList.toggle('open');
+    document.getElementById('card-' + id)?.classList.toggle('open');
   }
 
+  // ── Guest search / filter ──
+  function updateGuestDatalist() {
+    const dl = document.getElementById('guestNamesList');
+    dl.innerHTML = allData.map(e => `<option value="${escHtml(e.name)}">`).join('');
+    updateGuestCount();
+  }
+
+  function filterGuests() {
+    const q       = document.getElementById('guestSearch').value.toLowerCase().trim();
+    let   visible = 0;
+    document.querySelectorAll('#uploadersList .uploader-card').forEach(card => {
+      const name = card.dataset.name || '';
+      const show = !q || name.includes(q);
+      card.classList.toggle('hidden', !show);
+      if (show) visible++;
+    });
+    updateGuestCount(visible);
+  }
+
+  function updateGuestCount(visible) {
+    const total = allData.length;
+    const shown = visible !== undefined ? visible : total;
+    const el    = document.getElementById('guestCount');
+    if (el) el.textContent = shown === total
+      ? `${total} gast${total !== 1 ? 'en' : ''}`
+      : `${shown} van ${total} gasten`;
+  }
+
+  // ── All photos ──
   function renderPhotos() {
-    const grid = document.getElementById('photoGrid');
-    const countEl = document.getElementById('photoCount');
+    const grid     = document.getElementById('photoGrid');
+    const countEl  = document.getElementById('photoCount');
     const allPhotos = [];
-    allData.forEach(e => e.photos.forEach(p => allPhotos.push({...p, uploaderName: e.name, uploaderId: e.id})));
-    allPhotos.sort((a,b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
-    countEl.textContent = allPhotos.length + " foto's";
-    if (allPhotos.length === 0) {
-      grid.innerHTML = '<div class="empty"><span class="empty-icon">🖼️</span>Nog geen foto\'s</div>';
-      return;
+    allData.forEach(e => e.photos.forEach(p => allPhotos.push({...p, uploaderName:e.name, uploaderId:e.id})));
+    allPhotos.sort((a,b) => new Date(b.uploadedAt)-new Date(a.uploadedAt));
+    countEl.textContent = `${allPhotos.length} foto's`;
+    if (!allPhotos.length) {
+      grid.innerHTML = '<div class="empty"><span class="empty-icon">🖼️</span>Nog geen foto\'s</div>'; return;
     }
     grid.innerHTML = allPhotos.map(p => `
       <div class="photo-card">
-        <img src="/uploads/${p.filename}" alt="${escHtml(p.originalName)}"
-          onclick="openLightbox('/uploads/${p.filename}')" loading="lazy" />
-        <button class="photo-delete" onclick="deletePhoto('${p.uploaderId}','${p.id}')" title="Verwijderen">&times;</button>
+        <img src="/uploads/${p.filename}" alt="${escHtml(p.originalName)}" onclick="openLightbox('/uploads/${p.filename}')" loading="lazy" />
+        <button class="photo-delete" onclick="deletePhoto('${p.uploaderId}','${p.id}')">&times;</button>
         <div class="photo-info">
           <div class="photo-name">${escHtml(p.uploaderName)}</div>
           <div>${new Date(p.uploadedAt).toLocaleDateString('nl-NL')}</div>
@@ -426,18 +537,20 @@
       </div>`).join('');
   }
 
+  // ── Delete actions ──
   async function deleteUpload(uploadId) {
     if (!confirm("Alle foto's van deze gast verwijderen?")) return;
-    const r = await fetch(`/api/uploads/${uploadId}?password=${encodeURIComponent(password)}`, {method:'DELETE'});
+    const r = await fetch(`/api/uploads/${uploadId}?password=${encodeURIComponent(password)}`,{method:'DELETE'});
     if (r.ok) await refreshAll(); else alert('Verwijderen mislukt');
   }
 
   async function deletePhoto(uploaderId, photoId) {
     if (!confirm('Deze foto verwijderen?')) return;
-    const r = await fetch(`/api/photos/${uploaderId}/${photoId}?password=${encodeURIComponent(password)}`, {method:'DELETE'});
+    const r = await fetch(`/api/photos/${uploaderId}/${photoId}?password=${encodeURIComponent(password)}`,{method:'DELETE'});
     if (r.ok) await refreshAll(); else alert('Verwijderen mislukt');
   }
 
+  // ── Lightbox ──
   function openLightbox(src) {
     document.getElementById('lightboxImg').src = src;
     document.getElementById('lightbox').style.display = 'flex';
@@ -447,30 +560,126 @@
     document.getElementById('lightbox').style.display = 'none';
     document.body.style.overflow = '';
   }
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+  document.addEventListener('keydown', e => { if (e.key==='Escape') closeLightbox(); });
 
+  // ── QR code ──
   async function generateQR() {
     const url = document.getElementById('urlInput').value.trim() || window.location.origin;
-    const r = await fetch(`/api/qrcode?password=${encodeURIComponent(password)}&url=${encodeURIComponent(url)}`);
-    const d = await r.json();
+    const r   = await fetch(`/api/qrcode?password=${encodeURIComponent(password)}&url=${encodeURIComponent(url)}`);
+    const d   = await r.json();
     if (d.qr) {
       document.getElementById('qrImage').src = d.qr;
       document.getElementById('qrUrl').textContent = d.url;
       document.getElementById('qrOutput').style.display = 'block';
     }
   }
-
   function downloadQR() {
-    const a = document.createElement('a');
-    a.href = document.getElementById('qrImage').src;
+    const a = document.createElement('a'); a.href = document.getElementById('qrImage').src;
     a.download = 'trouw-qrcode.png'; a.click();
   }
-
   function copyUrl() {
-    navigator.clipboard.writeText(document.getElementById('qrUrl').textContent)
-      .then(() => alert('Link gekopieerd!'));
+    navigator.clipboard.writeText(document.getElementById('qrUrl').textContent).then(()=>alert('Link gekopieerd!'));
   }
 
+  // ── Customization: themes ──
+  function buildThemeGrid() {
+    const grid = document.getElementById('themeGrid');
+    grid.innerHTML = Object.entries(THEMES).map(([key, t]) => `
+      <div class="theme-swatch" id="swatch-${key}" onclick="selectTheme('${key}')">
+        <div class="swatch-header" style="background:linear-gradient(135deg,${t.deep},${t.accent})"></div>
+        <div class="swatch-body" style="background:${t.bg};color:${t.deep}">
+          ${t.emoji} ${t.name.split(' ')[0]}
+          <span class="check-mark">✓</span>
+          <div class="swatch-name" style="color:${t.muted}">${t.name}</div>
+        </div>
+      </div>`).join('');
+    markSelectedTheme(selectedTheme);
+  }
+
+  function selectTheme(key) {
+    selectedTheme = key;
+    markSelectedTheme(key);
+  }
+
+  function markSelectedTheme(key) {
+    document.querySelectorAll('.theme-swatch').forEach(s => s.classList.remove('selected'));
+    document.getElementById('swatch-' + key)?.classList.add('selected');
+  }
+
+  async function saveTheme() {
+    const r = await fetch(`/api/settings?password=${encodeURIComponent(password)}`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ theme: selectedTheme })
+    });
+    if (r.ok) {
+      const msg = document.getElementById('themeSaveMsg');
+      msg.style.display = 'block';
+      setTimeout(() => msg.style.display = 'none', 3000);
+    }
+  }
+
+  async function loadCurrentSettings() {
+    const r = await fetch('/api/settings');
+    const s = await r.json();
+    if (s.theme) { selectedTheme = s.theme; markSelectedTheme(s.theme); }
+    if (s.bannerUrl) showBannerPreview(s.bannerUrl);
+  }
+
+  // ── Customization: banner ──
+  const bannerDrop      = document.getElementById('bannerDrop');
+  const bannerFileInput = document.getElementById('bannerFileInput');
+
+  bannerDrop.addEventListener('dragover', e => { e.preventDefault(); bannerDrop.classList.add('drag-over'); });
+  bannerDrop.addEventListener('dragleave', () => bannerDrop.classList.remove('drag-over'));
+  bannerDrop.addEventListener('drop', e => {
+    e.preventDefault(); bannerDrop.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) previewBannerFile(file);
+  });
+  bannerFileInput.addEventListener('change', () => {
+    if (bannerFileInput.files[0]) previewBannerFile(bannerFileInput.files[0]);
+    bannerFileInput.value = '';
+  });
+
+  function previewBannerFile(file) {
+    pendingBannerFile = file;
+    const reader = new FileReader();
+    reader.onload = e => showBannerPreview(e.target.result, true);
+    reader.readAsDataURL(file);
+  }
+
+  function showBannerPreview(src, isPending) {
+    document.getElementById('bannerPreviewImg').src = src;
+    const preview = document.getElementById('bannerPreview');
+    preview.style.display = 'block';
+    // Only show Upload button if there's a pending file
+    preview.querySelector('.btn-primary').style.display = isPending ? '' : 'none';
+  }
+
+  async function uploadBanner() {
+    if (!pendingBannerFile) return;
+    const fd = new FormData(); fd.append('banner', pendingBannerFile);
+    const r  = await fetch(`/api/upload-banner?password=${encodeURIComponent(password)}`, { method:'POST', body:fd });
+    const d  = await r.json();
+    if (d.success) {
+      pendingBannerFile = null;
+      showBannerPreview(d.bannerUrl, false);
+      const msg = document.getElementById('bannerSaveMsg');
+      msg.style.display = 'block';
+      setTimeout(() => msg.style.display='none', 3000);
+    } else { alert('Upload mislukt'); }
+  }
+
+  async function removeBanner() {
+    if (!confirm('Banner verwijderen?')) return;
+    const r = await fetch(`/api/banner?password=${encodeURIComponent(password)}`,{method:'DELETE'});
+    if (r.ok) {
+      document.getElementById('bannerPreview').style.display = 'none';
+      pendingBannerFile = null;
+    }
+  }
+
+  // ── Util ──
   function escHtml(str) {
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }

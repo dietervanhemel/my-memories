@@ -13,63 +13,74 @@ const DASHBOARD_PASSWORD = 'bruid2024';
 
 // Ensure directories exist
 const uploadsDir = path.join(__dirname, 'uploads');
-const dataDir = path.join(__dirname, 'data');
-if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir);
-if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir);
+const dataDir    = path.join(__dirname, 'data');
+const bannerDir  = path.join(__dirname, 'public', 'banner');
+[uploadsDir, dataDir, bannerDir].forEach(d => { if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true }); });
 
-const dataFile = path.join(dataDir, 'photos.json');
-if (!fs.existsSync(dataFile)) fs.writeFileSync(dataFile, JSON.stringify([]));
+const dataFile     = path.join(dataDir, 'photos.json');
+const settingsFile = path.join(dataDir, 'settings.json');
+if (!fs.existsSync(dataFile))     fs.writeFileSync(dataFile,     JSON.stringify([]));
+if (!fs.existsSync(settingsFile)) fs.writeFileSync(settingsFile, JSON.stringify({ theme: 'green', bannerUrl: null }));
 
-// Multer storage config
-const storage = multer.diskStorage({
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+function readData() {
+  try { return JSON.parse(fs.readFileSync(dataFile, 'utf-8')); } catch { return []; }
+}
+function writeData(data) { fs.writeFileSync(dataFile, JSON.stringify(data, null, 2)); }
+
+function readSettings() {
+  try { return JSON.parse(fs.readFileSync(settingsFile, 'utf-8')); }
+  catch { return { theme: 'green', bannerUrl: null }; }
+}
+function writeSettings(s) { fs.writeFileSync(settingsFile, JSON.stringify(s, null, 2)); }
+
+function auth(req, res, next) {
+  if (req.query.password !== DASHBOARD_PASSWORD) return res.status(401).json({ error: 'Niet geautoriseerd' });
+  next();
+}
+
+// ─── Multer: photos ──────────────────────────────────────────────────────────
+
+const photoStorage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadsDir),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
-    cb(null, `${uuidv4()}${ext}`);
+  filename:    (req, file, cb) => cb(null, `${uuidv4()}${path.extname(file.originalname).toLowerCase()}`)
+});
+const upload = multer({
+  storage: photoStorage,
+  limits: { fileSize: 50 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const ok = /jpeg|jpg|png|gif|webp|heic|heif/.test(path.extname(file.originalname).toLowerCase())
+            || /image\//.test(file.mimetype);
+    cb(ok ? null : new Error('Alleen afbeeldingen zijn toegestaan'), ok);
   }
 });
 
-const upload = multer({
-  storage,
-  limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB per file
-  fileFilter: (req, file, cb) => {
-    const allowed = /jpeg|jpg|png|gif|webp|heic|heif/;
-    const ext = allowed.test(path.extname(file.originalname).toLowerCase());
-    const mime = allowed.test(file.mimetype) || file.mimetype === 'image/heic' || file.mimetype === 'image/heif';
-    if (ext || mime) return cb(null, true);
-    cb(new Error('Alleen afbeeldingen zijn toegestaan'));
-  }
+// ─── Multer: banner ──────────────────────────────────────────────────────────
+
+const bannerStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, bannerDir),
+  filename:    (req, file, cb) => cb(null, 'banner' + path.extname(file.originalname).toLowerCase())
 });
+const bannerUpload = multer({ storage: bannerStorage, limits: { fileSize: 10 * 1024 * 1024 } });
+
+// ─── Middleware ──────────────────────────────────────────────────────────────
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(uploadsDir));
 
-// Helper: read/write data
-function readData() {
-  try { return JSON.parse(fs.readFileSync(dataFile, 'utf-8')); }
-  catch { return []; }
-}
-function writeData(data) {
-  fs.writeFileSync(dataFile, JSON.stringify(data, null, 2));
-}
+// ─── Public routes ───────────────────────────────────────────────────────────
 
-// ─── Guest routes ───────────────────────────────────────────────────────────
-
-// Upload photos
+// Guest photo upload
 app.post('/api/upload', upload.array('photos', 30), (req, res) => {
   const { name, message } = req.body;
-  if (!name || name.trim() === '') {
-    return res.status(400).json({ error: 'Naam is verplicht' });
-  }
-  if (!req.files || req.files.length === 0) {
-    return res.status(400).json({ error: 'Geen foto\'s ontvangen' });
-  }
+  if (!name?.trim()) return res.status(400).json({ error: 'Naam is verplicht' });
+  if (!req.files?.length) return res.status(400).json({ error: "Geen foto's ontvangen" });
 
-  const data = readData();
-  const uploadId = uuidv4();
+  const data  = readData();
   const entry = {
-    id: uploadId,
+    id: uuidv4(),
     name: name.trim(),
     message: (message || '').trim(),
     uploadedAt: new Date().toISOString(),
@@ -81,113 +92,109 @@ app.post('/api/upload', upload.array('photos', 30), (req, res) => {
       uploadedAt: new Date().toISOString()
     }))
   };
-
   data.push(entry);
   writeData(data);
-
-  res.json({ success: true, count: req.files.length, uploadId });
+  res.json({ success: true, count: req.files.length, uploadId: entry.id });
 });
 
-// ─── Dashboard routes ────────────────────────────────────────────────────────
+// Public settings (theme + banner for guest page)
+app.get('/api/settings', (req, res) => res.json(readSettings()));
 
-// Auth check
+// ─── Protected routes ────────────────────────────────────────────────────────
+
 app.post('/api/auth', (req, res) => {
-  const { password } = req.body;
-  if (password === DASHBOARD_PASSWORD) {
-    res.json({ success: true });
-  } else {
-    res.status(401).json({ error: 'Onjuist wachtwoord' });
-  }
+  req.body.password === DASHBOARD_PASSWORD
+    ? res.json({ success: true })
+    : res.status(401).json({ error: 'Onjuist wachtwoord' });
 });
 
-// Get all uploads (protected by password query param)
-app.get('/api/photos', (req, res) => {
-  if (req.query.password !== DASHBOARD_PASSWORD) {
-    return res.status(401).json({ error: 'Niet geautoriseerd' });
-  }
+app.get('/api/photos', auth, (req, res) => res.json(readData()));
+
+app.get('/api/stats', auth, (req, res) => {
   const data = readData();
-  res.json(data);
+  const totalPhotos = data.reduce((s, e) => s + e.photos.length, 0);
+  const totalSize   = data.reduce((s, e) => s + e.photos.reduce((x, p) => x + p.size, 0), 0);
+  res.json({ totalUploaders: data.length, totalPhotos, totalSizeMB: (totalSize / 1048576).toFixed(1) });
 });
 
-// Delete a single photo
-app.delete('/api/photos/:uploadId/:photoId', (req, res) => {
-  if (req.query.password !== DASHBOARD_PASSWORD) {
-    return res.status(401).json({ error: 'Niet geautoriseerd' });
-  }
-  const data = readData();
+// Delete single photo
+app.delete('/api/photos/:uploadId/:photoId', auth, (req, res) => {
+  const data  = readData();
   const entry = data.find(e => e.id === req.params.uploadId);
   if (!entry) return res.status(404).json({ error: 'Niet gevonden' });
-
   const photo = entry.photos.find(p => p.id === req.params.photoId);
   if (!photo) return res.status(404).json({ error: 'Foto niet gevonden' });
-
-  const filePath = path.join(uploadsDir, photo.filename);
-  if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-
+  const fp = path.join(uploadsDir, photo.filename);
+  if (fs.existsSync(fp)) fs.unlinkSync(fp);
   entry.photos = entry.photos.filter(p => p.id !== req.params.photoId);
-  if (entry.photos.length === 0) {
-    const idx = data.indexOf(entry);
-    data.splice(idx, 1);
-  }
+  if (!entry.photos.length) data.splice(data.indexOf(entry), 1);
   writeData(data);
   res.json({ success: true });
 });
 
-// Delete an entire upload group
-app.delete('/api/uploads/:uploadId', (req, res) => {
-  if (req.query.password !== DASHBOARD_PASSWORD) {
-    return res.status(401).json({ error: 'Niet geautoriseerd' });
-  }
+// Delete entire upload group
+app.delete('/api/uploads/:uploadId', auth, (req, res) => {
   const data = readData();
-  const idx = data.findIndex(e => e.id === req.params.uploadId);
+  const idx  = data.findIndex(e => e.id === req.params.uploadId);
   if (idx === -1) return res.status(404).json({ error: 'Niet gevonden' });
-
-  const entry = data[idx];
-  entry.photos.forEach(p => {
-    const filePath = path.join(uploadsDir, p.filename);
-    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+  data[idx].photos.forEach(p => {
+    const fp = path.join(uploadsDir, p.filename);
+    if (fs.existsSync(fp)) fs.unlinkSync(fp);
   });
   data.splice(idx, 1);
   writeData(data);
   res.json({ success: true });
 });
 
-// Generate QR code for the upload page
-app.get('/api/qrcode', async (req, res) => {
-  if (req.query.password !== DASHBOARD_PASSWORD) {
-    return res.status(401).json({ error: 'Niet geautoriseerd' });
-  }
+// QR code
+app.get('/api/qrcode', auth, async (req, res) => {
   const baseUrl = req.query.url || `http://localhost:${PORT}`;
   try {
-    const qr = await QRCode.toDataURL(baseUrl, {
-      width: 400,
-      margin: 2,
-      color: { dark: '#5c3d2e', light: '#fff8f0' }
-    });
+    const settings = readSettings();
+    // Use theme accent colour for QR dots (fallback dark green)
+    const THEME_COLORS = {
+      green: '#1e4d28', rose: '#5c3d2e', navy: '#1a2d5a',
+      lavender: '#4a2870', sage: '#4a3820', midnight: '#1a1a10'
+    };
+    const dark = THEME_COLORS[settings.theme] || '#1e4d28';
+    const qr = await QRCode.toDataURL(baseUrl, { width: 400, margin: 2, color: { dark, light: '#ffffff' } });
     res.json({ qr, url: baseUrl });
-  } catch (err) {
-    res.status(500).json({ error: 'QR generatie mislukt' });
-  }
+  } catch { res.status(500).json({ error: 'QR generatie mislukt' }); }
 });
 
-// Stats endpoint
-app.get('/api/stats', (req, res) => {
-  if (req.query.password !== DASHBOARD_PASSWORD) {
-    return res.status(401).json({ error: 'Niet geautoriseerd' });
+// Save settings (theme)
+app.post('/api/settings', auth, (req, res) => {
+  const s = readSettings();
+  if (req.body.theme)                  s.theme     = req.body.theme;
+  if (req.body.bannerUrl !== undefined) s.bannerUrl = req.body.bannerUrl;
+  writeSettings(s);
+  res.json({ success: true });
+});
+
+// Upload banner image
+app.post('/api/upload-banner', auth, bannerUpload.single('banner'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'Geen bestand ontvangen' });
+  const bannerUrl = '/banner/' + req.file.filename;
+  const s = readSettings();
+  s.bannerUrl = bannerUrl;
+  writeSettings(s);
+  res.json({ success: true, bannerUrl });
+});
+
+// Remove banner
+app.delete('/api/banner', auth, (req, res) => {
+  const s = readSettings();
+  if (s.bannerUrl) {
+    const fp = path.join(__dirname, 'public', s.bannerUrl);
+    if (fs.existsSync(fp)) fs.unlinkSync(fp);
   }
-  const data = readData();
-  const totalPhotos = data.reduce((sum, e) => sum + e.photos.length, 0);
-  const totalSize = data.reduce((sum, e) =>
-    sum + e.photos.reduce((s, p) => s + p.size, 0), 0);
-  res.json({
-    totalUploaders: data.length,
-    totalPhotos,
-    totalSizeMB: (totalSize / (1024 * 1024)).toFixed(1)
-  });
+  s.bannerUrl = null;
+  writeSettings(s);
+  res.json({ success: true });
 });
 
 app.listen(PORT, () => {
   console.log(`\n  Trouw Fotoapp draait op http://localhost:${PORT}`);
-  console.log(`  Dashboard: http://localhost:${PORT}/dashboard.html`);
+  console.log(`  Dashboard:  http://localhost:${PORT}/dashboard.html`);
   console.log(`  Wachtwoord: ${DASHBOARD_PASSWORD}\n`);
 });
