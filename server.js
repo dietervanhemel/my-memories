@@ -20,7 +20,7 @@ const bannerDir  = path.join(__dirname, 'public', 'banner');
 const dataFile     = path.join(dataDir, 'photos.json');
 const settingsFile = path.join(dataDir, 'settings.json');
 if (!fs.existsSync(dataFile))     fs.writeFileSync(dataFile,     JSON.stringify([]));
-if (!fs.existsSync(settingsFile)) fs.writeFileSync(settingsFile, JSON.stringify({ theme: 'green', bannerUrl: null }));
+if (!fs.existsSync(settingsFile)) fs.writeFileSync(settingsFile, JSON.stringify({ theme: 'green', bannerUrl: null, guestPassword: '' }));
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -97,8 +97,23 @@ app.post('/api/upload', upload.array('photos', 30), (req, res) => {
   res.json({ success: true, count: req.files.length, uploadId: entry.id });
 });
 
-// Public settings (theme + banner for guest page)
-app.get('/api/settings', (req, res) => res.json(readSettings()));
+// Public settings — guests see theme + banner + whether a password is required.
+// Authenticated callers (dashboard) also receive the actual guest password.
+app.get('/api/settings', (req, res) => {
+  const s = readSettings();
+  const out = { theme: s.theme, bannerUrl: s.bannerUrl, hasGuestPassword: !!s.guestPassword };
+  if (req.query.password === DASHBOARD_PASSWORD) out.guestPassword = s.guestPassword || '';
+  res.json(out);
+});
+
+// Guest password verification (public — never reveals the password itself)
+app.post('/api/verify-guest-password', (req, res) => {
+  const s = readSettings();
+  if (!s.guestPassword) return res.json({ success: true }); // no password set
+  req.body.password === s.guestPassword
+    ? res.json({ success: true })
+    : res.status(401).json({ error: 'Onjuist wachtwoord' });
+});
 
 // ─── Protected routes ────────────────────────────────────────────────────────
 
@@ -162,11 +177,12 @@ app.get('/api/qrcode', auth, async (req, res) => {
   } catch { res.status(500).json({ error: 'QR generatie mislukt' }); }
 });
 
-// Save settings (theme)
+// Save settings (theme, bannerUrl, guestPassword)
 app.post('/api/settings', auth, (req, res) => {
   const s = readSettings();
-  if (req.body.theme)                  s.theme     = req.body.theme;
-  if (req.body.bannerUrl !== undefined) s.bannerUrl = req.body.bannerUrl;
+  if (req.body.theme                  !== undefined) s.theme         = req.body.theme;
+  if (req.body.bannerUrl              !== undefined) s.bannerUrl     = req.body.bannerUrl;
+  if (req.body.guestPassword          !== undefined) s.guestPassword = req.body.guestPassword;
   writeSettings(s);
   res.json({ success: true });
 });

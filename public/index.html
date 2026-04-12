@@ -31,14 +31,12 @@
     .header {
       width: 100%;
       background: linear-gradient(160deg, var(--deep) 0%, var(--accent) 100%);
-      color: #fff;
-      text-align: center;
+      color: #fff; text-align: center;
       padding: 2.5rem 1.5rem 2rem;
       position: relative; overflow: hidden;
     }
     .header::before {
-      content: '';
-      position: absolute; inset: 0;
+      content: ''; position: absolute; inset: 0;
       background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E");
     }
     .header-icon { font-size: 2rem; margin-bottom: 0.4rem; position: relative; }
@@ -46,50 +44,48 @@
     .header p    { margin-top: 0.4rem; font-size: 0.95rem; opacity: 0.85; font-style: italic; position: relative; }
     .accent-line { width: 60px; height: 2px; background: rgba(255,255,255,0.5); margin: 0.8rem auto 0; position: relative; }
 
-    /* ── Banner image ── */
-    .banner-wrap {
-      width: 100%; max-height: 300px; overflow: hidden; display: none;
-    }
+    /* ── Banner ── */
+    .banner-wrap { width: 100%; max-height: 300px; overflow: hidden; display: none; }
     .banner-wrap img { width: 100%; object-fit: cover; display: block; max-height: 300px; }
 
     /* ── Card ── */
     .card {
-      background: var(--surface);
-      border-radius: 16px;
+      background: var(--surface); border-radius: 16px;
       box-shadow: 0 4px 30px rgba(0,0,0,0.08);
-      padding: 2rem 1.75rem;
-      width: 92%; max-width: 520px;
-      margin: 1.8rem 0;
+      padding: 2rem 1.75rem; width: 92%; max-width: 520px; margin: 1.8rem 0;
     }
+
+    /* ── Password screen ── */
+    .pw-header  { text-align: center; margin-bottom: 1.5rem; }
+    .pw-icon    { font-size: 2.8rem; margin-bottom: 0.5rem; }
+    .pw-header h2 { font-size: 1.4rem; color: var(--deep); font-weight: normal; }
+    .pw-header p  { font-size: 0.88rem; color: var(--muted); margin-top: 0.4rem; font-family: Arial, sans-serif; }
 
     /* ── Form ── */
     label {
       display: block; font-size: 0.82rem; letter-spacing: 0.08em;
-      text-transform: uppercase; color: var(--deep);
-      margin-bottom: 0.4rem; font-family: Arial, sans-serif;
+      text-transform: uppercase; color: var(--deep); margin-bottom: 0.4rem; font-family: Arial, sans-serif;
     }
-    input[type="text"], textarea {
+    input[type="text"], input[type="password"], textarea {
       width: 100%; padding: 0.75rem 1rem;
       border: 1.5px solid var(--border); border-radius: 8px;
       font-size: 1rem; font-family: Georgia, serif;
       color: var(--text); background: var(--bg);
       transition: border-color 0.2s; outline: none;
     }
-    input[type="text"]:focus, textarea:focus { border-color: var(--accent); }
+    input[type="text"]:focus, input[type="password"]:focus, textarea:focus { border-color: var(--accent); }
     textarea { resize: vertical; min-height: 70px; }
     .field { margin-bottom: 1.25rem; }
 
     /* ── Drop zone ── */
     .drop-zone {
       border: 2px dashed var(--border); border-radius: 12px;
-      padding: 2.5rem 1.5rem; text-align: center;
-      cursor: pointer; transition: background 0.2s, border-color 0.2s;
+      padding: 2.5rem 1.5rem; text-align: center; cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
       background: var(--bg); margin-bottom: 1.25rem; position: relative;
     }
     .drop-zone.drag-over { background: var(--light); border-color: var(--accent); }
-    .drop-zone input[type="file"] {
-      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
-    }
+    .drop-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
     .drop-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
     .drop-zone h3 { font-size: 1rem; color: var(--deep); font-weight: normal; }
     .drop-zone p  { font-size: 0.82rem; color: var(--muted); margin-top: 0.3rem; font-family: Arial, sans-serif; }
@@ -99,32 +95,29 @@
     .preview-item { position: relative; aspect-ratio: 1; border-radius: 8px; overflow: hidden; background: var(--light); }
     .preview-item img { width: 100%; height: 100%; object-fit: cover; }
     .preview-item .remove-btn {
-      position: absolute; top: 3px; right: 3px;
-      width: 20px; height: 20px; border-radius: 50%;
-      background: rgba(0,0,0,0.55); color: #fff; border: none;
-      font-size: 12px; cursor: pointer; display: flex;
-      align-items: center; justify-content: center;
+      position: absolute; top: 3px; right: 3px; width: 20px; height: 20px; border-radius: 50%;
+      background: rgba(0,0,0,0.55); color: #fff; border: none; font-size: 12px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
     }
     .file-count { font-size: 0.82rem; color: var(--accent); margin-bottom: 1rem; font-family: Arial, sans-serif; }
 
-    /* ── Submit button ── */
-    .btn-upload {
+    /* ── Buttons ── */
+    .btn-main {
       width: 100%; padding: 0.9rem;
       background: linear-gradient(135deg, var(--accent), var(--deep));
       color: #fff; border: none; border-radius: 10px;
-      font-size: 1.05rem; font-family: Georgia, serif;
-      cursor: pointer; letter-spacing: 0.04em;
-      transition: opacity 0.2s, transform 0.1s;
+      font-size: 1.05rem; font-family: Georgia, serif; cursor: pointer;
+      letter-spacing: 0.04em; transition: opacity 0.2s, transform 0.1s;
     }
-    .btn-upload:hover { opacity: 0.92; }
-    .btn-upload:active { transform: scale(0.98); }
-    .btn-upload:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-main:hover   { opacity: 0.92; }
+    .btn-main:active  { transform: scale(0.98); }
+    .btn-main:disabled { opacity: 0.5; cursor: not-allowed; }
 
     /* ── Progress ── */
     .progress-wrap { margin-top: 1rem; display: none; }
-    .progress-bar-bg { height: 8px; background: var(--light); border-radius: 4px; overflow: hidden; }
+    .progress-bar-bg   { height: 8px; background: var(--light); border-radius: 4px; overflow: hidden; }
     .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--border)); width: 0%; transition: width 0.3s; border-radius: 4px; }
-    .progress-label { font-size: 0.8rem; color: var(--accent); margin-top: 0.4rem; text-align: center; font-family: Arial, sans-serif; }
+    .progress-label    { font-size: 0.8rem; color: var(--accent); margin-top: 0.4rem; text-align: center; font-family: Arial, sans-serif; }
 
     /* ── Success ── */
     .success-screen { display: none; text-align: center; padding: 1rem 0; }
@@ -132,15 +125,14 @@
     .success-screen h2 { font-size: 1.5rem; color: var(--deep); font-weight: normal; }
     .success-screen p  { margin-top: 0.5rem; color: var(--muted); font-size: 0.95rem; font-family: Arial, sans-serif; }
     .btn-again {
-      margin-top: 1.5rem; padding: 0.7rem 2rem;
-      background: transparent; border: 1.5px solid var(--accent);
-      color: var(--accent); border-radius: 8px;
+      margin-top: 1.5rem; padding: 0.7rem 2rem; background: transparent;
+      border: 1.5px solid var(--accent); color: var(--accent); border-radius: 8px;
       font-family: Georgia, serif; font-size: 0.95rem; cursor: pointer;
       transition: background 0.2s, color 0.2s;
     }
     .btn-again:hover { background: var(--accent); color: #fff; }
 
-    /* ── Error ── */
+    /* ── Error / info messages ── */
     .error-msg {
       background: #fde8e8; border: 1px solid #f5a3a3; color: #c0392b;
       border-radius: 8px; padding: 0.7rem 1rem; font-size: 0.87rem;
@@ -160,10 +152,27 @@
 </div>
 
 <div class="banner-wrap" id="bannerWrap">
-  <img id="bannerImg" src="" alt="Banner" />
+  <img id="bannerImg" src="" alt="" />
 </div>
 
-<div class="card">
+<!-- ── Password gate ── -->
+<div class="card" id="passwordCard" style="display:none">
+  <div class="pw-header">
+    <div class="pw-icon">🔒</div>
+    <h2>Welkom!</h2>
+    <p>Voer het wachtwoord in om foto's te kunnen uploaden.</p>
+  </div>
+  <div class="error-msg" id="pwErrorMsg"></div>
+  <div class="field">
+    <label for="guestPwInput">Wachtwoord</label>
+    <input type="password" id="guestPwInput" placeholder="Wachtwoord"
+           onkeydown="if(event.key==='Enter')verifyGuestPassword()" />
+  </div>
+  <button class="btn-main" onclick="verifyGuestPassword()">Doorgaan →</button>
+</div>
+
+<!-- ── Upload form ── -->
+<div class="card" id="uploadCard">
   <div class="error-msg" id="errorMsg"></div>
 
   <form id="uploadForm">
@@ -192,7 +201,7 @@
       <div class="progress-label" id="progressLabel">Uploaden...</div>
     </div>
 
-    <button type="submit" class="btn-upload" id="uploadBtn">Foto's versturen</button>
+    <button type="submit" class="btn-main" id="uploadBtn">Foto's versturen</button>
   </form>
 
   <div class="success-screen" id="successScreen">
@@ -206,7 +215,7 @@
 <div class="footer">Met liefde gemaakt voor deze speciale dag &hearts;</div>
 
 <script>
-  // ── Theme definitions ──
+  // ── Theme definitions (must match dashboard.html) ──
   const THEMES = {
     green:    { icon:'🌿', accent:'#3a7d44', deep:'#1e4d28', bg:'#f4faf5', light:'#e8f5ea', border:'#b2ddb8', text:'#1a3320', muted:'#6a9070' },
     rose:     { icon:'🌹', accent:'#c9806b', deep:'#5c3d2e', bg:'#fff8f0', light:'#f2d7d0', border:'#f2d7d0', text:'#3a2a20', muted:'#a08070' },
@@ -219,42 +228,71 @@
   function applyTheme(name) {
     const t = THEMES[name] || THEMES.green;
     const r = document.documentElement;
-    r.style.setProperty('--bg',      t.bg);
-    r.style.setProperty('--light',   t.light);
-    r.style.setProperty('--border',  t.border);
-    r.style.setProperty('--accent',  t.accent);
-    r.style.setProperty('--deep',    t.deep);
-    r.style.setProperty('--text',    t.text);
-    r.style.setProperty('--muted',   t.muted);
+    r.style.setProperty('--bg',     t.bg);
+    r.style.setProperty('--light',  t.light);
+    r.style.setProperty('--border', t.border);
+    r.style.setProperty('--accent', t.accent);
+    r.style.setProperty('--deep',   t.deep);
+    r.style.setProperty('--text',   t.text);
+    r.style.setProperty('--muted',  t.muted);
     document.getElementById('headerIcon').textContent = t.icon;
   }
 
-  // Load settings on start
+  // ── Boot: load settings, apply theme & banner, check password gate ──
   (async () => {
     try {
       const r = await fetch('/api/settings');
       const s = await r.json();
       if (s.theme)     applyTheme(s.theme);
       if (s.bannerUrl) {
-        document.getElementById('bannerImg').src  = s.bannerUrl;
+        document.getElementById('bannerImg').src = s.bannerUrl;
         document.getElementById('bannerWrap').style.display = 'block';
+      }
+      if (s.hasGuestPassword) {
+        // Show password gate, hide upload form until verified
+        document.getElementById('passwordCard').style.display = 'block';
+        document.getElementById('uploadCard').style.display   = 'none';
       }
     } catch { /* use defaults */ }
   })();
 
+  // ── Guest password verification ──
+  async function verifyGuestPassword() {
+    const pw  = document.getElementById('guestPwInput').value;
+    const err = document.getElementById('pwErrorMsg');
+    try {
+      const r = await fetch('/api/verify-guest-password', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ password: pw })
+      });
+      if (r.ok) {
+        document.getElementById('passwordCard').style.display = 'none';
+        document.getElementById('uploadCard').style.display   = 'block';
+      } else {
+        err.textContent = 'Onjuist wachtwoord. Probeer opnieuw.';
+        err.style.display = 'block';
+        setTimeout(() => err.style.display = 'none', 4000);
+        document.getElementById('guestPwInput').select();
+      }
+    } catch {
+      err.textContent = 'Er ging iets mis. Probeer opnieuw.';
+      err.style.display = 'block';
+    }
+  }
+
   // ── Upload logic ──
-  const fileInput    = document.getElementById('fileInput');
-  const dropZone     = document.getElementById('dropZone');
-  const previewGrid  = document.getElementById('previewGrid');
-  const fileCount    = document.getElementById('fileCount');
-  const uploadForm   = document.getElementById('uploadForm');
-  const uploadBtn    = document.getElementById('uploadBtn');
-  const progressWrap = document.getElementById('progressWrap');
-  const progressFill = document.getElementById('progressFill');
-  const progressLabel= document.getElementById('progressLabel');
-  const successScreen= document.getElementById('successScreen');
-  const errorMsg     = document.getElementById('errorMsg');
-  let selectedFiles  = [];
+  const fileInput     = document.getElementById('fileInput');
+  const dropZone      = document.getElementById('dropZone');
+  const previewGrid   = document.getElementById('previewGrid');
+  const fileCount     = document.getElementById('fileCount');
+  const uploadForm    = document.getElementById('uploadForm');
+  const uploadBtn     = document.getElementById('uploadBtn');
+  const progressWrap  = document.getElementById('progressWrap');
+  const progressFill  = document.getElementById('progressFill');
+  const progressLabel = document.getElementById('progressLabel');
+  const successScreen = document.getElementById('successScreen');
+  const errorMsg      = document.getElementById('errorMsg');
+  let selectedFiles   = [];
 
   dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
   dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
@@ -263,7 +301,7 @@
 
   function addFiles(files) {
     files.filter(f => f.type.startsWith('image/') || /\.(heic|heif)$/i.test(f.name))
-         .forEach(f => { if (!selectedFiles.find(sf => sf.name===f.name && sf.size===f.size)) selectedFiles.push(f); });
+         .forEach(f => { if (!selectedFiles.find(s => s.name===f.name && s.size===f.size)) selectedFiles.push(f); });
     renderPreviews();
   }
 
@@ -272,13 +310,13 @@
     selectedFiles.forEach((file, i) => {
       const item = document.createElement('div'); item.className = 'preview-item';
       const img  = document.createElement('img');
-      const reader = new FileReader(); reader.onload = e => img.src = e.target.result; reader.readAsDataURL(file);
+      const rd   = new FileReader(); rd.onload = e => img.src = e.target.result; rd.readAsDataURL(file);
       const btn  = document.createElement('button'); btn.className = 'remove-btn'; btn.innerHTML = '&times;'; btn.type = 'button';
       btn.onclick = () => { selectedFiles.splice(i,1); renderPreviews(); };
       item.appendChild(img); item.appendChild(btn); previewGrid.appendChild(item);
     });
     fileCount.style.display = selectedFiles.length ? 'block' : 'none';
-    fileCount.textContent = `${selectedFiles.length} foto${selectedFiles.length!==1?"'s":''} geselecteerd`;
+    fileCount.textContent   = `${selectedFiles.length} foto${selectedFiles.length!==1?"'s":''} geselecteerd`;
   }
 
   function showError(msg) { errorMsg.textContent=msg; errorMsg.style.display='block'; setTimeout(()=>errorMsg.style.display='none',5000); }
@@ -293,13 +331,12 @@
     fd.append('message', document.getElementById('messageInput').value.trim());
     selectedFiles.forEach(f => fd.append('photos', f));
     uploadBtn.disabled = true;
-    progressWrap.style.display = 'block';
-    progressFill.style.width = '5%';
+    progressWrap.style.display = 'block'; progressFill.style.width = '5%';
     progressLabel.textContent = "Foto's uploaden...";
     try {
       let prog = 5;
       const iv = setInterval(() => { prog = Math.min(prog + Math.random()*8, 88); progressFill.style.width = prog+'%'; }, 400);
-      const res = await fetch('/api/upload', { method:'POST', body:fd });
+      const res  = await fetch('/api/upload', { method:'POST', body:fd });
       clearInterval(iv);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Upload mislukt');
@@ -317,8 +354,7 @@
 
   function resetForm() {
     selectedFiles=[]; renderPreviews();
-    document.getElementById('nameInput').value='';
-    document.getElementById('messageInput').value='';
+    document.getElementById('nameInput').value=''; document.getElementById('messageInput').value='';
     progressWrap.style.display='none'; progressFill.style.width='0%';
     uploadBtn.disabled=false; successScreen.style.display='none'; uploadForm.style.display='block';
   }
