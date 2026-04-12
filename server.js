@@ -213,7 +213,7 @@ app.delete('/api/banner', auth, (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`\n  Trouw Fotoapp draait op http://localhost:${PORT}`);
+  console.log(`\n  My Memories draait op http://localhost:${PORT}`);
   console.log(`  Dashboard:  http://localhost:${PORT}/dashboard.html`);
   console.log(`  Wachtwoord: ${DASHBOARD_PASSWORD}\n`);
 });

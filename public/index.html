@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-  <title>Deel jouw foto's</title>
+  <title>My Memories</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -188,7 +188,7 @@
     <label>Foto's toevoegen *</label>
     <div class="drop-zone" id="dropZone">
       <input type="file" id="fileInput" accept="image/*" multiple capture="environment" />
-      <div class="drop-icon">📷</div>
+      <div class="drop-icon" id="dropIcon">📷</div>
       <h3>Tik hier om foto's te kiezen</h3>
       <p>of sleep ze hiernaartoe &bull; max 50 MB per foto</p>
     </div>
@@ -205,7 +205,7 @@
   </form>
 
   <div class="success-screen" id="successScreen">
-    <div class="success-icon">🎉</div>
+    <div class="success-icon" id="successIconEl">🎉</div>
     <h2>Dankjewel!</h2>
     <p id="successMsg">Jouw foto's zijn veilig ontvangen.<br>Geniet van de dag!</p>
     <button class="btn-again" onclick="resetForm()">Meer foto's toevoegen</button>
@@ -261,11 +261,18 @@
       pattern:`url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg stroke='%23ffffff' stroke-opacity='0.13' stroke-width='1.5' fill='none'%3E%3Cline x1='30' y1='5' x2='30' y2='55'/%3E%3Cline x1='5' y1='30' x2='55' y2='30'/%3E%3Cline x1='13' y1='13' x2='47' y2='47'/%3E%3Cline x1='47' y1='13' x2='13' y2='47'/%3E%3C/g%3E%3Ccircle cx='30' cy='30' r='3' fill='%23ffffff' fill-opacity='0.13'/%3E%3C/svg%3E")`,
     },
     corporate: {
-      name:'Bedrijfsfeest', icon:'🎉',
+      name:'Bedrijfsfeest', icon:'🏢',
       accent:'#1a7ab0', deep:'#0d4a70', bg:'#f0f7ff', light:'#d4e8f8', border:'#80bce0', text:'#0a2840', muted:'#4880a8',
       defaultTitle:"Deel jouw foto's", defaultSubtitle:'Deel de hoogtepunten van dit feest',
       successIcon:'🎊', footerText:'Bedankt voor jullie aanwezigheid 🎉',
       pattern:`url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg stroke='%23ffffff' stroke-opacity='0.09' stroke-width='1.5' fill='none'%3E%3Crect x='8' y='8' width='44' height='44' rx='4'/%3E%3Crect x='18' y='18' width='24' height='24' rx='2'/%3E%3C/g%3E%3C/svg%3E")`,
+    },
+    nieuwjaar: {
+      name:'Nieuwjaar', icon:'🎆',
+      accent:'#c8a020', deep:'#1a0a40', bg:'#f8f4ff', light:'#e8d8f8', border:'#c0a0e0', text:'#1a0a30', muted:'#8060b0',
+      defaultTitle:"Deel jouw nieuwjaarsfoto's", defaultSubtitle:'Op een geweldig nieuw jaar samen!',
+      successIcon:'🥂', footerText:"Op een onvergetelijk nieuw jaar! 🥂",
+      pattern:`url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg stroke='%23ffffff' stroke-opacity='0.15' stroke-width='1.5' fill='none'%3E%3Cline x1='40' y1='10' x2='40' y2='30'/%3E%3Cline x1='40' y1='50' x2='40' y2='70'/%3E%3Cline x1='10' y1='40' x2='30' y2='40'/%3E%3Cline x1='50' y1='40' x2='70' y2='40'/%3E%3Cline x1='18' y1='18' x2='32' y2='32'/%3E%3Cline x1='48' y1='48' x2='62' y2='62'/%3E%3Cline x1='62' y1='18' x2='48' y2='32'/%3E%3Cline x1='32' y1='48' x2='18' y2='62'/%3E%3C/g%3E%3Ccircle cx='40' cy='40' r='4' fill='%23ffffff' fill-opacity='0.18'/%3E%3C/svg%3E")`,
     },
   };
 
@@ -283,6 +290,10 @@
     document.getElementById('headerTitle').textContent   = customTitle    || e.defaultTitle;
     document.getElementById('headerSubtitle').textContent= customSubtitle || e.defaultSubtitle;
     document.querySelector('.footer').textContent        = e.footerText;
+    const di = document.getElementById('dropIcon');
+    if (di) di.textContent = e.icon;
+    const si = document.getElementById('successIconEl');
+    if (si) si.textContent = e.successIcon;
     // Inject header pattern via a dedicated style tag
     let s = document.getElementById('dyn-style');
     if (!s) { s = document.createElement('style'); s.id = 'dyn-style'; document.head.appendChild(s); }

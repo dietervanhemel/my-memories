@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard – Trouw Fotoapp</title>
+  <title>Dashboard – My Memories</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -275,7 +275,7 @@
 <div id="loginOverlay">
   <div class="login-box">
     <div class="icon" id="loginIcon">🌿</div>
-    <h1>Trouw Dashboard</h1>
+    <h1>My Memories</h1>
     <p>Voer het wachtwoord in om door te gaan</p>
     <input type="password" id="passwordInput" placeholder="Wachtwoord" onkeydown="if(event.key==='Enter')doLogin()" />
     <button onclick="doLogin()">Inloggen</button>
@@ -288,7 +288,7 @@
   <div class="sidebar" id="appSidebar">
     <div class="sidebar-logo">
       <div class="icon" id="sidebarIcon">🌿</div>
-      <h2>Trouw Fotoapp</h2>
+      <h2>My Memories</h2>
       <p>Beheer dashboard</p>
     </div>
     <div class="nav-item active" onclick="showSection('overview')"  id="nav-overview">  <span class="nav-icon">📊</span> Overzicht</div>
@@ -472,7 +472,8 @@
     anniversary: { name:'Jubileum',      icon:'🥂', accent:'#b09030', deep:'#6a5010', bg:'#fdf8ee', light:'#f5e8b8', border:'#d8c078', text:'#302008', muted:'#907830', sidebar:'#302008', mint:'#d8c078', defaultTitle:"Deel jouw jubileumfoto's",    defaultSubtitle:'Samen vieren we dit bijzondere moment' },
     graduation:  { name:'Afstuderen',   icon:'🎓', accent:'#2c4a8a', deep:'#1a2d5a', bg:'#f0f4fa', light:'#dde6f5', border:'#9ab0d8', text:'#1a2040', muted:'#6070a0', sidebar:'#0e1c38', mint:'#9ab0d8', defaultTitle:"Deel jouw afstudeerfoto's",   defaultSubtitle:'Gefeliciteerd met dit geweldige moment!' },
     christmas:   { name:'Kerst',         icon:'🎄', accent:'#c0392b', deep:'#7a1510', bg:'#fff8f8', light:'#fde0d8', border:'#e8a090', text:'#381008', muted:'#a05048', sidebar:'#3d0808', mint:'#6ab860', defaultTitle:"Deel jouw kerstfoto's",        defaultSubtitle:'Maak deze feestdagen onvergetelijk' },
-    corporate:   { name:'Bedrijfsfeest', icon:'🎉', accent:'#1a7ab0', deep:'#0d4a70', bg:'#f0f7ff', light:'#d4e8f8', border:'#80bce0', text:'#0a2840', muted:'#4880a8', sidebar:'#082030', mint:'#80bce0', defaultTitle:"Deel jouw foto's",             defaultSubtitle:'Deel de hoogtepunten van dit feest' },
+    corporate:   { name:'Bedrijfsfeest', icon:'🏢', accent:'#1a7ab0', deep:'#0d4a70', bg:'#f0f7ff', light:'#d4e8f8', border:'#80bce0', text:'#0a2840', muted:'#4880a8', sidebar:'#082030', mint:'#80bce0', defaultTitle:"Deel jouw foto's",             defaultSubtitle:'Deel de hoogtepunten van dit feest' },
+    nieuwjaar:   { name:'Nieuwjaar',     icon:'🎆', accent:'#c8a020', deep:'#1a0a40', bg:'#f8f4ff', light:'#e8d8f8', border:'#c0a0e0', text:'#1a0a30', muted:'#8060b0', sidebar:'#0a0520', mint:'#c8a020', defaultTitle:"Deel jouw nieuwjaarsfoto's",   defaultSubtitle:'Op een geweldig nieuw jaar samen!' },
   };
 
   // ── Fine-tune colour themes (can override event type colours) ──
@@ -673,7 +674,7 @@
     const d   = await r.json();
     if (d.qr) { document.getElementById('qrImage').src=d.qr; document.getElementById('qrUrl').textContent=d.url; document.getElementById('qrOutput').style.display='block'; }
   }
-  function downloadQR() { const a=document.createElement('a'); a.href=document.getElementById('qrImage').src; a.download='trouw-qrcode.png'; a.click(); }
+  function downloadQR() { const a=document.createElement('a'); a.href=document.getElementById('qrImage').src; a.download='my-memories-qrcode.png'; a.click(); }
   function copyUrl()    { navigator.clipboard.writeText(document.getElementById('qrUrl').textContent).then(()=>alert('Link gekopieerd!')); }
 
   // ── Event type picker ──
@@ -739,13 +740,12 @@
   // ── Theme picker ──
   function buildThemeGrid() {
     document.getElementById('themeGrid').innerHTML = Object.entries(THEMES).map(([key, t]) => `
-      <div class="theme-swatch" id="swatch-${key}" onclick="selectTheme('${key}')">
-        <div class="swatch-bar" style="background:linear-gradient(135deg,${t.deep},${t.accent})"></div>
-        <div class="swatch-body" style="background:${t.bg};color:${t.deep}">
-          ${t.emoji} ${t.name.split(' ')[0]}
-          <span class="swatch-check">✓</span>
-          <div class="swatch-sub" style="color:${t.muted}">${t.name}</div>
+      <div class="event-card" id="swatch-${key}" onclick="selectTheme('${key}')">
+        <div class="event-card-top" style="background:linear-gradient(135deg,${t.deep},${t.accent})">
+          <span>${t.icon}</span>
+          <span class="event-card-check">✓</span>
         </div>
+        <div class="event-card-label" style="background:${t.bg};color:${t.deep}">${t.name}</div>
       </div>`).join('');
     markSelectedTheme(selectedTheme);
   }
@@ -757,7 +757,7 @@
   }
 
   function markSelectedTheme(key) {
-    document.querySelectorAll('.theme-swatch').forEach(s => s.classList.remove('selected'));
+    document.querySelectorAll('#themeGrid .event-card').forEach(s => s.classList.remove('selected'));
     document.getElementById('swatch-'+key)?.classList.add('selected');
   }
 
