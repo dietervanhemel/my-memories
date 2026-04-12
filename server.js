@@ -180,9 +180,11 @@ app.get('/api/qrcode', auth, async (req, res) => {
 // Save settings (theme, bannerUrl, guestPassword)
 app.post('/api/settings', auth, (req, res) => {
   const s = readSettings();
-  if (req.body.theme                  !== undefined) s.theme         = req.body.theme;
-  if (req.body.bannerUrl              !== undefined) s.bannerUrl     = req.body.bannerUrl;
-  if (req.body.guestPassword          !== undefined) s.guestPassword = req.body.guestPassword;
+  if (req.body.theme            !== undefined) s.theme            = req.body.theme;
+  if (req.body.bannerUrl        !== undefined) s.bannerUrl        = req.body.bannerUrl;
+  if (req.body.guestPassword    !== undefined) s.guestPassword    = req.body.guestPassword;
+  if (req.body.welcomeTitle     !== undefined) s.welcomeTitle     = req.body.welcomeTitle;
+  if (req.body.welcomeSubtitle  !== undefined) s.welcomeSubtitle  = req.body.welcomeSubtitle;
   writeSettings(s);
   res.json({ success: true });
 });
