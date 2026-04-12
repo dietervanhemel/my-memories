@@ -119,6 +119,14 @@
     .new-event-card:hover { border-color: var(--accent); color: var(--accent); }
     .new-event-card .plus { font-size: 2.5rem; line-height: 1; }
     .new-event-card p { font-size: 0.88rem; text-align: center; }
+    .elc-new { box-shadow: 0 0 0 3px var(--accent), 0 6px 24px rgba(0,0,0,0.13) !important; }
+    .elc-header { position: relative; }
+    .elc-badge {
+      position: absolute; top: 8px; right: 8px;
+      background: rgba(0,0,0,0.35); color: #fff;
+      font-size: 0.68rem; font-weight: bold; padding: 2px 7px;
+      border-radius: 20px; letter-spacing: 0.04em;
+    }
 
     /* ── Stats ── */
     .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
@@ -230,6 +238,8 @@
     .custom-card { background: #fff; border-radius: 12px; padding: 1.5rem; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
     .custom-card h3 { font-family: Georgia, serif; font-size: 1rem; color: var(--deep); font-weight: normal; margin-bottom: 0.3rem; }
     .custom-card > p { font-size: 0.82rem; color: var(--muted); margin-bottom: 1.2rem; }
+    .combo-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--deep); font-weight: bold; margin-bottom: 0.75rem; margin-top: 0.25rem; }
+    .combo-divider { border: none; border-top: 1.5px dashed var(--border); margin: 1.5rem 0; }
 
     /* Banner upload */
     .banner-drop {
@@ -448,22 +458,21 @@
       <div class="topbar"><h1>Uiterlijk</h1></div>
       <div class="custom-grid">
 
-        <!-- 1. Kleurenthema (full width, ABOVE event type) -->
+        <!-- 1 + 2. Type evenement & Kleurenthema — combined card -->
         <div class="custom-card full-width">
-          <h3>Kleurenthema</h3>
-          <p>Kies een basiskleur voor het dashboard én de upload pagina. Klik voor een directe preview.</p>
-          <div class="theme-grid" id="themeGrid"></div>
-          <button class="save-btn" onclick="saveTheme()">Thema opslaan</button>
-          <div class="save-msg" id="themeSaveMsg">✓ Thema opgeslagen!</div>
-        </div>
+          <h3>Type evenement &amp; Kleurenthema</h3>
+          <p>Kies eerst het type evenement. Dit past kleuren, iconen en teksten automatisch aan. Pas daarna optioneel de kleur nog verder aan.</p>
 
-        <!-- 2. Type evenement (full width) -->
-        <div class="custom-card full-width">
-          <h3>Type evenement</h3>
-          <p>Kies het type evenement. Dit past kleuren, iconen en teksten van de upload pagina automatisch aan.</p>
+          <div class="combo-label">Stap 1 — Type evenement</div>
           <div class="event-grid" id="eventGrid"></div>
-          <button class="save-btn" onclick="saveEventType()">Evenementtype opslaan</button>
-          <div class="save-msg" id="eventSaveMsg">✓ Evenementtype opgeslagen!</div>
+
+          <div class="combo-divider"></div>
+
+          <div class="combo-label">Stap 2 — Kleurenthema (optioneel fijnafstelling)</div>
+          <div class="theme-grid" id="themeGrid"></div>
+
+          <button class="save-btn" onclick="saveTypeAndTheme()">Opslaan</button>
+          <div class="save-msg" id="typethemeSaveMsg">✓ Opgeslagen!</div>
         </div>
 
         <!-- 3. Banner -->
@@ -646,14 +655,19 @@
   }
 
   // ── Events list ──
-  async function loadEventsList() {
-    const r = await fetch(`/api/events?password=${encodeURIComponent(password)}`);
-    const events = await r.json();
-    renderEventsList(events);
+  async function loadEventsList(highlightId) {
+    try {
+      const r = await fetch(`/api/events?password=${encodeURIComponent(password)}`);
+      if (!r.ok) throw new Error('Kon evenementen niet laden.');
+      const events = await r.json();
+      renderEventsList(events, highlightId);
+    } catch(e) {
+      document.getElementById('eventsList').innerHTML = `<p style="color:#c0392b;padding:1rem">${e.message}</p>`;
+    }
   }
 
-  function renderEventsList(events) {
-    const grid = document.getElementById('eventsList');
+  function renderEventsList(events, highlightId) {
+    const grid  = document.getElementById('eventsList');
     const cards = events.map(e => {
       const et   = EVENT_TYPES[e.eventType] || null;
       const th   = THEMES[e.theme] || THEMES.green;
@@ -661,10 +675,14 @@
       const grad = et
         ? `linear-gradient(135deg,${et.deep},${et.accent})`
         : `linear-gradient(135deg,${th.deep},${th.accent})`;
-      const date = new Date(e.createdAt).toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'});
+      const date  = new Date(e.createdAt).toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'});
+      const isNew = e.id === highlightId;
       return `
-        <div class="elc" onclick="openEvent('${e.id}')">
-          <div class="elc-header" style="background:${grad}">${icon}</div>
+        <div class="elc${isNew?' elc-new':''}" id="elc-${e.id}" onclick="openEvent('${e.id}')">
+          <div class="elc-header" style="background:${grad}">
+            ${icon}
+            ${isNew ? '<span class="elc-badge">Nieuw!</span>' : ''}
+          </div>
           <div class="elc-body">
             <h3>${esc(e.name)}</h3>
             <div class="elc-meta">
@@ -686,14 +704,27 @@
       </div>`;
 
     grid.innerHTML = cards + newCard;
+
+    // Scroll new card into view
+    if (highlightId) {
+      const el = document.getElementById('elc-' + highlightId);
+      if (el) { el.scrollIntoView({ behavior:'smooth', block:'center' }); }
+    }
   }
 
   async function openEvent(id) {
     currentEventId = id;
     document.getElementById('app').classList.add('event-active');
     document.querySelector('.nav-home').classList.remove('active');
-    // Load data and settings for this event
-    await Promise.all([refreshAll(), loadCurrentSettings()]);
+    // Reset banner & password UI for the new event
+    pendingBannerFile = null;
+    document.getElementById('bannerPreview').style.display = 'none';
+    document.getElementById('qrOutput').style.display = 'none';
+    try {
+      await Promise.all([refreshAll(), loadCurrentSettings()]);
+    } catch(e) {
+      console.error('openEvent error:', e);
+    }
     showSection('overview');
   }
 
@@ -720,19 +751,25 @@
     document.getElementById('createModal').style.display = 'none';
   }
   async function createEvent() {
-    const name = document.getElementById('newEventName').value.trim();
-    const errEl = document.getElementById('createModalError');
+    const name   = document.getElementById('newEventName').value.trim();
+    const errEl  = document.getElementById('createModalError');
+    const btnEl  = document.querySelector('#createModal .btn-primary');
     if (!name) { errEl.textContent = 'Vul een naam in.'; errEl.style.display = 'block'; return; }
     errEl.style.display = 'none';
-    const r = await fetch(`/api/events?password=${encodeURIComponent(password)}`, {
-      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ name })
-    });
-    const d = await r.json();
-    if (d.success) {
+    if (btnEl) { btnEl.disabled = true; btnEl.textContent = 'Aanmaken…'; }
+    try {
+      const r = await fetch(`/api/events?password=${encodeURIComponent(password)}`, {
+        method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ name })
+      });
+      const d = await r.json();
+      if (!r.ok || !d.id) throw new Error(d.error || 'Aanmaken mislukt.');
       closeCreateModal();
-      await openEvent(d.id);
-    } else {
-      errEl.textContent = d.error || 'Aanmaken mislukt.'; errEl.style.display = 'block';
+      // Refresh the list and highlight the new event
+      await loadEventsList(d.id);
+    } catch(e) {
+      errEl.textContent = e.message; errEl.style.display = 'block';
+    } finally {
+      if (btnEl) { btnEl.disabled = false; btnEl.textContent = 'Aanmaken'; }
     }
   }
 
@@ -892,7 +929,10 @@
   function selectEventType(key) {
     selectedEventType = key;
     markSelectedEvent(key);
+    // Apply the event type's built-in colors as preview; clear theme selection
     applyTheme(EVENT_TYPES[key]);
+    selectedTheme = '';
+    markSelectedTheme(''); // deselect all theme swatches
     const t = document.getElementById('welcomeTitle');
     const s = document.getElementById('welcomeSubtitle');
     if (!t.value) t.value = EVENT_TYPES[key].defaultTitle;
@@ -900,17 +940,17 @@
   }
 
   function markSelectedEvent(key) {
-    document.querySelectorAll('.event-card').forEach(c => c.classList.remove('selected'));
+    document.querySelectorAll('#eventGrid .event-card').forEach(c => c.classList.remove('selected'));
     document.getElementById('ecard-' + key)?.classList.add('selected');
   }
 
-  async function saveEventType() {
-    if (!selectedEventType) { alert('Selecteer eerst een evenementtype.'); return; }
+  async function saveTypeAndTheme() {
+    const body = { theme: selectedTheme };
+    if (selectedEventType) body.eventType = selectedEventType;
     const r = await fetch(`/api/events/${currentEventId}/settings?password=${encodeURIComponent(password)}`, {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ eventType: selectedEventType })
+      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)
     });
-    if (r.ok) flash('eventSaveMsg');
+    if (r.ok) flash('typethemeSaveMsg');
   }
 
   // ── Settings load ──
@@ -967,6 +1007,8 @@
     selectedTheme = key;
     markSelectedTheme(key);
     applyTheme(key);
+    // If no event type is selected, a standalone theme is being picked
+    // (if eventType IS selected the theme acts as a color override — keep eventType selected)
   }
 
   function markSelectedTheme(key) {
@@ -974,12 +1016,7 @@
     document.getElementById('swatch-'+key)?.classList.add('selected');
   }
 
-  async function saveTheme() {
-    const r = await fetch(`/api/events/${currentEventId}/settings?password=${encodeURIComponent(password)}`, {
-      method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({theme:selectedTheme})
-    });
-    if (r.ok) flash('themeSaveMsg');
-  }
+  // saveTheme is now merged into saveTypeAndTheme above
 
   // ── Banner ──
   const bannerDrop      = document.getElementById('bannerDrop');

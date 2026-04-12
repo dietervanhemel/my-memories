@@ -22,7 +22,11 @@ const eventsFile = path.join(dataDir, 'events.json');
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 function readEvents() {
-  try { return JSON.parse(fs.readFileSync(eventsFile, 'utf-8')); } catch { return []; }
+  try {
+    const raw  = fs.readFileSync(eventsFile, 'utf-8').replace(/^\uFEFF/, ''); // strip BOM
+    const data = JSON.parse(raw);
+    return Array.isArray(data) ? data : [data]; // guard against PS serialisation bug
+  } catch { return []; }
 }
 function writeEvents(data) { fs.writeFileSync(eventsFile, JSON.stringify(data, null, 2)); }
 
