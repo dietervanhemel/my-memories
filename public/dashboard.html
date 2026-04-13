@@ -8,502 +8,628 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --sidebar:  #163620;
-      --sidebar-w: 240px;
-      --accent:   #3a7d44;
-      --deep:     #1e4d28;
-      --mint:     #b2ddb8;
-      --bg:       #f4faf5;
-      --light:    #e8f5ea;
-      --border:   #b2ddb8;
-      --text:     #1a3320;
-      --muted:    #6a9070;
+      --sidebar-bg: #0f1f13;
+      --accent:  #3a7d44; --deep:   #1e4d28; --mint:   #b2ddb8;
+      --bg:      #f2f7f3; --light:  #e4f0e7; --border: #c8dece;
+      --text:    #1a3320; --muted:  #6a9070; --card:   #ffffff;
+      --sidebar-w: 256px;
+      --radius: 16px;
     }
 
-    body { font-family: Arial, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
-    /* ── Login ── */
+    /* ─── Login overlay ─── */
     #loginOverlay {
       position: fixed; inset: 0;
-      background: linear-gradient(160deg, var(--sidebar), #0a1a0f);
+      background: linear-gradient(150deg, #0a1a0f 0%, #1e4d28 100%);
       display: flex; align-items: center; justify-content: center; z-index: 1000;
     }
-    .login-box {
-      background: #fff; border-radius: 16px; padding: 2.5rem 2rem;
-      width: 340px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    .login-card {
+      background: #fff; border-radius: 24px; padding: 3rem 2.5rem; width: 380px;
+      text-align: center; box-shadow: 0 32px 80px rgba(0,0,0,0.5);
     }
-    .login-box .icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
-    .login-box h1 { font-family: Georgia, serif; font-size: 1.5rem; color: var(--deep); margin-bottom: 0.3rem; font-weight: normal; }
-    .login-box p  { font-size: 0.85rem; color: var(--muted); margin-bottom: 1.5rem; }
-    .login-box input {
-      width: 100%; padding: 0.75rem 1rem; border: 1.5px solid var(--border);
-      border-radius: 8px; font-size: 1rem; margin-bottom: 1rem; outline: none; transition: border-color 0.2s;
+    .login-logo { font-size: 3rem; margin-bottom: 0.5rem; }
+    .login-card h1 { font-size: 1.6rem; color: var(--deep); margin-bottom: 0.3rem; font-weight: 700; letter-spacing: -0.5px; }
+    .login-card p  { font-size: 0.9rem; color: var(--muted); margin-bottom: 2rem; }
+    .login-card input {
+      width: 100%; padding: 0.85rem 1.1rem; border: 2px solid var(--border);
+      border-radius: 12px; font-size: 1rem; margin-bottom: 1rem; outline: none;
+      transition: border-color 0.2s; background: var(--bg);
     }
-    .login-box input:focus { border-color: var(--accent); }
-    .login-box button {
-      width: 100%; padding: 0.85rem;
-      background: linear-gradient(135deg, var(--accent), var(--deep));
-      color: #fff; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer;
+    .login-card input:focus { border-color: var(--accent); background: #fff; }
+    .login-card button {
+      width: 100%; padding: 0.9rem; background: linear-gradient(135deg, var(--accent) 0%, var(--deep) 100%);
+      color: #fff; border: none; border-radius: 12px; font-size: 1rem; font-weight: 600;
+      cursor: pointer; transition: opacity 0.15s; letter-spacing: 0.2px;
     }
-    .login-error { color: #c0392b; font-size: 0.83rem; margin-top: 0.5rem; display: none; }
+    .login-card button:hover { opacity: 0.9; }
+    .login-error { color: #e74c3c; font-size: 0.85rem; margin-top: 0.75rem; display: none; }
 
-    /* ── Layout ── */
+    /* ─── App shell ─── */
     #app { display: none; min-height: 100vh; }
+
+    /* ─── Sidebar ─── */
     .sidebar {
-      position: fixed; left: 0; top: 0; bottom: 0;
-      width: var(--sidebar-w); background: var(--sidebar);
-      color: #c8e6cc; padding: 1.5rem 0; overflow-y: auto; z-index: 100;
+      position: fixed; left: 0; top: 0; bottom: 0; width: var(--sidebar-w);
+      background: var(--sidebar-bg); color: rgba(255,255,255,0.75);
+      display: flex; flex-direction: column; z-index: 100;
       transition: background 0.4s;
     }
-    .sidebar-logo { text-align: center; padding: 0 1rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 0.5rem; }
-    .sidebar-logo .icon { font-size: 1.8rem; }
-    .sidebar-logo h2 { font-family: Georgia, serif; font-size: 1rem; color: var(--mint); margin-top: 0.3rem; font-weight: normal; }
-    .sidebar-logo p  { font-size: 0.72rem; color: rgba(255,255,255,0.35); margin-top: 0.2rem; }
-    .current-event-bar {
-      padding: 0.55rem 1.5rem 0.65rem;
-      background: rgba(255,255,255,0.06);
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-      margin-bottom: 0.25rem;
+    .sb-brand {
+      padding: 1.75rem 1.5rem 1.25rem;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      display: flex; align-items: center; gap: 0.75rem;
+    }
+    .sb-brand-icon { font-size: 1.6rem; flex-shrink: 0; }
+    .sb-brand-text h2 { font-size: 1rem; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
+    .sb-brand-text p  { font-size: 0.72rem; color: rgba(255,255,255,0.35); margin-top: 1px; }
+
+    .sb-event-chip {
+      display: none; margin: 0.75rem 1rem; padding: 0.55rem 0.9rem;
+      background: rgba(255,255,255,0.07); border-radius: 10px;
+      font-size: 0.78rem; color: var(--mint); white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis;
+    }
+    #app.event-active .sb-event-chip { display: block; }
+
+    .sb-nav { flex: 1; overflow-y: auto; padding: 0.5rem 0; }
+    .nav-group { margin-bottom: 0.25rem; }
+    .nav-group-label {
+      padding: 0.75rem 1.5rem 0.3rem;
+      font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: rgba(255,255,255,0.3);
       display: none;
     }
-    #app.event-active .current-event-bar { display: block; }
-    .current-event-bar span { font-size: 0.76rem; color: var(--mint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+    #app.event-active .nav-group-label { display: block; }
     .nav-item {
-      display: flex; align-items: center; gap: 0.7rem;
-      padding: 0.7rem 1.5rem; cursor: pointer; font-size: 0.88rem;
-      transition: background 0.15s; border-left: 3px solid transparent;
+      display: flex; align-items: center; gap: 0.65rem;
+      padding: 0.65rem 1.5rem; cursor: pointer; font-size: 0.88rem;
+      transition: background 0.15s, color 0.15s;
+      border-left: 3px solid transparent; color: rgba(255,255,255,0.65);
     }
-    .nav-item:hover { background: rgba(255,255,255,0.07); }
-    .nav-item.active { background: rgba(255,255,255,0.12); border-left-color: var(--mint); color: var(--mint); }
-    .nav-icon { font-size: 1.1rem; width: 20px; text-align: center; }
+    .nav-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
+    .nav-item.active { background: rgba(255,255,255,0.1); border-left-color: var(--mint); color: #fff; }
+    .nav-icon { font-size: 1rem; width: 18px; text-align: center; flex-shrink: 0; }
+    .nav-back { color: rgba(255,255,255,0.4) !important; font-size: 0.82rem !important; }
+    .nav-back:hover { color: rgba(255,255,255,0.8) !important; }
+    .nav-back .nav-icon { font-size: 0.75rem !important; }
 
-    /* Show/hide nav items based on state */
-    .nav-back  { display: none; border-left-color: transparent !important; color: rgba(255,255,255,0.5) !important; font-size: 0.82rem !important; }
-    .nav-back:hover { color: #fff !important; }
     .event-nav { display: none; }
     .nav-home  { display: flex; }
     #app.event-active .nav-back  { display: flex; }
     #app.event-active .nav-home  { display: none; }
     #app.event-active .event-nav { display: flex; }
 
-    .main { margin-left: var(--sidebar-w); padding: 2rem; min-height: 100vh; transition: background 0.4s; }
-
-    /* ── Topbar ── */
-    .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
-    .topbar h1 { font-family: Georgia, serif; font-size: 1.5rem; color: var(--deep); font-weight: normal; }
-    .btn { padding: 0.55rem 1.1rem; border-radius: 7px; font-size: 0.85rem; cursor: pointer; border: none; transition: opacity 0.15s; }
-    .btn:hover { opacity: 0.85; }
-    .btn-primary { background: var(--accent); color: #fff; }
-    .btn-outline  { background: #fff; border: 1.5px solid var(--border); color: var(--deep); }
-    .btn-danger   { background: #e74c3c; color: #fff; font-size: 0.8rem; padding: 0.4rem 0.8rem; }
-
-    /* ── Events list ── */
-    .events-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 1.25rem; }
-    .elc {
-      background: #fff; border-radius: 14px; overflow: hidden;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.07); cursor: pointer;
-      transition: transform 0.15s, box-shadow 0.2s;
-    }
-    .elc:hover { transform: translateY(-3px); box-shadow: 0 6px 24px rgba(0,0,0,0.13); }
-    .elc-header { height: 82px; display: flex; align-items: center; justify-content: center; font-size: 2.6rem; }
-    .elc-body { padding: 1rem 1.25rem 0.6rem; }
-    .elc-body h3 { font-size: 1.05rem; color: var(--deep); margin-bottom: 0.25rem; }
-    .elc-meta { font-size: 0.78rem; color: var(--muted); line-height: 1.5; }
-    .elc-footer { padding: 0.75rem 1.25rem 1rem; display: flex; gap: 0.5rem; }
-    .new-event-card {
-      border: 2.5px dashed var(--border); border-radius: 14px;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 0.5rem; padding: 2rem; cursor: pointer; color: var(--muted);
-      transition: border-color 0.2s, color 0.2s; min-height: 190px; background: transparent;
-    }
-    .new-event-card:hover { border-color: var(--accent); color: var(--accent); }
-    .new-event-card .plus { font-size: 2.5rem; line-height: 1; }
-    .new-event-card p { font-size: 0.88rem; text-align: center; }
-    .elc-new { box-shadow: 0 0 0 3px var(--accent), 0 6px 24px rgba(0,0,0,0.13) !important; }
-    .elc-header { position: relative; }
-    .elc-badge {
-      position: absolute; top: 8px; right: 8px;
-      background: rgba(0,0,0,0.35); color: #fff;
-      font-size: 0.68rem; font-weight: bold; padding: 2px 7px;
-      border-radius: 20px; letter-spacing: 0.04em;
+    /* ─── Main content ─── */
+    .main {
+      margin-left: var(--sidebar-w); min-height: 100vh;
+      padding: 2rem 2.5rem; transition: background 0.4s;
     }
 
-    /* ── Stats ── */
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
-    .stat-card {
-      background: #fff; border-radius: 12px; padding: 1.25rem 1.5rem;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-      cursor: pointer; transition: box-shadow 0.2s, transform 0.15s;
+    /* ─── Topbar ─── */
+    .topbar {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 2rem; gap: 1rem; flex-wrap: wrap;
     }
-    .stat-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.12); transform: translateY(-2px); }
-    .stat-card.plain { cursor: default; }
-    .stat-card.plain:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.06); transform: none; }
-    .stat-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 0.4rem; }
-    .stat-value { font-size: 2rem; font-family: Georgia, serif; color: var(--deep); }
-    .stat-icon  { float: right; font-size: 1.8rem; margin-top: -0.2rem; }
-    .stat-hint  { font-size: 0.72rem; color: var(--accent); margin-top: 0.3rem; }
+    .topbar-left h1 { font-size: 1.65rem; font-weight: 700; color: var(--deep); letter-spacing: -0.5px; }
+    .topbar-left p  { font-size: 0.88rem; color: var(--muted); margin-top: 0.2rem; }
 
-    /* ── Search ── */
-    .search-wrap { margin-bottom: 1.25rem; position: relative; }
-    .search-wrap input {
-      width: 100%; padding: 0.7rem 1rem 0.7rem 2.5rem;
-      border: 1.5px solid var(--border); border-radius: 10px;
-      font-size: 0.95rem; outline: none; transition: border-color 0.2s; background: #fff;
-    }
-    .search-wrap input:focus { border-color: var(--accent); }
-    .search-icon { position: absolute; left: 0.8rem; top: 50%; transform: translateY(-50%); pointer-events: none; }
-    .guest-count { font-size: 0.8rem; color: var(--muted); margin-bottom: 1rem; }
+    /* ─── Buttons ─── */
+    .btn { padding: 0.6rem 1.2rem; border-radius: 10px; font-size: 0.875rem; font-weight: 600; cursor: pointer; border: none; transition: opacity 0.15s, transform 0.1s; }
+    .btn:hover { opacity: 0.88; }
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-primary  { background: linear-gradient(135deg, var(--accent) 0%, var(--deep) 100%); color: #fff; }
+    .btn-outline  { background: var(--card); border: 2px solid var(--border); color: var(--deep); }
+    .btn-danger   { background: #e74c3c; color: #fff; font-size: 0.8rem; padding: 0.45rem 0.85rem; }
+    .btn-ghost    { background: transparent; border: 2px solid var(--border); color: var(--muted); font-size: 0.8rem; padding: 0.4rem 0.8rem; }
+    .btn-copy     { background: var(--light); border: 1.5px solid var(--border); color: var(--deep); font-size: 0.75rem; padding: 0.35rem 0.75rem; border-radius: 7px; cursor: pointer; white-space: nowrap; font-weight: 600; }
+    .btn-copy:hover { background: var(--border); }
 
-    /* ── Guest cards ── */
-    .uploader-card { background: #fff; border-radius: 12px; margin-bottom: 1rem; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
-    .uploader-card.hidden { display: none; }
-    .uploader-header { display: flex; justify-content: space-between; align-items: flex-start; padding: 1.2rem 1.5rem; gap: 1rem; cursor: pointer; transition: background 0.15s; }
-    .uploader-header:hover { background: var(--bg); }
-    .uploader-info h3 { font-size: 1rem; color: var(--deep); margin-bottom: 0.2rem; }
-    .uploader-meta { font-size: 0.78rem; color: var(--muted); margin-bottom: 0.3rem; }
-    .uploader-message { font-size: 0.85rem; color: var(--deep); font-style: italic; background: var(--bg); border-radius: 6px; padding: 0.4rem 0.7rem; margin-top: 0.4rem; border-left: 3px solid var(--border); }
-    .badge { background: var(--light); color: var(--deep); font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 20px; white-space: nowrap; }
-    .uploader-actions { display: flex; gap: 0.5rem; align-items: center; flex-shrink: 0; }
-    .expand-arrow { font-size: 0.75rem; color: var(--muted); transition: transform 0.2s; margin-left: 0.2rem; }
-    .uploader-card.open .expand-arrow { transform: rotate(180deg); }
-    .guest-photos { display: none; padding: 0 1.5rem 1.25rem; border-top: 1px solid var(--light); }
-    .uploader-card.open .guest-photos { display: block; }
-    .guest-photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; margin-top: 1rem; }
-    .guest-photo-item { position: relative; aspect-ratio: 1; border-radius: 8px; overflow: hidden; background: var(--light); cursor: pointer; }
-    .guest-photo-item img { width: 100%; height: 100%; object-fit: cover; transition: opacity 0.15s; }
-    .guest-photo-item:hover img { opacity: 0.85; }
-    .guest-photo-item .del-btn {
-      position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.5); color: #fff;
-      border: none; border-radius: 50%; width: 22px; height: 22px;
-      font-size: 13px; cursor: pointer; display: none; align-items: center; justify-content: center;
-    }
-    .guest-photo-item:hover .del-btn { display: flex; }
-
-    /* ── All-photos grid ── */
-    .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
-    .photo-card { background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.06); position: relative; }
-    .photo-card img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; cursor: pointer; transition: opacity 0.15s; }
-    .photo-card img:hover { opacity: 0.9; }
-    .photo-card .photo-info { padding: 0.5rem 0.75rem; font-size: 0.75rem; color: var(--muted); }
-    .photo-card .photo-name { font-weight: bold; color: var(--deep); font-size: 0.82rem; }
-    .photo-card .photo-delete {
-      position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.5); color: #fff;
-      border: none; border-radius: 50%; width: 26px; height: 26px;
-      cursor: pointer; font-size: 14px; display: none; align-items: center; justify-content: center;
-    }
-    .photo-card:hover .photo-delete { display: flex; }
-
-    /* ── QR ── */
-    .qr-section { background: #fff; border-radius: 12px; padding: 2rem; text-align: center; box-shadow: 0 2px 12px rgba(0,0,0,0.06); max-width: 480px; }
-    .qr-section h3 { font-family: Georgia, serif; font-size: 1.1rem; color: var(--deep); margin-bottom: 0.5rem; font-weight: normal; }
-    .qr-section p  { font-size: 0.85rem; color: var(--muted); margin-bottom: 1.5rem; }
-    #qrImage { max-width: 260px; border: 1px solid var(--border); border-radius: 8px; }
-    .url-input-wrap { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
-    .url-input-wrap input { flex: 1; padding: 0.6rem 0.9rem; border: 1.5px solid var(--border); border-radius: 7px; font-size: 0.9rem; outline: none; }
-    .url-input-wrap input:focus { border-color: var(--accent); }
-    .qr-url { font-size: 0.8rem; color: var(--accent); margin-top: 0.8rem; word-break: break-all; }
-
-    /* ── Customization ── */
-    .custom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-    @media (max-width: 900px) { .custom-grid { grid-template-columns: 1fr; } }
-    .full-width { grid-column: 1 / -1; }
-
-    /* Event type / theme cards */
-    .event-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.85rem; }
-    @media (max-width: 800px) { .event-grid { grid-template-columns: repeat(3, 1fr); } }
-    @media (max-width: 500px) { .event-grid { grid-template-columns: repeat(2, 1fr); } }
-    .theme-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.85rem; }
-    @media (max-width: 900px) { .theme-grid { grid-template-columns: repeat(3, 1fr); } }
-    @media (max-width: 500px) { .theme-grid { grid-template-columns: repeat(2, 1fr); } }
-    .event-card {
-      border-radius: 12px; overflow: hidden; cursor: pointer;
-      border: 3px solid transparent; transition: transform 0.15s, border-color 0.2s;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.09); background: #fff;
-    }
-    .event-card:hover { transform: translateY(-3px); }
-    .event-card.selected { border-color: var(--accent); }
-    .event-card-top {
-      height: 72px; display: flex; align-items: center; justify-content: center;
-      font-size: 2.2rem; position: relative;
-    }
-    .event-card-check {
-      position: absolute; top: 5px; right: 8px; font-size: 0.95rem;
-      color: #fff; display: none; background: rgba(0,0,0,0.25);
-      border-radius: 50%; width: 20px; height: 20px;
-      align-items: center; justify-content: center; line-height: 20px; text-align: center;
-    }
-    .event-card.selected .event-card-check { display: flex; }
-    .event-card-label { padding: 0.5rem 0.4rem 0.6rem; font-size: 0.74rem; font-weight: bold; text-align: center; }
-
-    .custom-card { background: #fff; border-radius: 12px; padding: 1.5rem; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
-    .custom-card h3 { font-family: Georgia, serif; font-size: 1rem; color: var(--deep); font-weight: normal; margin-bottom: 0.3rem; }
-    .custom-card > p { font-size: 0.82rem; color: var(--muted); margin-bottom: 1.2rem; }
-    .combo-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--deep); font-weight: bold; margin-bottom: 0.75rem; margin-top: 0.25rem; }
-    .combo-divider { border: none; border-top: 1.5px dashed var(--border); margin: 1.5rem 0; }
-
-    /* Banner upload */
-    .banner-drop {
-      border: 2px dashed var(--border); border-radius: 10px;
-      padding: 1.8rem 1rem; text-align: center; cursor: pointer;
-      position: relative; transition: background 0.2s, border-color 0.2s; background: var(--bg);
-    }
-    .banner-drop.drag-over { background: var(--light); border-color: var(--accent); }
-    .banner-drop input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
-    .banner-drop p { font-size: 0.82rem; color: var(--muted); margin-top: 0.3rem; }
-    .banner-preview { margin-top: 1rem; border-radius: 8px; overflow: hidden; display: none; }
-    .banner-preview img { width: 100%; max-height: 160px; object-fit: cover; display: block; }
-    .banner-actions { display: flex; gap: 0.5rem; margin-top: 0.6rem; }
-
-    /* Password toggle */
-    .toggle-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
-    .toggle-switch { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
-    .toggle-switch input { opacity: 0; width: 0; height: 0; }
-    .toggle-slider {
-      position: absolute; inset: 0; border-radius: 24px; background: #ccc; cursor: pointer; transition: background 0.2s;
-    }
-    .toggle-slider::before {
-      content: ''; position: absolute; width: 18px; height: 18px; border-radius: 50%;
-      background: #fff; left: 3px; top: 3px; transition: transform 0.2s;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-    }
-    .toggle-switch input:checked + .toggle-slider { background: var(--accent); }
-    .toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); }
-    .toggle-label { font-size: 0.9rem; color: var(--text); cursor: pointer; }
-    .pw-field-wrap { display: none; }
-    .pw-field-wrap.visible { display: block; }
-    .pw-field-wrap input {
-      width: 100%; padding: 0.7rem 1rem; border: 1.5px solid var(--border); border-radius: 8px;
-      font-size: 0.95rem; outline: none; transition: border-color 0.2s; margin-top: 0.25rem;
-    }
-    .pw-field-wrap input:focus { border-color: var(--accent); }
-    .pw-hint { font-size: 0.75rem; color: var(--muted); margin-top: 0.4rem; }
-    .field label { display: block; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--deep); margin-bottom: 0.35rem; }
-    .field input[type="text"] { width: 100%; padding: 0.65rem 0.9rem; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.95rem; outline: none; transition: border-color 0.2s; }
-    .field input[type="text"]:focus { border-color: var(--accent); }
-
-    .save-btn {
-      display: block; width: 100%; margin-top: 1.25rem;
-      background: linear-gradient(135deg, var(--accent), var(--deep));
-      color: #fff; border: none; border-radius: 8px;
-      padding: 0.65rem 1.4rem; font-size: 0.9rem; cursor: pointer; transition: opacity 0.15s;
-    }
-    .save-btn:hover { opacity: 0.9; }
-    .save-msg { font-size: 0.82rem; color: var(--accent); margin-top: 0.6rem; text-align: center; display: none; }
-
-    /* ── Modal ── */
-    .modal-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.55);
-      display: flex; align-items: center; justify-content: center; z-index: 300;
-    }
-    .modal-box {
-      background: #fff; border-radius: 16px; padding: 2rem 2rem 1.75rem;
-      width: 400px; max-width: 95vw; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-    }
-    .modal-box h3 { font-family: Georgia, serif; font-size: 1.2rem; color: var(--deep); margin-bottom: 1.25rem; font-weight: normal; }
-    .modal-box input[type="text"] {
-      width: 100%; padding: 0.75rem 1rem; border: 1.5px solid var(--border);
-      border-radius: 8px; font-size: 1rem; outline: none; transition: border-color 0.2s; margin-bottom: 1rem;
-    }
-    .modal-box input[type="text"]:focus { border-color: var(--accent); }
-    .modal-actions { display: flex; gap: 0.6rem; }
-    .modal-error { font-size: 0.82rem; color: #c0392b; margin-top: 0.5rem; display: none; }
-
-    /* ── Lightbox ── */
-    #lightbox {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.92);
-      display: none; align-items: center; justify-content: center; z-index: 200; cursor: pointer;
-    }
-    #lightbox img { max-width: 95vw; max-height: 92vh; border-radius: 4px; object-fit: contain; }
-    #lightboxClose { position: fixed; top: 20px; right: 24px; color: #fff; font-size: 2rem; cursor: pointer; z-index: 201; }
-
-    /* ── Misc ── */
-    .empty { text-align: center; padding: 4rem 2rem; color: var(--muted); font-size: 0.95rem; }
-    .empty-icon { font-size: 3rem; margin-bottom: 1rem; display: block; }
+    /* ─── Section visibility ─── */
     .section { display: none; }
     .section.active { display: block; }
 
-    @media (max-width: 700px) { .sidebar { width: 0; overflow: hidden; } .main { margin-left: 0; } }
+    /* ─── Create event ─── */
+    .create-panel {
+      background: var(--card); border-radius: var(--radius); padding: 1.75rem 2rem;
+      margin-bottom: 2rem; box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+      border-left: 5px solid var(--accent);
+    }
+    .create-panel h2 { font-size: 1.1rem; font-weight: 700; color: var(--deep); margin-bottom: 0.3rem; }
+    .create-panel > p { font-size: 0.85rem; color: var(--muted); margin-bottom: 1.25rem; }
+    .create-row { display: flex; gap: 0.75rem; }
+    .create-row input {
+      flex: 1; padding: 0.8rem 1rem; border: 2px solid var(--border);
+      border-radius: 10px; font-size: 0.95rem; outline: none; transition: border-color 0.2s; background: var(--bg);
+    }
+    .create-row input:focus { border-color: var(--accent); background: #fff; }
+    .create-status { margin-top: 0.75rem; font-size: 0.85rem; display: none; padding: 0.6rem 0.85rem; border-radius: 8px; }
+    .create-status.ok  { background: #e6f4ea; color: #1e4d28; }
+    .create-status.err { background: #fde8e8; color: #b91c1c; }
+
+    /* ─── Event list grid ─── */
+    .events-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.25rem; }
+
+    .event-tile {
+      background: var(--card); border-radius: var(--radius); overflow: hidden;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.07); transition: transform 0.18s, box-shadow 0.18s;
+    }
+    .event-tile:hover { transform: translateY(-3px); box-shadow: 0 8px 32px rgba(0,0,0,0.12); }
+    .event-tile.tile-new { box-shadow: 0 0 0 3px var(--accent), 0 8px 28px rgba(0,0,0,0.12) !important; }
+
+    .tile-hero {
+      height: 100px; display: flex; align-items: center; justify-content: center;
+      font-size: 3rem; position: relative; cursor: pointer;
+    }
+    .tile-badge {
+      position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.4);
+      color: #fff; font-size: 0.65rem; font-weight: 700; padding: 3px 9px; border-radius: 20px; letter-spacing: 0.06em;
+    }
+    .tile-body { padding: 1.1rem 1.25rem 0.75rem; }
+    .tile-body h3 { font-size: 1.05rem; font-weight: 700; color: var(--deep); margin-bottom: 0.3rem; cursor: pointer; }
+    .tile-meta { font-size: 0.78rem; color: var(--muted); margin-bottom: 0.85rem; line-height: 1.5; }
+    .tile-url {
+      display: flex; align-items: center; gap: 0.5rem;
+      background: var(--bg); border: 1.5px solid var(--border); border-radius: 9px;
+      padding: 0.45rem 0.75rem; margin-bottom: 0.85rem;
+    }
+    .tile-url-text { font-size: 0.75rem; color: var(--accent); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: monospace; }
+    .tile-actions { padding: 0 1.25rem 1.1rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+    /* ─── Stats ─── */
+    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .stat-card {
+      background: var(--card); border-radius: var(--radius); padding: 1.25rem 1.5rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06); cursor: pointer;
+      transition: box-shadow 0.2s, transform 0.15s;
+    }
+    .stat-card:hover { box-shadow: 0 6px 24px rgba(0,0,0,0.1); transform: translateY(-2px); }
+    .stat-card.no-click { cursor: default; }
+    .stat-card.no-click:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.06); transform: none; }
+    .stat-icon  { font-size: 1.6rem; margin-bottom: 0.5rem; display: block; }
+    .stat-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.35rem; font-weight: 600; }
+    .stat-value { font-size: 2.2rem; font-weight: 700; color: var(--deep); line-height: 1; }
+    .stat-hint  { font-size: 0.73rem; color: var(--accent); margin-top: 0.35rem; font-weight: 500; }
+
+    /* ─── Section header ─── */
+    .section-title { font-size: 1.1rem; font-weight: 700; color: var(--deep); margin-bottom: 1rem; }
+
+    /* ─── Search ─── */
+    .search-bar { position: relative; margin-bottom: 1rem; }
+    .search-bar input {
+      width: 100%; padding: 0.75rem 1rem 0.75rem 2.75rem;
+      border: 2px solid var(--border); border-radius: 12px; font-size: 0.95rem;
+      outline: none; transition: border-color 0.2s; background: var(--card);
+    }
+    .search-bar input:focus { border-color: var(--accent); }
+    .search-icon { position: absolute; left: 0.9rem; top: 50%; transform: translateY(-50%); pointer-events: none; font-size: 0.95rem; color: var(--muted); }
+    .guest-count { font-size: 0.82rem; color: var(--muted); margin-bottom: 1.25rem; font-weight: 500; }
+
+    /* ─── Guest / uploader cards ─── */
+    .uploader-card {
+      background: var(--card); border-radius: var(--radius); margin-bottom: 1rem;
+      overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.06); transition: box-shadow 0.15s;
+    }
+    .uploader-card.hidden { display: none; }
+    .uploader-header {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      padding: 1.25rem 1.5rem; gap: 1rem; cursor: pointer; transition: background 0.15s;
+    }
+    .uploader-header:hover { background: var(--bg); }
+    .uploader-info h3 { font-size: 1rem; font-weight: 700; color: var(--deep); margin-bottom: 0.15rem; }
+    .uploader-meta { font-size: 0.78rem; color: var(--muted); margin-bottom: 0.3rem; }
+    .uploader-msg {
+      font-size: 0.85rem; color: var(--text); font-style: italic;
+      background: var(--bg); border-radius: 8px; padding: 0.45rem 0.8rem;
+      margin-top: 0.5rem; border-left: 3px solid var(--border);
+    }
+    .badge { background: var(--light); color: var(--deep); font-size: 0.75rem; font-weight: 600; padding: 0.25rem 0.65rem; border-radius: 20px; white-space: nowrap; }
+    .uploader-actions { display: flex; gap: 0.5rem; align-items: center; flex-shrink: 0; }
+    .chevron { font-size: 0.7rem; color: var(--muted); transition: transform 0.2s; margin-left: 0.2rem; }
+    .uploader-card.open .chevron { transform: rotate(180deg); }
+    .guest-photos { display: none; padding: 0 1.5rem 1.25rem; border-top: 1px solid var(--light); }
+    .uploader-card.open .guest-photos { display: block; }
+    .guest-photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; margin-top: 1rem; }
+    .guest-photo-item { position: relative; aspect-ratio: 1; border-radius: 10px; overflow: hidden; background: var(--light); cursor: pointer; }
+    .guest-photo-item img { width: 100%; height: 100%; object-fit: cover; transition: opacity 0.15s; }
+    .guest-photo-item:hover img { opacity: 0.85; }
+    .guest-photo-item .del-btn {
+      position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.55);
+      color: #fff; border: none; border-radius: 50%; width: 24px; height: 24px;
+      font-size: 14px; cursor: pointer; display: none; align-items: center; justify-content: center;
+    }
+    .guest-photo-item:hover .del-btn { display: flex; }
+
+    /* ─── Photo grid ─── */
+    .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
+    .photo-card { background: var(--card); border-radius: 12px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.07); position: relative; }
+    .photo-card img { width: 100%; aspect-ratio: 1; object-fit: cover; display: block; cursor: pointer; transition: opacity 0.15s; }
+    .photo-card img:hover { opacity: 0.88; }
+    .photo-card .photo-info { padding: 0.55rem 0.8rem; font-size: 0.75rem; color: var(--muted); }
+    .photo-card .photo-name { font-weight: 700; color: var(--deep); font-size: 0.82rem; display: block; }
+    .photo-card .photo-delete {
+      position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.55);
+      color: #fff; border: none; border-radius: 50%; width: 28px; height: 28px;
+      cursor: pointer; font-size: 15px; display: none; align-items: center; justify-content: center;
+    }
+    .photo-card:hover .photo-delete { display: flex; }
+
+    /* ─── QR section ─── */
+    .qr-wrap { max-width: 520px; }
+    .qr-card { background: var(--card); border-radius: var(--radius); padding: 2rem; text-align: center; box-shadow: 0 2px 16px rgba(0,0,0,0.07); }
+    .qr-card h3 { font-size: 1.15rem; font-weight: 700; color: var(--deep); margin-bottom: 0.4rem; }
+    .qr-card p  { font-size: 0.88rem; color: var(--muted); margin-bottom: 1.75rem; }
+    .url-row { display: flex; gap: 0.6rem; margin-bottom: 1.5rem; }
+    .url-row input { flex: 1; padding: 0.7rem 1rem; border: 2px solid var(--border); border-radius: 10px; font-size: 0.9rem; outline: none; transition: border-color 0.2s; }
+    .url-row input:focus { border-color: var(--accent); }
+    #qrImage { max-width: 260px; border-radius: 12px; border: 2px solid var(--border); }
+    .qr-link { font-size: 0.82rem; color: var(--accent); margin-top: 0.8rem; word-break: break-all; font-weight: 500; }
+    .qr-btns { display: flex; gap: 0.5rem; justify-content: center; margin-top: 1.2rem; flex-wrap: wrap; }
+
+    /* ─── Customize ─── */
+    .custom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    @media (max-width: 900px) { .custom-grid { grid-template-columns: 1fr; } }
+    .full-col { grid-column: 1 / -1; }
+    .custom-card { background: var(--card); border-radius: var(--radius); padding: 1.75rem; box-shadow: 0 2px 16px rgba(0,0,0,0.06); }
+    .custom-card h3 { font-size: 1rem; font-weight: 700; color: var(--deep); margin-bottom: 0.25rem; }
+    .custom-card > p { font-size: 0.85rem; color: var(--muted); margin-bottom: 1.5rem; }
+
+    /* ─── Event type + theme picker ─── */
+    .event-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.85rem; }
+    @media (max-width: 820px) { .event-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 520px) { .event-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    .ecard {
+      border-radius: 14px; overflow: hidden; cursor: pointer;
+      border: 3px solid transparent; transition: transform 0.15s, border-color 0.2s;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.09); background: var(--card);
+    }
+    .ecard:hover { transform: translateY(-2px); }
+    .ecard.selected { border-color: var(--accent); }
+    .ecard-top {
+      height: 68px; display: flex; align-items: center; justify-content: center;
+      font-size: 2rem; position: relative; transition: background 0.3s;
+    }
+    .ecard-check {
+      position: absolute; top: 6px; right: 8px; font-size: 0.8rem; color: #fff;
+      background: rgba(0,0,0,0.35); border-radius: 50%; width: 20px; height: 20px;
+      display: none; align-items: center; justify-content: center; line-height: 1;
+    }
+    .ecard.selected .ecard-check { display: flex; }
+    .ecard-label { padding: 0.4rem 0.35rem 0.3rem; font-size: 0.72rem; font-weight: 700; text-align: center; }
+    .ecard-dots { display: flex; justify-content: center; gap: 5px; padding: 5px 6px 8px; }
+    .cdot { width: 14px; height: 14px; border-radius: 50%; cursor: pointer; border: 2.5px solid transparent; transition: transform 0.12s, border-color 0.15s; flex-shrink: 0; }
+    .cdot:hover { transform: scale(1.35); }
+    .cdot.cdot-sel { border-color: #222; transform: scale(1.2); }
+
+    /* ─── Banner ─── */
+    .banner-zone {
+      border: 2.5px dashed var(--border); border-radius: 12px; padding: 2rem 1rem;
+      text-align: center; cursor: pointer; position: relative;
+      transition: background 0.2s, border-color 0.2s; background: var(--bg);
+    }
+    .banner-zone.drag-over { background: var(--light); border-color: var(--accent); }
+    .banner-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+    .banner-zone .zone-icon { font-size: 2rem; margin-bottom: 0.4rem; }
+    .banner-zone strong { font-size: 0.9rem; display: block; margin-bottom: 0.2rem; }
+    .banner-zone p { font-size: 0.78rem; color: var(--muted); }
+    .banner-preview { margin-top: 1rem; border-radius: 10px; overflow: hidden; display: none; }
+    .banner-preview img { width: 100%; max-height: 180px; object-fit: cover; display: block; }
+    .banner-preview-actions { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
+
+    /* ─── Toggle ─── */
+    .toggle-row { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1rem; }
+    .toggle { position: relative; width: 46px; height: 26px; flex-shrink: 0; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-track {
+      position: absolute; inset: 0; border-radius: 26px; background: #d0d0d0;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .toggle-track::before {
+      content: ''; position: absolute; width: 20px; height: 20px; border-radius: 50%;
+      background: #fff; left: 3px; top: 3px; transition: transform 0.2s;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    }
+    .toggle input:checked + .toggle-track { background: var(--accent); }
+    .toggle input:checked + .toggle-track::before { transform: translateX(20px); }
+    .toggle-label { font-size: 0.9rem; color: var(--text); cursor: pointer; font-weight: 500; }
+    .pw-field { display: none; }
+    .pw-field.visible { display: block; }
+    .pw-field input {
+      width: 100%; padding: 0.75rem 1rem; border: 2px solid var(--border);
+      border-radius: 10px; font-size: 0.95rem; outline: none; transition: border-color 0.2s; margin-top: 0.3rem;
+    }
+    .pw-field input:focus { border-color: var(--accent); }
+    .pw-hint { font-size: 0.78rem; color: var(--muted); margin-top: 0.4rem; }
+
+    /* ─── Form fields ─── */
+    .field { margin-bottom: 1rem; }
+    .field:last-child { margin-bottom: 0; }
+    .field label { display: block; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--deep); margin-bottom: 0.4rem; }
+    .field input[type="text"] {
+      width: 100%; padding: 0.72rem 1rem; border: 2px solid var(--border);
+      border-radius: 10px; font-size: 0.95rem; outline: none; transition: border-color 0.2s;
+    }
+    .field input[type="text"]:focus { border-color: var(--accent); }
+
+    .save-btn {
+      display: block; width: 100%; margin-top: 1.5rem;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--deep) 100%);
+      color: #fff; border: none; border-radius: 10px; padding: 0.72rem 1.5rem;
+      font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: opacity 0.15s;
+    }
+    .save-btn:hover { opacity: 0.9; }
+    .save-msg { font-size: 0.85rem; color: var(--accent); margin-top: 0.65rem; text-align: center; display: none; font-weight: 600; }
+
+    /* ─── Lightbox ─── */
+    #lightbox {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.93);
+      display: none; align-items: center; justify-content: center; z-index: 500; cursor: pointer;
+    }
+    #lightbox img { max-width: 95vw; max-height: 92vh; border-radius: 6px; object-fit: contain; }
+    #lightboxClose { position: fixed; top: 20px; right: 24px; color: #fff; font-size: 2.2rem; cursor: pointer; z-index: 501; line-height: 1; }
+
+    /* ─── Empty states ─── */
+    .empty { text-align: center; padding: 4rem 2rem; color: var(--muted); font-size: 0.95rem; }
+    .empty-icon { font-size: 3.5rem; display: block; margin-bottom: 1rem; }
+
+    /* ─── Mobile ─── */
+    @media (max-width: 700px) {
+      .sidebar { display: none; }
+      .main { margin-left: 0; padding: 1.25rem; }
+    }
+
+    /* ─── Create Modal ─── */
+    #createModal { display: none; position: fixed; inset: 0; z-index: 300; align-items: center; justify-content: center; }
+    #createModal.open { display: flex; }
+    .cmodal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(2px); }
+    .cmodal-box {
+      position: relative; background: #fff; border-radius: 24px;
+      width: 640px; max-width: 96vw; max-height: 92vh;
+      overflow: hidden; display: flex; flex-direction: column;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.45); z-index: 1;
+    }
+
+    /* Header */
+    .cmodal-head {
+      padding: 1.75rem 2rem 1.5rem; border-bottom: 1px solid var(--border);
+      background: linear-gradient(135deg, var(--deep) 0%, var(--accent) 100%);
+      color: #fff; flex-shrink: 0;
+    }
+    .cmodal-head h2 { font-size: 1.25rem; font-weight: 700; margin-bottom: 1.1rem; letter-spacing: -0.3px; }
+    .step-row { display: flex; align-items: center; gap: 0; }
+    .sdot {
+      width: 30px; height: 30px; border-radius: 50%; border: 2.5px solid rgba(255,255,255,0.4);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.8rem; font-weight: 700; color: rgba(255,255,255,0.6); flex-shrink: 0;
+      transition: background 0.25s, border-color 0.25s, color 0.25s;
+    }
+    .sdot.active { background: #fff; border-color: #fff; color: var(--deep); }
+    .sdot.done   { background: rgba(255,255,255,0.3); border-color: rgba(255,255,255,0.6); color: #fff; }
+    .sline { flex: 1; height: 2px; background: rgba(255,255,255,0.25); margin: 0 6px; }
+    .sline.done { background: rgba(255,255,255,0.6); }
+    .step-labels { display: flex; justify-content: space-between; margin-top: 0.5rem; }
+    .step-label { font-size: 0.7rem; color: rgba(255,255,255,0.6); flex: 1; text-align: center; }
+    .step-label:first-child { text-align: left; }
+    .step-label:last-child  { text-align: right; }
+    .step-label.active { color: rgba(255,255,255,0.95); font-weight: 600; }
+
+    /* Body */
+    .cmodal-body { flex: 1; overflow-y: auto; padding: 1.75rem 2rem; }
+    .cstep { display: none; }
+    .cstep.active { display: block; }
+    .cstep h3 { font-size: 1.05rem; font-weight: 700; color: var(--deep); margin-bottom: 0.3rem; }
+    .cstep > p { font-size: 0.875rem; color: var(--muted); margin-bottom: 1.5rem; }
+
+    .cfield { margin-bottom: 1.1rem; }
+    .cfield label { display: block; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--deep); margin-bottom: 0.4rem; }
+    .cfield input[type="text"],
+    .cfield input[type="password"] {
+      width: 100%; padding: 0.8rem 1rem; border: 2px solid var(--border);
+      border-radius: 10px; font-size: 1rem; outline: none; transition: border-color 0.2s; background: var(--bg);
+    }
+    .cfield input:focus { border-color: var(--accent); background: #fff; }
+
+    /* The event-type grid inside the modal reuses .ecard but scoped differently */
+    #cEventGrid { display: grid; grid-template-columns: repeat(4,1fr); gap: 0.85rem; }
+    @media (max-width: 580px) { #cEventGrid { grid-template-columns: repeat(2,1fr); } }
+
+    /* Footer */
+    .cmodal-foot {
+      padding: 1.1rem 2rem 1.5rem; border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+      background: var(--bg);
+    }
+    .cmodal-foot .step-hint { font-size: 0.8rem; color: var(--muted); }
+    .cmodal-foot .btns { display: flex; gap: 0.6rem; }
+    .cmodal-err { font-size: 0.85rem; color: #e74c3c; margin-top: 0.4rem; display: none; }
+    .cpw-field { display: none; margin-top: 0.75rem; }
+    .cpw-field.visible { display: block; }
   </style>
 </head>
 <body>
 
 <!-- Login -->
 <div id="loginOverlay">
-  <div class="login-box">
-    <div class="icon" id="loginIcon">🌿</div>
+  <div class="login-card">
+    <div class="login-logo">🌿</div>
     <h1>My Memories</h1>
-    <p>Voer het wachtwoord in om door te gaan</p>
-    <input type="password" id="passwordInput" placeholder="Wachtwoord" onkeydown="if(event.key==='Enter')doLogin()" />
-    <button onclick="doLogin()">Inloggen</button>
-    <div class="login-error" id="loginError">Onjuist wachtwoord. Probeer opnieuw.</div>
+    <p>Voer het wachtwoord in om verder te gaan</p>
+    <input type="password" id="loginPw" placeholder="Dashboard wachtwoord" onkeydown="if(event.key==='Enter') doLogin()" />
+    <button onclick="doLogin()">Inloggen →</button>
+    <div class="login-error" id="loginErr">Onjuist wachtwoord. Probeer opnieuw.</div>
   </div>
 </div>
 
 <!-- App -->
 <div id="app">
-  <div class="sidebar" id="appSidebar">
-    <div class="sidebar-logo">
-      <div class="icon" id="sidebarIcon">🌿</div>
-      <h2>My Memories</h2>
-      <p>Beheer dashboard</p>
+
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sb-brand">
+      <div class="sb-brand-icon" id="sbIcon">🌿</div>
+      <div class="sb-brand-text">
+        <h2>My Memories</h2>
+        <p>Beheer dashboard</p>
+      </div>
     </div>
-
-    <!-- Current event indicator (only when event selected) -->
-    <div class="current-event-bar">
-      <span id="currentEventName">–</span>
+    <div class="sb-event-chip" id="sbEventChip">–</div>
+    <div class="sb-nav">
+      <div class="nav-item nav-back" onclick="backToEvents()">
+        <span class="nav-icon">‹</span> Alle evenementen
+      </div>
+      <div class="nav-item nav-home active" id="nav-home" onclick="backToEvents()">
+        <span class="nav-icon">🗓</span> Evenementen
+      </div>
+      <div class="nav-group">
+        <div class="nav-group-label">Evenement</div>
+        <div class="nav-item event-nav" onclick="showSection('overview')"  id="nav-overview">  <span class="nav-icon">📊</span> Overzicht</div>
+        <div class="nav-item event-nav" onclick="showSection('uploaders')" id="nav-uploaders"> <span class="nav-icon">👥</span> Gasten</div>
+        <div class="nav-item event-nav" onclick="showSection('photos')"    id="nav-photos">    <span class="nav-icon">🖼️</span> Alle foto's</div>
+        <div class="nav-item event-nav" onclick="showSection('qr')"        id="nav-qr">        <span class="nav-icon">📱</span> QR code</div>
+        <div class="nav-item event-nav" onclick="showSection('customize')" id="nav-customize"> <span class="nav-icon">🎨</span> Uiterlijk</div>
+      </div>
     </div>
+  </nav>
 
-    <!-- Back to events list -->
-    <div class="nav-item nav-back" onclick="backToEvents()">
-      <span class="nav-icon">◀</span> Alle evenementen
-    </div>
-    <!-- Events list home (only when no event selected) -->
-    <div class="nav-item nav-home active" id="nav-home">
-      <span class="nav-icon">🗓️</span> Evenementen
-    </div>
+  <!-- Main -->
+  <main class="main">
 
-    <!-- Event-scoped nav (hidden until event selected) -->
-    <div class="nav-item event-nav" onclick="showSection('overview')"  id="nav-overview">  <span class="nav-icon">📊</span> Overzicht</div>
-    <div class="nav-item event-nav" onclick="showSection('uploaders')" id="nav-uploaders"> <span class="nav-icon">👥</span> Gasten</div>
-    <div class="nav-item event-nav" onclick="showSection('photos')"    id="nav-photos">    <span class="nav-icon">🖼️</span> Alle foto's</div>
-    <div class="nav-item event-nav" onclick="showSection('qr')"        id="nav-qr">        <span class="nav-icon">📱</span> QR code</div>
-    <div class="nav-item event-nav" onclick="showSection('customize')" id="nav-customize"> <span class="nav-icon">🎨</span> Uiterlijk</div>
-  </div>
-
-  <div class="main">
-
-    <!-- ─── Events list ─── -->
+    <!-- ═══ Evenementen ═══ -->
     <div class="section active" id="section-events">
       <div class="topbar">
-        <h1>Evenementen</h1>
-        <button class="btn btn-primary" onclick="showCreateModal()">+ Nieuw evenement</button>
+        <div class="topbar-left">
+          <h1>Evenementen</h1>
+          <p>Beheer hier al je evenementen</p>
+        </div>
+        <button class="btn btn-primary" onclick="openCreateModal()">+ Nieuw evenement</button>
       </div>
-      <div class="events-grid" id="eventsList"></div>
+
+      <div class="events-grid" id="eventsList">
+        <div class="empty"><span class="empty-icon">🗓</span>Laden…</div>
+      </div>
     </div>
 
-    <!-- ─── Overview (per event) ─── -->
+    <!-- ═══ Overzicht ═══ -->
     <div class="section" id="section-overview">
       <div class="topbar">
-        <h1 id="overviewTitle">Overzicht</h1>
+        <div class="topbar-left">
+          <h1 id="overviewTitle">Overzicht</h1>
+        </div>
         <button class="btn btn-outline" onclick="refreshAll()">↻ Vernieuwen</button>
       </div>
-      <div class="stats-grid">
+      <div class="stats-row">
         <div class="stat-card" onclick="showSection('uploaders')">
-          <div class="stat-icon">👥</div>
+          <span class="stat-icon">👥</span>
           <div class="stat-label">Gasten</div>
           <div class="stat-value" id="stat-uploaders">–</div>
           <div class="stat-hint">Klik om te bekijken →</div>
         </div>
         <div class="stat-card" onclick="showSection('photos')">
-          <div class="stat-icon">📷</div>
+          <span class="stat-icon">📷</span>
           <div class="stat-label">Foto's</div>
           <div class="stat-value" id="stat-photos">–</div>
           <div class="stat-hint">Klik om te bekijken →</div>
         </div>
-        <div class="stat-card plain">
-          <div class="stat-icon">💾</div>
+        <div class="stat-card no-click">
+          <span class="stat-icon">💾</span>
           <div class="stat-label">Totale grootte</div>
           <div class="stat-value" id="stat-size">–</div>
         </div>
       </div>
-      <h2 style="font-family:Georgia,serif;font-weight:normal;color:var(--deep);margin-bottom:1rem;font-size:1.1rem;">Recente uploads</h2>
+      <p class="section-title">Recente uploads</p>
       <div id="recentList"></div>
     </div>
 
-    <!-- ─── Gasten ─── -->
+    <!-- ═══ Gasten ═══ -->
     <div class="section" id="section-uploaders">
-      <div class="topbar"><h1>Gasten</h1></div>
-      <div class="search-wrap">
+      <div class="topbar">
+        <div class="topbar-left"><h1>Gasten</h1></div>
+      </div>
+      <div class="search-bar">
         <span class="search-icon">🔍</span>
-        <input type="text" id="guestSearch" list="guestNamesList"
-               placeholder="Zoek op naam..." oninput="filterGuests()" autocomplete="off" />
-        <datalist id="guestNamesList"></datalist>
+        <input type="text" id="guestSearch" placeholder="Zoek op naam..." oninput="filterGuests()" autocomplete="off" />
       </div>
       <div class="guest-count" id="guestCount"></div>
       <div id="uploadersList"></div>
     </div>
 
-    <!-- ─── Alle foto's ─── -->
+    <!-- ═══ Alle foto's ═══ -->
     <div class="section" id="section-photos">
       <div class="topbar">
-        <h1>Alle foto's</h1>
-        <span id="photoCount" style="font-size:0.85rem;color:var(--muted);align-self:center;"></span>
+        <div class="topbar-left"><h1>Alle foto's</h1></div>
+        <span id="photoCount" style="font-size:0.88rem;color:var(--muted);align-self:center;font-weight:600;"></span>
       </div>
       <div id="photoGrid" class="photo-grid"></div>
     </div>
 
-    <!-- ─── QR code ─── -->
+    <!-- ═══ QR Code ═══ -->
     <div class="section" id="section-qr">
-      <div class="topbar"><h1>QR Code</h1></div>
-      <div class="qr-section">
-        <h3>Upload link voor gasten</h3>
-        <p>Gasten scannen deze QR code om direct foto's te uploaden. De link bevat automatisch het evenement-ID.</p>
-        <div class="url-input-wrap">
-          <input type="text" id="urlInput" placeholder="https://jouw-domein.nl" />
-          <button class="btn btn-primary" onclick="generateQR()">Genereer</button>
-        </div>
-        <div id="qrOutput" style="display:none">
-          <img id="qrImage" src="" alt="QR Code" />
-          <div class="qr-url" id="qrUrl"></div>
-          <div style="margin-top:1rem;display:flex;gap:0.5rem;justify-content:center;">
-            <button class="btn btn-outline" onclick="downloadQR()">QR downloaden</button>
-            <button class="btn btn-outline" onclick="copyUrl()">Link kopiëren</button>
+      <div class="topbar"><div class="topbar-left"><h1>QR Code</h1></div></div>
+      <div class="qr-wrap">
+        <div class="qr-card">
+          <h3>Upload-link voor gasten</h3>
+          <p>Gasten scannen de QR code en komen direct op de uploadpagina van dit evenement.</p>
+          <div class="url-row">
+            <input type="text" id="urlInput" placeholder="https://jouw-domein.nl" />
+            <button class="btn btn-primary" onclick="generateQR()">Genereer</button>
+          </div>
+          <div id="qrOutput" style="display:none">
+            <img id="qrImage" src="" alt="QR Code" />
+            <div class="qr-link" id="qrUrl"></div>
+            <div class="qr-btns">
+              <button class="btn btn-outline" onclick="downloadQR()">⬇ QR downloaden</button>
+              <button class="btn btn-outline" onclick="copyQrUrl()">🔗 Link kopiëren</button>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ─── Uiterlijk ─── -->
+    <!-- ═══ Uiterlijk ═══ -->
     <div class="section" id="section-customize">
-      <div class="topbar"><h1>Uiterlijk</h1></div>
+      <div class="topbar"><div class="topbar-left"><h1>Uiterlijk</h1><p>Personaliseer de gastpagina</p></div></div>
       <div class="custom-grid">
 
-        <!-- 1 + 2. Type evenement & Kleurenthema — combined card -->
-        <div class="custom-card full-width">
+        <!-- Event type + theme picker -->
+        <div class="custom-card full-col">
           <h3>Type evenement &amp; Kleurenthema</h3>
-          <p>Kies eerst het type evenement. Dit past kleuren, iconen en teksten automatisch aan. Pas daarna optioneel de kleur nog verder aan.</p>
-
-          <div class="combo-label">Stap 1 — Type evenement</div>
+          <p>Klik op een type om het te selecteren. Kies daarna een kleur via de bolletjes. Laat kleur leeg voor de standaard kleuren van het type.</p>
           <div class="event-grid" id="eventGrid"></div>
-
-          <div class="combo-divider"></div>
-
-          <div class="combo-label">Stap 2 — Kleurenthema (optioneel fijnafstelling)</div>
-          <div class="theme-grid" id="themeGrid"></div>
-
           <button class="save-btn" onclick="saveTypeAndTheme()">Opslaan</button>
           <div class="save-msg" id="typethemeSaveMsg">✓ Opgeslagen!</div>
         </div>
 
-        <!-- 3. Banner -->
+        <!-- Banner -->
         <div class="custom-card">
           <h3>Bannerafbeelding</h3>
-          <p>Foto die bovenaan de upload pagina van gasten getoond wordt.</p>
-          <div class="banner-drop" id="bannerDrop">
+          <p>Foto bovenaan de gastpagina. Max 10 MB.</p>
+          <div class="banner-zone" id="bannerZone">
             <input type="file" id="bannerFileInput" accept="image/*" />
-            <div style="font-size:2rem;margin-bottom:0.3rem">🖼️</div>
-            <strong>Tik of sleep een afbeelding</strong>
-            <p>Max 10 MB &bull; JPG, PNG, WEBP</p>
+            <div class="zone-icon">🖼️</div>
+            <strong>Tik of sleep hier een afbeelding</strong>
+            <p>JPG, PNG of WEBP</p>
           </div>
           <div class="banner-preview" id="bannerPreview">
             <img id="bannerPreviewImg" src="" alt="" />
-            <div class="banner-actions">
+            <div class="banner-preview-actions">
               <button class="btn btn-primary" id="bannerUploadBtn" onclick="uploadBanner()">Uploaden</button>
-              <button class="btn btn-danger"  onclick="removeBanner()">Verwijderen</button>
+              <button class="btn btn-danger" onclick="removeBanner()">Verwijderen</button>
             </div>
           </div>
           <div class="save-msg" id="bannerSaveMsg">✓ Banner opgeslagen!</div>
         </div>
 
-        <!-- 4. Welkomstbericht -->
+        <!-- Welcome tekst -->
         <div class="custom-card">
-          <h3>Welkomstbericht</h3>
-          <p>Pas de tekst bovenaan de upload pagina van gasten aan.</p>
-          <div class="field" style="margin-bottom:1rem">
+          <h3>Welkomsttekst</h3>
+          <p>Titel en ondertitel bovenaan de gastpagina.</p>
+          <div class="field">
             <label for="welcomeTitle">Titel</label>
             <input type="text" id="welcomeTitle" placeholder="Deel jouw foto's" />
           </div>
-          <div class="field" style="margin-bottom:0">
+          <div class="field">
             <label for="welcomeSubtitle">Ondertitel</label>
             <input type="text" id="welcomeSubtitle" placeholder="Help ons deze dag onvergetelijk te maken" />
           </div>
@@ -511,33 +637,33 @@
           <div class="save-msg" id="welcomeSaveMsg">✓ Bericht opgeslagen!</div>
         </div>
 
-        <!-- 5. Guest password -->
+        <!-- Gast wachtwoord -->
         <div class="custom-card">
-          <h3>Upload wachtwoord</h3>
-          <p>Gasten moeten eerst een wachtwoord invoeren. Laat leeg voor vrije toegang.</p>
+          <h3>Upload-wachtwoord</h3>
+          <p>Gasten moeten een wachtwoord invoeren voordat ze foto's kunnen uploaden.</p>
           <div class="toggle-row">
-            <label class="toggle-switch">
+            <label class="toggle">
               <input type="checkbox" id="guestPwToggle" onchange="toggleGuestPwField()" />
-              <span class="toggle-slider"></span>
+              <span class="toggle-track"></span>
             </label>
             <span class="toggle-label" onclick="document.getElementById('guestPwToggle').click()">Wachtwoord vereist</span>
           </div>
-          <div class="pw-field-wrap" id="guestPwFieldWrap">
-            <label for="guestPwValue">Wachtwoord voor gasten</label>
+          <div class="pw-field" id="guestPwFieldWrap">
+            <label for="guestPwValue" style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--deep);">Wachtwoord voor gasten</label>
             <input type="text" id="guestPwValue" placeholder="bijv. feest2025" />
-            <div class="pw-hint">Jij deelt dit zelf met gasten (bv. op de uitnodiging).</div>
+            <div class="pw-hint">Jij deelt dit zelf met gasten.</div>
           </div>
           <button class="save-btn" onclick="saveGuestPassword()">Opslaan</button>
-          <div class="save-msg" id="guestPwSaveMsg">✓ Instellingen opgeslagen!</div>
+          <div class="save-msg" id="guestPwSaveMsg">✓ Opgeslagen!</div>
         </div>
 
-        <!-- 6. Event name -->
+        <!-- Naam evenement -->
         <div class="custom-card">
           <h3>Naam evenement</h3>
-          <p>Interne naam voor dit evenement in het dashboard.</p>
-          <div class="field" style="margin-bottom:0">
+          <p>Naam in het dashboard en in de URL van de gastpagina.</p>
+          <div class="field">
             <label for="eventNameInput">Naam</label>
-            <input type="text" id="eventNameInput" placeholder="bijv. Bruiloft Jan & Marie" />
+            <input type="text" id="eventNameInput" placeholder="bijv. Bruiloft Jan en Marie" />
           </div>
           <button class="save-btn" onclick="saveEventName()">Opslaan</button>
           <div class="save-msg" id="eventNameSaveMsg">✓ Naam opgeslagen!</div>
@@ -546,8 +672,97 @@
       </div>
     </div>
 
-  </div><!-- /main -->
-</div><!-- /app -->
+  </main>
+</div>
+
+<!-- ═══ Create Event Modal ═══ -->
+<div id="createModal">
+  <div class="cmodal-overlay" onclick="closeCreateModal()"></div>
+  <div class="cmodal-box">
+
+    <!-- Header with step indicator -->
+    <div class="cmodal-head">
+      <h2>Nieuw evenement aanmaken</h2>
+      <div class="step-row">
+        <div class="sdot active" id="sdot-1">1</div>
+        <div class="sline" id="sline-1"></div>
+        <div class="sdot" id="sdot-2">2</div>
+        <div class="sline" id="sline-2"></div>
+        <div class="sdot" id="sdot-3">3</div>
+      </div>
+      <div class="step-labels">
+        <span class="step-label active" id="slabel-1">Naam</span>
+        <span class="step-label" id="slabel-2">Type &amp; Kleur</span>
+        <span class="step-label" id="slabel-3">Teksten &amp; Toegang</span>
+      </div>
+    </div>
+
+    <!-- Body: 3 steps -->
+    <div class="cmodal-body">
+
+      <!-- Step 1: Name -->
+      <div class="cstep active" id="cstep-1">
+        <h3>Hoe heet het evenement?</h3>
+        <p>Deze naam wordt gebruikt in het dashboard en in de URL voor gasten.</p>
+        <div class="cfield">
+          <label for="cName">Naam evenement</label>
+          <input type="text" id="cName" placeholder="bijv. Bruiloft Jan &amp; Marie"
+                 onkeydown="if(event.key==='Enter') gotoStep(2)" />
+        </div>
+        <div class="cmodal-err" id="cNameErr">Vul een naam in om door te gaan.</div>
+      </div>
+
+      <!-- Step 2: Event type + theme -->
+      <div class="cstep" id="cstep-2">
+        <h3>Type evenement &amp; Kleurenthema</h3>
+        <p>Klik op een type voor het bijpassende uiterlijk. Kies daarna optioneel een kleur via de bolletjes. Je kunt dit later altijd aanpassen.</p>
+        <div id="cEventGrid"></div>
+        <div class="cmodal-err" id="cTypeErr">Selecteer een type om door te gaan.</div>
+      </div>
+
+      <!-- Step 3: Titles + password -->
+      <div class="cstep" id="cstep-3">
+        <h3>Teksten &amp; toegang</h3>
+        <p>Pas de welkomsttekst aan. Standaard wordt de tekst van het gekozen type ingevuld. Wachtwoord is optioneel.</p>
+        <div class="cfield">
+          <label for="cTitle">Paginatitel</label>
+          <input type="text" id="cTitle" placeholder="bijv. Deel jouw foto's" />
+        </div>
+        <div class="cfield">
+          <label for="cSubtitle">Ondertitel</label>
+          <input type="text" id="cSubtitle" placeholder="bijv. Help ons deze dag onvergetelijk te maken" />
+        </div>
+        <div class="toggle-row" style="margin-top:1.25rem">
+          <label class="toggle">
+            <input type="checkbox" id="cPwToggle" onchange="toggleCpw()" />
+            <span class="toggle-track"></span>
+          </label>
+          <span class="toggle-label" onclick="document.getElementById('cPwToggle').click()">Wachtwoord vereist voor gasten</span>
+        </div>
+        <div class="cpw-field" id="cPwField">
+          <div class="cfield">
+            <label for="cPwValue">Wachtwoord</label>
+            <input type="text" id="cPwValue" placeholder="bijv. feest2025" />
+          </div>
+        </div>
+        <div class="cmodal-err" id="cPwErr">Vul een wachtwoord in of zet de schakelaar uit.</div>
+      </div>
+
+    </div><!-- /cmodal-body -->
+
+    <!-- Footer with navigation -->
+    <div class="cmodal-foot">
+      <span class="step-hint" id="cStepHint">Stap 1 van 3</span>
+      <div class="btns">
+        <button class="btn btn-outline" id="cBtnBack" onclick="gotoStep(_cStep-1)" style="display:none">← Terug</button>
+        <button class="btn btn-outline" onclick="closeCreateModal()">Annuleren</button>
+        <button class="btn btn-primary" id="cBtnNext" onclick="gotoStep(_cStep+1)">Volgende →</button>
+        <button class="btn btn-primary" id="cBtnCreate" onclick="doCreateEvent()" style="display:none">✓ Aanmaken</button>
+      </div>
+    </div>
+
+  </div><!-- /cmodal-box -->
+</div><!-- /createModal -->
 
 <!-- Lightbox -->
 <div id="lightbox" onclick="closeLightbox()">
@@ -555,549 +770,861 @@
   <img id="lightboxImg" src="" alt="" />
 </div>
 
-<!-- Create event modal -->
-<div class="modal-overlay" id="createModal" style="display:none" onclick="if(event.target===this)closeCreateModal()">
-  <div class="modal-box">
-    <h3>Nieuw evenement aanmaken</h3>
-    <input type="text" id="newEventName" placeholder="bijv. Bruiloft Jan & Marie"
-           onkeydown="if(event.key==='Enter')createEvent()" />
-    <div class="modal-actions">
-      <button class="btn btn-primary" onclick="createEvent()">Aanmaken</button>
-      <button class="btn btn-outline" onclick="closeCreateModal()">Annuleren</button>
-    </div>
-    <div class="modal-error" id="createModalError"></div>
-  </div>
-</div>
-
 <script>
-  // ── Event type definitions ──
-  const EVENT_TYPES = {
-    wedding:     { name:'Bruiloft',      icon:'💍', accent:'#c9806b', deep:'#5c3d2e', bg:'#fff8f0', light:'#faeae4', border:'#e8c4b0', text:'#3a2a20', muted:'#a08070', sidebar:'#2a1508', mint:'#e8c4b0', defaultTitle:"Deel jouw bruiloftsfoto's",    defaultSubtitle:'Help ons deze dag onvergetelijk te maken' },
-    birthday:    { name:'Verjaardag',    icon:'🎂', accent:'#e0407a', deep:'#8b1048', bg:'#fff0f7', light:'#fddaec', border:'#f4a8cc', text:'#3a0820', muted:'#c060a0', sidebar:'#520030', mint:'#f4a8cc', defaultTitle:"Deel jouw verjaardagsfoto's", defaultSubtitle:'Vier mee en deel de mooiste momenten!' },
-    babyshower:  { name:'Baby Shower',   icon:'👶', accent:'#5ba3d0', deep:'#1e5f88', bg:'#f0f8ff', light:'#d4eaf8', border:'#9acce8', text:'#103050', muted:'#5888a8', sidebar:'#0a2a40', mint:'#9acce8', defaultTitle:"Deel jouw foto's",             defaultSubtitle:'Welkom het nieuwe leven met ons!' },
-    anniversary: { name:'Jubileum',      icon:'🥂', accent:'#b09030', deep:'#6a5010', bg:'#fdf8ee', light:'#f5e8b8', border:'#d8c078', text:'#302008', muted:'#907830', sidebar:'#302008', mint:'#d8c078', defaultTitle:"Deel jouw jubileumfoto's",    defaultSubtitle:'Samen vieren we dit bijzondere moment' },
-    graduation:  { name:'Afstuderen',   icon:'🎓', accent:'#2c4a8a', deep:'#1a2d5a', bg:'#f0f4fa', light:'#dde6f5', border:'#9ab0d8', text:'#1a2040', muted:'#6070a0', sidebar:'#0e1c38', mint:'#9ab0d8', defaultTitle:"Deel jouw afstudeerfoto's",   defaultSubtitle:'Gefeliciteerd met dit geweldige moment!' },
-    christmas:   { name:'Kerst',         icon:'🎄', accent:'#c0392b', deep:'#7a1510', bg:'#fff8f8', light:'#fde0d8', border:'#e8a090', text:'#381008', muted:'#a05048', sidebar:'#3d0808', mint:'#6ab860', defaultTitle:"Deel jouw kerstfoto's",        defaultSubtitle:'Maak deze feestdagen onvergetelijk' },
-    corporate:   { name:'Bedrijfsfeest', icon:'🏢', accent:'#1a7ab0', deep:'#0d4a70', bg:'#f0f7ff', light:'#d4e8f8', border:'#80bce0', text:'#0a2840', muted:'#4880a8', sidebar:'#082030', mint:'#80bce0', defaultTitle:"Deel jouw foto's",             defaultSubtitle:'Deel de hoogtepunten van dit feest' },
-    nieuwjaar:   { name:'Nieuwjaar',     icon:'🎆', accent:'#c8a020', deep:'#1a0a40', bg:'#f8f4ff', light:'#e8d8f8', border:'#c0a0e0', text:'#1a0a30', muted:'#8060b0', sidebar:'#0a0520', mint:'#c8a020', defaultTitle:"Deel jouw nieuwjaarsfoto's",   defaultSubtitle:'Op een geweldig nieuw jaar samen!' },
+// ═══════════════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════════════
+var _pw         = '';
+var _eid        = null;
+var _eSlug      = '';
+var _photos     = [];
+var _bannerFile = null;
+var _selType    = '';
+var _selTheme   = '';
+
+// Creation modal state
+var _cStep  = 1;
+var _cType  = '';
+var _cTheme = '';
+
+// ═══════════════════════════════════════════════════════════════
+//  STATIC DATA
+// ═══════════════════════════════════════════════════════════════
+var EVENT_TYPES = {
+  wedding:     { name:'Bruiloft',      icon:'💍', accent:'#c9806b', deep:'#5c3d2e', bg:'#fff8f0', light:'#faeae4', border:'#e8c4b0', text:'#3a2a20', muted:'#a08070', sidebar:'#2a1508', mint:'#e8c4b0', defaultTitle:"Deel jouw bruiloftsfoto's",    defaultSubtitle:'Help ons deze dag onvergetelijk te maken' },
+  birthday:    { name:'Verjaardag',    icon:'🎂', accent:'#e0407a', deep:'#8b1048', bg:'#fff0f7', light:'#fddaec', border:'#f4a8cc', text:'#3a0820', muted:'#c060a0', sidebar:'#520030', mint:'#f4a8cc', defaultTitle:"Deel jouw verjaardagsfoto's", defaultSubtitle:'Vier mee en deel de mooiste momenten!' },
+  babyshower:  { name:'Baby Shower',   icon:'👶', accent:'#5ba3d0', deep:'#1e5f88', bg:'#f0f8ff', light:'#d4eaf8', border:'#9acce8', text:'#103050', muted:'#5888a8', sidebar:'#0a2a40', mint:'#9acce8', defaultTitle:"Deel jouw foto's",             defaultSubtitle:'Welkom het nieuwe leven met ons!' },
+  anniversary: { name:'Jubileum',      icon:'🥂', accent:'#b09030', deep:'#6a5010', bg:'#fdf8ee', light:'#f5e8b8', border:'#d8c078', text:'#302008', muted:'#907830', sidebar:'#302008', mint:'#d8c078', defaultTitle:"Deel jouw jubileumfoto's",    defaultSubtitle:'Samen vieren we dit bijzondere moment' },
+  graduation:  { name:'Afstuderen',   icon:'🎓', accent:'#2c4a8a', deep:'#1a2d5a', bg:'#f0f4fa', light:'#dde6f5', border:'#9ab0d8', text:'#1a2040', muted:'#6070a0', sidebar:'#0e1c38', mint:'#9ab0d8', defaultTitle:"Deel jouw afstudeerfoto's",   defaultSubtitle:'Gefeliciteerd met dit geweldige moment!' },
+  christmas:   { name:'Kerst',         icon:'🎄', accent:'#c0392b', deep:'#7a1510', bg:'#fff8f8', light:'#fde0d8', border:'#e8a090', text:'#381008', muted:'#a05048', sidebar:'#3d0808', mint:'#6ab860', defaultTitle:"Deel jouw kerstfoto's",        defaultSubtitle:'Maak deze feestdagen onvergetelijk' },
+  corporate:   { name:'Bedrijfsfeest', icon:'🏢', accent:'#1a7ab0', deep:'#0d4a70', bg:'#f0f7ff', light:'#d4e8f8', border:'#80bce0', text:'#0a2840', muted:'#4880a8', sidebar:'#082030', mint:'#80bce0', defaultTitle:"Deel jouw foto's",             defaultSubtitle:'Deel de hoogtepunten van dit feest' },
+  nieuwjaar:   { name:'Nieuwjaar',     icon:'🎆', accent:'#c8a020', deep:'#1a0a40', bg:'#f8f4ff', light:'#e8d8f8', border:'#c0a0e0', text:'#1a0a30', muted:'#8060b0', sidebar:'#0a0520', mint:'#c8a020', defaultTitle:"Deel jouw nieuwjaarsfoto's",   defaultSubtitle:'Op een geweldig nieuw jaar samen!' }
+};
+
+var THEMES = {
+  green:    { name:'Groen',    accent:'#3a7d44', deep:'#1e4d28', bg:'#f4faf5', light:'#e8f5ea', border:'#b2ddb8', text:'#1a3320', muted:'#6a9070', sidebar:'#0f1f13', mint:'#b2ddb8' },
+  rose:     { name:'Roos',     accent:'#c9806b', deep:'#5c3d2e', bg:'#fff8f0', light:'#f2d7d0', border:'#f2d7d0', text:'#3a2a20', muted:'#a08070', sidebar:'#281808', mint:'#e8c4b0' },
+  navy:     { name:'Marine',   accent:'#2c4a8a', deep:'#1a2d5a', bg:'#f0f4fa', light:'#dde6f5', border:'#9ab0d8', text:'#1a2040', muted:'#6070a0', sidebar:'#0e1c38', mint:'#9ab0d8' },
+  lavender: { name:'Lavendel', accent:'#8050a8', deep:'#4a2870', bg:'#faf0ff', light:'#ecddf5', border:'#c8a8e0', text:'#301848', muted:'#8068a0', sidebar:'#1e0e30', mint:'#c8a8e0' },
+  sage:     { name:'Salie',    accent:'#7a6040', deep:'#4a3820', bg:'#faf6f0', light:'#ede8d8', border:'#c0b090', text:'#302818', muted:'#907858', sidebar:'#221808', mint:'#c0b090' },
+  midnight: { name:'Midnight', accent:'#b09030', deep:'#1a1a10', bg:'#f8f8f6', light:'#eeeee8', border:'#c8b870', text:'#201c08', muted:'#807040', sidebar:'#0c0c08', mint:'#c8b870' }
+};
+var THEME_KEYS = Object.keys(THEMES);
+var DEFAULT_THEME = THEMES.green;
+
+// ═══════════════════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════════════════
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function flash(id) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  el.style.display = 'block';
+  setTimeout(function() { el.style.display = 'none'; }, 3000);
+}
+
+function showStatus(id, msg, type) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg;
+  el.className = 'create-status ' + (type || 'ok');
+  el.style.display = 'block';
+  if (type === 'ok') setTimeout(function() { el.style.display = 'none'; }, 4500);
+}
+
+function xhr(method, path, body, onOk, onErr) {
+  var req = new XMLHttpRequest();
+  var sep = path.indexOf('?') >= 0 ? '&' : '?';
+  req.open(method, path + sep + 'password=' + encodeURIComponent(_pw));
+  if (body) req.setRequestHeader('Content-Type', 'application/json');
+  req.onreadystatechange = function() {
+    if (req.readyState !== 4) return;
+    var d;
+    try { d = JSON.parse(req.responseText); } catch(e) { d = { error: req.responseText || ('HTTP ' + req.status) }; }
+    if (req.status >= 200 && req.status < 300) {
+      if (onOk) onOk(d);
+    } else {
+      var msg = (d && d.error) ? d.error : ('Fout ' + req.status);
+      if (onErr) onErr(msg); else alert('Fout: ' + msg);
+    }
   };
-
-  const THEMES = {
-    green:    { name:'Groen & Wit',     icon:'🌿', accent:'#3a7d44', deep:'#1e4d28', bg:'#f4faf5', light:'#e8f5ea', border:'#b2ddb8', text:'#1a3320', muted:'#6a9070', sidebar:'#163620', mint:'#b2ddb8' },
-    rose:     { name:'Roos & Goud',     icon:'🌹', accent:'#c9806b', deep:'#5c3d2e', bg:'#fff8f0', light:'#f2d7d0', border:'#f2d7d0', text:'#3a2a20', muted:'#a08070', sidebar:'#281808', mint:'#e8c4b0' },
-    navy:     { name:'Marine & Goud',   icon:'⚓',  accent:'#2c4a8a', deep:'#1a2d5a', bg:'#f0f4fa', light:'#dde6f5', border:'#9ab0d8', text:'#1a2040', muted:'#6070a0', sidebar:'#0e1c38', mint:'#9ab0d8' },
-    lavender: { name:'Lavendel',         icon:'💜', accent:'#8050a8', deep:'#4a2870', bg:'#faf0ff', light:'#ecddf5', border:'#c8a8e0', text:'#301848', muted:'#8068a0', sidebar:'#1e0e30', mint:'#c8a8e0' },
-    sage:     { name:'Salie & Crème',   icon:'🌾', accent:'#7a6040', deep:'#4a3820', bg:'#faf6f0', light:'#ede8d8', border:'#c0b090', text:'#302818', muted:'#907858', sidebar:'#221808', mint:'#c0b090' },
-    midnight: { name:'Midnight & Goud', icon:'✨', accent:'#b09030', deep:'#1a1a10', bg:'#f8f8f6', light:'#eeeee8', border:'#c8b870', text:'#201c08', muted:'#807040', sidebar:'#0c0c08', mint:'#c8b870' },
+  req.onerror = function() {
+    var msg = 'Verbindingsfout. Controleer of de server actief is.';
+    if (onErr) onErr(msg); else alert(msg);
   };
+  req.send(body ? JSON.stringify(body) : null);
+}
 
-  let password          = '';
-  let allData           = [];
-  let selectedTheme     = 'green';
-  let selectedEventType = '';
-  let currentEventId    = null;
-  let pendingBannerFile = null;
+function applyTheme(t) {
+  if (typeof t === 'string') t = THEMES[t] || EVENT_TYPES[t] || DEFAULT_THEME;
+  var r = document.documentElement;
+  r.style.setProperty('--bg',         t.bg      || DEFAULT_THEME.bg);
+  r.style.setProperty('--light',      t.light   || DEFAULT_THEME.light);
+  r.style.setProperty('--border',     t.border  || DEFAULT_THEME.border);
+  r.style.setProperty('--accent',     t.accent  || DEFAULT_THEME.accent);
+  r.style.setProperty('--deep',       t.deep    || DEFAULT_THEME.deep);
+  r.style.setProperty('--text',       t.text    || DEFAULT_THEME.text);
+  r.style.setProperty('--muted',      t.muted   || DEFAULT_THEME.muted);
+  r.style.setProperty('--sidebar-bg', t.sidebar || DEFAULT_THEME.sidebar);
+  r.style.setProperty('--mint',       t.mint    || t.border || DEFAULT_THEME.mint);
+  var icon = document.getElementById('sbIcon');
+  if (icon) icon.textContent = t.icon || '🌿';
+}
 
-  // ── Theme application ──
-  function applyTheme(nameOrObj) {
-    const t = (typeof nameOrObj === 'string') ? (THEMES[nameOrObj] || EVENT_TYPES[nameOrObj] || THEMES.green) : nameOrObj;
-    const r = document.documentElement;
-    r.style.setProperty('--bg',      t.bg);
-    r.style.setProperty('--light',   t.light);
-    r.style.setProperty('--border',  t.border);
-    r.style.setProperty('--accent',  t.accent);
-    r.style.setProperty('--deep',    t.deep);
-    r.style.setProperty('--text',    t.text);
-    r.style.setProperty('--muted',   t.muted);
-    r.style.setProperty('--sidebar', t.sidebar || '#163620');
-    r.style.setProperty('--mint',    t.mint    || t.border);
-    const si = document.getElementById('sidebarIcon');
-    const li = document.getElementById('loginIcon');
-    if (si) si.textContent = t.icon;
-    if (li) li.textContent = t.icon;
+function eventUrl(slug) {
+  return window.location.origin + '/e/' + slug;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  LOGIN
+// ═══════════════════════════════════════════════════════════════
+window.doLogin = function() {
+  var pw  = document.getElementById('loginPw').value;
+  var err = document.getElementById('loginErr');
+  err.style.display = 'none';
+  xhr('POST', '/api/auth', { password: pw },
+    function(d) {
+      if (!d.success) { err.style.display = 'block'; return; }
+      _pw = pw;
+      document.getElementById('loginOverlay').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      buildEventGrid();
+      loadEventsList();
+    },
+    function() { err.style.display = 'block'; }
+  );
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════════════════════════
+window.showSection = function(name) {
+  document.querySelectorAll('.section').forEach(function(s) { s.classList.remove('active'); });
+  document.querySelectorAll('.nav-item.event-nav').forEach(function(n) { n.classList.remove('active'); });
+  var sec = document.getElementById('section-' + name);
+  var nav = document.getElementById('nav-' + name);
+  if (sec) sec.classList.add('active');
+  if (nav) nav.classList.add('active');
+  if (name === 'qr' && !document.getElementById('urlInput').value) {
+    document.getElementById('urlInput').value = window.location.origin;
   }
+};
 
-  // Pre-apply default theme on login screen
-  (async () => {
-    try {
-      // Use first event's settings if available
-      const r = await fetch('/api/events?password=__noop__');
-      // Just apply default green; real theme loads after login
-    } catch {}
-  })();
+window.backToEvents = function() {
+  _eid = null; _eSlug = ''; _selType = ''; _selTheme = '';
+  document.getElementById('app').classList.remove('event-active');
+  document.querySelectorAll('.section').forEach(function(s) { s.classList.remove('active'); });
+  document.getElementById('section-events').classList.add('active');
+  document.querySelectorAll('.nav-item.event-nav').forEach(function(n) { n.classList.remove('active'); });
+  document.getElementById('nav-home').classList.add('active');
+  applyTheme(DEFAULT_THEME);
+  loadEventsList(); // refresh tiles so updated theme/event colors are visible
+};
 
-  // ── Login ──
-  function doLogin() {
-    const pw = document.getElementById('passwordInput').value;
-    fetch('/api/auth', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({password:pw}) })
-      .then(r => r.json()).then(d => {
-        if (d.success) {
-          password = pw;
-          document.getElementById('loginOverlay').style.display = 'none';
-          document.getElementById('app').style.display = 'flex';
-          document.getElementById('urlInput').value = window.location.origin;
-          buildEventGrid();
-          buildThemeGrid();
-          loadEventsList();
-        } else {
-          document.getElementById('loginError').style.display = 'block';
-        }
-      }).catch(() => document.getElementById('loginError').style.display = 'block');
-  }
-
-  // ── Navigation ──
-  function showSection(name) {
-    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-    document.querySelectorAll('.nav-item.event-nav').forEach(n => n.classList.remove('active'));
-    document.getElementById('section-' + name).classList.add('active');
-    const navEl = document.getElementById('nav-' + name);
-    if (navEl) navEl.classList.add('active');
-  }
-
-  // ── Events list ──
-  async function loadEventsList(highlightId) {
-    try {
-      const r = await fetch(`/api/events?password=${encodeURIComponent(password)}`);
-      if (!r.ok) throw new Error('Kon evenementen niet laden.');
-      const events = await r.json();
+// ═══════════════════════════════════════════════════════════════
+//  EVENTS LIST
+// ═══════════════════════════════════════════════════════════════
+function loadEventsList(highlightId) {
+  var grid = document.getElementById('eventsList');
+  xhr('GET', '/api/events', null,
+    function(events) {
+      if (!Array.isArray(events)) { grid.innerHTML = '<div class="empty">Geen evenementen gevonden.</div>'; return; }
       renderEventsList(events, highlightId);
-    } catch(e) {
-      document.getElementById('eventsList').innerHTML = `<p style="color:#c0392b;padding:1rem">${e.message}</p>`;
+    },
+    function(err) {
+      grid.innerHTML = '<div class="empty" style="color:#b91c1c">Fout bij laden: ' + esc(err) + '</div>';
     }
+  );
+}
+
+function renderEventsList(events, highlightId) {
+  var grid = document.getElementById('eventsList');
+  if (!events.length) {
+    grid.innerHTML = '<div class="empty"><span class="empty-icon">🗓</span>Nog geen evenementen. Maak er een aan hierboven!</div>';
+    return;
   }
+  var html = '';
+  for (var i = 0; i < events.length; i++) {
+    var e   = events[i];
+    var et  = EVENT_TYPES[e.eventType] || null;
+    var th  = (e.theme && THEMES[e.theme]) ? THEMES[e.theme] : null;
+    var pal = th || et || DEFAULT_THEME;
+    var icon = et ? et.icon : '🌿';
+    var grad = 'linear-gradient(135deg,' + pal.deep + ',' + pal.accent + ')';
+    var date = new Date(e.createdAt).toLocaleDateString('nl-NL', { day:'numeric', month:'long', year:'numeric' });
+    var isNew = e.id === highlightId;
+    var url  = eventUrl(e.slug || e.id);
+    html += '<div class="event-tile' + (isNew ? ' tile-new' : '') + '" id="elc-' + e.id + '">';
+    html += '  <div class="tile-hero" style="background:' + grad + '" onclick="openEvent(\'' + e.id + '\')">';
+    html += '    ' + icon;
+    if (isNew) html += '    <span class="tile-badge">NIEUW</span>';
+    html += '  </div>';
+    html += '  <div class="tile-body">';
+    html += '    <h3 onclick="openEvent(\'' + e.id + '\')">' + esc(e.name) + '</h3>';
+    var gStr = e.totalUploaders + ' gast' + (e.totalUploaders !== 1 ? 'en' : '');
+    var pStr = e.totalPhotos + ' foto' + (e.totalPhotos !== 1 ? "'s" : '');
+    html += '    <div class="tile-meta">Aangemaakt ' + date + '<br>' + gStr + ' · ' + pStr + '</div>';
+    html += '    <div class="tile-url">';
+    html += '      <span class="tile-url-text" title="' + esc(url) + '">' + esc(url) + '</span>';
+    html += '      <button class="btn-copy" onclick="copyUrl(\'' + esc(url) + '\')">Kopieer</button>';
+    html += '    </div>';
+    html += '  </div>';
+    html += '  <div class="tile-actions">';
+    html += '    <button class="btn btn-primary" onclick="openEvent(\'' + e.id + '\')">Beheer →</button>';
+    html += '    <a class="btn btn-outline" href="' + esc(url) + '" target="_blank">Gastpagina</a>';
+    html += '    <button class="btn btn-danger" onclick="doDeleteEvent(\'' + e.id + '\',\'' + esc(e.name) + '\')">✕</button>';
+    html += '  </div>';
+    html += '</div>';
+  }
+  grid.innerHTML = html;
+  if (highlightId) {
+    var el = document.getElementById('elc-' + highlightId);
+    if (el) setTimeout(function() { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
+  }
+}
 
-  function renderEventsList(events, highlightId) {
-    const grid  = document.getElementById('eventsList');
-    const cards = events.map(e => {
-      const et   = EVENT_TYPES[e.eventType] || null;
-      const th   = THEMES[e.theme] || THEMES.green;
-      const icon = et ? et.icon : th.icon;
-      const grad = et
-        ? `linear-gradient(135deg,${et.deep},${et.accent})`
-        : `linear-gradient(135deg,${th.deep},${th.accent})`;
-      const date  = new Date(e.createdAt).toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'});
-      const isNew = e.id === highlightId;
-      return `
-        <div class="elc${isNew?' elc-new':''}" id="elc-${e.id}" onclick="openEvent('${e.id}')">
-          <div class="elc-header" style="background:${grad}">
-            ${icon}
-            ${isNew ? '<span class="elc-badge">Nieuw!</span>' : ''}
-          </div>
-          <div class="elc-body">
-            <h3>${esc(e.name)}</h3>
-            <div class="elc-meta">
-              Aangemaakt ${date}<br>
-              ${e.totalUploaders} gast${e.totalUploaders!==1?'en':''} &bull; ${e.totalPhotos} foto${e.totalPhotos!==1?"'s":''}
-            </div>
-          </div>
-          <div class="elc-footer">
-            <button class="btn btn-primary" onclick="event.stopPropagation();openEvent('${e.id}')">Open →</button>
-            <button class="btn btn-danger"  onclick="event.stopPropagation();deleteEvent('${e.id}','${esc(e.name)}')">Verwijder</button>
-          </div>
-        </div>`;
-    }).join('');
+window.copyUrl = function(url) {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(function() { alert('Link gekopieerd!\n\n' + url); });
+  } else {
+    window.prompt('Kopieer deze link:', url);
+  }
+};
 
-    const newCard = `
-      <div class="new-event-card" onclick="showCreateModal()">
-        <div class="plus">＋</div>
-        <p>Nieuw evenement aanmaken</p>
-      </div>`;
+// ═══════════════════════════════════════════════════════════════
+//  CREATE EVENT MODAL
+// ═══════════════════════════════════════════════════════════════
+window.openCreateModal = function() {
+  _cStep = 1; _cType = ''; _cTheme = '';
+  document.getElementById('cName').value      = '';
+  document.getElementById('cTitle').value     = '';
+  document.getElementById('cSubtitle').value  = '';
+  document.getElementById('cPwToggle').checked = false;
+  document.getElementById('cPwField').classList.remove('visible');
+  document.getElementById('cPwValue').value   = '';
+  ['cNameErr','cTypeErr','cPwErr'].forEach(function(id) { document.getElementById(id).style.display = 'none'; });
+  buildCreateGrid();
+  renderCStep(1);
+  document.getElementById('createModal').classList.add('open');
+  setTimeout(function() { document.getElementById('cName').focus(); }, 120);
+};
 
-    grid.innerHTML = cards + newCard;
+window.closeCreateModal = function() {
+  document.getElementById('createModal').classList.remove('open');
+};
 
-    // Scroll new card into view
-    if (highlightId) {
-      const el = document.getElementById('elc-' + highlightId);
-      if (el) { el.scrollIntoView({ behavior:'smooth', block:'center' }); }
+window.toggleCpw = function() {
+  var on = document.getElementById('cPwToggle').checked;
+  document.getElementById('cPwField').classList.toggle('visible', on);
+};
+
+function renderCStep(n) {
+  _cStep = n;
+  // Steps
+  for (var i = 1; i <= 3; i++) {
+    var step = document.getElementById('cstep-' + i);
+    if (step) step.classList.toggle('active', i === n);
+  }
+  // Dots
+  for (var j = 1; j <= 3; j++) {
+    var dot   = document.getElementById('sdot-' + j);
+    var label = document.getElementById('slabel-' + j);
+    if (dot)   { dot.className   = 'sdot' + (j < n ? ' done' : j === n ? ' active' : ''); }
+    if (label) { label.className = 'step-label' + (j === n ? ' active' : ''); }
+  }
+  // Lines
+  for (var k = 1; k <= 2; k++) {
+    var line = document.getElementById('sline-' + k);
+    if (line) line.className = 'sline' + (k < n ? ' done' : '');
+  }
+  // Hint
+  document.getElementById('cStepHint').textContent = 'Stap ' + n + ' van 3';
+  // Buttons
+  document.getElementById('cBtnBack').style.display   = n > 1 ? '' : 'none';
+  document.getElementById('cBtnNext').style.display   = n < 3 ? '' : 'none';
+  document.getElementById('cBtnCreate').style.display = n === 3 ? '' : 'none';
+}
+
+window.gotoStep = function(n) {
+  if (n < 1 || n > 3) return;
+  // Validate forward movement
+  if (n > _cStep) {
+    if (_cStep === 1) {
+      var name = document.getElementById('cName').value.trim();
+      if (!name) {
+        document.getElementById('cNameErr').style.display = 'block';
+        document.getElementById('cName').focus();
+        return;
+      }
+      document.getElementById('cNameErr').style.display = 'none';
     }
-  }
-
-  async function openEvent(id) {
-    currentEventId = id;
-    document.getElementById('app').classList.add('event-active');
-    document.querySelector('.nav-home').classList.remove('active');
-    // Reset banner & password UI for the new event
-    pendingBannerFile = null;
-    document.getElementById('bannerPreview').style.display = 'none';
-    document.getElementById('qrOutput').style.display = 'none';
-    try {
-      await Promise.all([refreshAll(), loadCurrentSettings()]);
-    } catch(e) {
-      console.error('openEvent error:', e);
+    if (_cStep === 2 && n === 3 && !_cType) {
+      document.getElementById('cTypeErr').style.display = 'block';
+      return;
     }
-    showSection('overview');
+    document.getElementById('cTypeErr').style.display = 'none';
   }
+  renderCStep(n);
+};
 
-  function backToEvents() {
-    currentEventId = null;
-    document.getElementById('app').classList.remove('event-active');
-    document.querySelectorAll('.nav-item.event-nav').forEach(n => n.classList.remove('active'));
-    document.querySelector('.nav-home').classList.add('active');
-    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-    document.getElementById('section-events').classList.add('active');
-    loadEventsList(); // refresh list (stats may have changed)
-    // Reset QR
-    document.getElementById('qrOutput').style.display = 'none';
-  }
-
-  // ── Create event modal ──
-  function showCreateModal() {
-    document.getElementById('newEventName').value = '';
-    document.getElementById('createModalError').style.display = 'none';
-    document.getElementById('createModal').style.display = 'flex';
-    setTimeout(() => document.getElementById('newEventName').focus(), 50);
-  }
-  function closeCreateModal() {
-    document.getElementById('createModal').style.display = 'none';
-  }
-  async function createEvent() {
-    const name   = document.getElementById('newEventName').value.trim();
-    const errEl  = document.getElementById('createModalError');
-    const btnEl  = document.querySelector('#createModal .btn-primary');
-    if (!name) { errEl.textContent = 'Vul een naam in.'; errEl.style.display = 'block'; return; }
-    errEl.style.display = 'none';
-    if (btnEl) { btnEl.disabled = true; btnEl.textContent = 'Aanmaken…'; }
-    try {
-      const r = await fetch(`/api/events?password=${encodeURIComponent(password)}`, {
-        method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ name })
-      });
-      const d = await r.json();
-      if (!r.ok || !d.id) throw new Error(d.error || 'Aanmaken mislukt.');
-      closeCreateModal();
-      // Refresh the list and highlight the new event
-      await loadEventsList(d.id);
-    } catch(e) {
-      errEl.textContent = e.message; errEl.style.display = 'block';
-    } finally {
-      if (btnEl) { btnEl.disabled = false; btnEl.textContent = 'Aanmaken'; }
+// Build the event-type grid inside the creation modal
+function buildCreateGrid() {
+  var grid = document.getElementById('cEventGrid');
+  if (!grid) return;
+  var html = '';
+  var eKeys = Object.keys(EVENT_TYPES);
+  for (var i = 0; i < eKeys.length; i++) {
+    var eKey = eKeys[i];
+    var e    = EVENT_TYPES[eKey];
+    var dots = '';
+    for (var j = 0; j < THEME_KEYS.length; j++) {
+      var tKey = THEME_KEYS[j];
+      var t    = THEMES[tKey];
+      dots += '<div class="cdot" id="ccdot-' + eKey + '-' + tKey + '"'
+        + ' style="background:linear-gradient(135deg,' + t.deep + ',' + t.accent + ')"'
+        + ' title="' + t.name + '"'
+        + ' onclick="event.stopPropagation();selectCreate(\'' + eKey + '\',\'' + tKey + '\')"></div>';
     }
+    html += '<div class="ecard" id="cecard-' + eKey + '" onclick="selectCreate(\'' + eKey + '\',\'\')">'
+      + '<div class="ecard-top" id="cetop-' + eKey + '" style="background:linear-gradient(135deg,' + e.deep + ',' + e.accent + ')">'
+      + '  <span>' + e.icon + '</span><span class="ecard-check">✓</span>'
+      + '</div>'
+      + '<div class="ecard-label" id="celabel-' + eKey + '" style="background:' + e.bg + ';color:' + e.deep + '">' + e.name + '</div>'
+      + '<div class="ecard-dots">' + dots + '</div>'
+      + '</div>';
   }
+  grid.innerHTML = html;
+}
 
-  async function deleteEvent(id, name) {
-    if (!confirm(`Evenement "${name}" en alle bijbehorende foto's verwijderen?`)) return;
-    const r = await fetch(`/api/events/${id}?password=${encodeURIComponent(password)}`, { method: 'DELETE' });
-    if (r.ok) await loadEventsList();
-    else alert('Verwijderen mislukt.');
+window.selectCreate = function(eKey, tKey) {
+  _cType  = eKey;
+  _cTheme = tKey;
+  markCreateSel(eKey, tKey);
+  document.getElementById('cTypeErr').style.display = 'none';
+  // Pre-fill title/subtitle from event type if still empty
+  var e = EVENT_TYPES[eKey];
+  var tEl = document.getElementById('cTitle');
+  var sEl = document.getElementById('cSubtitle');
+  if (tEl && !tEl.value) tEl.value = e.defaultTitle;
+  if (sEl && !sEl.value) sEl.value = e.defaultSubtitle;
+};
+
+function markCreateSel(eKey, tKey) {
+  document.querySelectorAll('#cEventGrid .ecard').forEach(function(c) { c.classList.remove('selected'); });
+  document.querySelectorAll('#cEventGrid .cdot').forEach(function(d) { d.classList.remove('cdot-sel'); });
+  var card = document.getElementById('cecard-' + eKey);
+  if (!card) return;
+  card.classList.add('selected');
+  var e   = EVENT_TYPES[eKey];
+  var t   = (tKey && THEMES[tKey]) ? THEMES[tKey] : e;
+  var top = document.getElementById('cetop-' + eKey);
+  var lbl = document.getElementById('celabel-' + eKey);
+  if (top) top.style.background = 'linear-gradient(135deg,' + t.deep + ',' + t.accent + ')';
+  if (lbl) { lbl.style.background = t.bg; lbl.style.color = t.deep; }
+  if (tKey) {
+    var dot = document.getElementById('ccdot-' + eKey + '-' + tKey);
+    if (dot) dot.classList.add('cdot-sel');
   }
+}
 
-  // ── Data ──
-  async function refreshAll() {
-    if (!currentEventId) return;
-    document.getElementById('currentEventName').textContent = '…';
-    await Promise.all([loadStats(), loadData()]);
+window.doCreateEvent = function() {
+  // Final validation
+  var name = document.getElementById('cName').value.trim();
+  if (!name) { gotoStep(1); return; }
+  if (!_cType) { gotoStep(2); return; }
+  var pwEnabled = document.getElementById('cPwToggle').checked;
+  var pwVal     = document.getElementById('cPwValue').value.trim();
+  if (pwEnabled && !pwVal) {
+    document.getElementById('cPwErr').style.display = 'block';
+    document.getElementById('cPwValue').focus();
+    return;
   }
+  document.getElementById('cPwErr').style.display = 'none';
 
-  async function loadStats() {
-    const r = await fetch(`/api/events/${currentEventId}/stats?password=${encodeURIComponent(password)}`);
-    const d = await r.json();
+  var btnCreate = document.getElementById('cBtnCreate');
+  btnCreate.disabled = true;
+  btnCreate.textContent = 'Aanmaken…';
+
+  xhr('POST', '/api/events', { name: name },
+    function(d) {
+      // Now save all the settings in one call
+      var settings = {
+        eventType:       _cType,
+        theme:           _cTheme,
+        welcomeTitle:    document.getElementById('cTitle').value.trim(),
+        welcomeSubtitle: document.getElementById('cSubtitle').value.trim(),
+        guestPassword:   pwEnabled ? pwVal : ''
+      };
+      xhr('POST', '/api/events/' + d.id + '/settings', settings,
+        function() {
+          closeCreateModal();
+          loadEventsList(d.id);
+          btnCreate.disabled = false;
+          btnCreate.textContent = '✓ Aanmaken';
+        },
+        function(err) {
+          // Event was created but settings failed — still open it, show error
+          closeCreateModal();
+          loadEventsList(d.id);
+          alert('Evenement aangemaakt maar instellingen opslaan mislukt: ' + err);
+          btnCreate.disabled = false;
+          btnCreate.textContent = '✓ Aanmaken';
+        }
+      );
+    },
+    function(err) {
+      alert('Aanmaken mislukt: ' + err);
+      btnCreate.disabled = false;
+      btnCreate.textContent = '✓ Aanmaken';
+    }
+  );
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  DELETE EVENT
+// ═══════════════════════════════════════════════════════════════
+window.doDeleteEvent = function(id, name) {
+  if (!confirm('Evenement "' + name + '" en alle foto\'s verwijderen?')) return;
+  xhr('DELETE', '/api/events/' + id, null,
+    function() { loadEventsList(); },
+    function(err) { alert('Verwijderen mislukt: ' + err); }
+  );
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  OPEN EVENT
+// ═══════════════════════════════════════════════════════════════
+window.openEvent = function(id) {
+  _eid = id;
+  _bannerFile = null;
+  document.getElementById('app').classList.add('event-active');
+  document.getElementById('nav-home').classList.remove('active');
+  document.getElementById('bannerPreview').style.display = 'none';
+  document.getElementById('qrOutput').style.display = 'none';
+  document.getElementById('urlInput').value = window.location.origin;
+  loadStats();
+  loadPhotos();
+  loadSettings();
+  showSection('overview');
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  DATA LOADING
+// ═══════════════════════════════════════════════════════════════
+window.refreshAll = function() {
+  if (!_eid) return;
+  loadStats();
+  loadPhotos();
+};
+
+function loadStats() {
+  xhr('GET', '/api/events/' + _eid + '/stats', null, function(d) {
     document.getElementById('stat-uploaders').textContent = d.totalUploaders;
     document.getElementById('stat-photos').textContent    = d.totalPhotos;
     document.getElementById('stat-size').textContent      = d.totalSizeMB + ' MB';
-  }
+  });
+}
 
-  async function loadData() {
-    const r = await fetch(`/api/events/${currentEventId}/photos?password=${encodeURIComponent(password)}`);
-    allData = await r.json();
-    renderUploaders(); renderPhotos(); renderRecent(); updateGuestDatalist();
-  }
+function loadPhotos() {
+  xhr('GET', '/api/events/' + _eid + '/photos', null, function(data) {
+    _photos = data;
+    renderUploaders();
+    renderPhotos();
+    renderRecent();
+  });
+}
 
-  // ── Render helpers ──
-  function renderRecent() {
-    const list   = document.getElementById('recentList');
-    const recent = [...allData].sort((a,b) => new Date(b.uploadedAt)-new Date(a.uploadedAt)).slice(0,5);
-    list.innerHTML = recent.length ? recent.map(uploaderCardHTML).join('') : '<div class="empty"><span class="empty-icon">📷</span>Nog geen uploads</div>';
-  }
+function loadSettings() {
+  xhr('GET', '/api/events/' + _eid + '/settings', null, function(s) {
+    _selType  = s.eventType || '';
+    _selTheme = s.theme     || '';
 
-  function renderUploaders() {
-    const list   = document.getElementById('uploadersList');
-    const sorted = [...allData].sort((a,b) => new Date(b.uploadedAt)-new Date(a.uploadedAt));
-    list.innerHTML = sorted.length ? sorted.map(uploaderCardHTML).join('') : '<div class="empty"><span class="empty-icon">👥</span>Nog geen gasten</div>';
-    updateGuestCount();
-  }
-
-  function uploaderCardHTML(e) {
-    const date    = new Date(e.uploadedAt);
-    const dateStr = date.toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'});
-    const timeStr = date.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'});
-    const msgHtml = e.message ? `<div class="uploader-message">"${esc(e.message)}"</div>` : '';
-    const photosHtml = e.photos.map(p => `
-      <div class="guest-photo-item" onclick="openLightbox('/uploads/${p.filename}')">
-        <img src="/uploads/${p.filename}" alt="" loading="lazy" />
-        <button class="del-btn" onclick="event.stopPropagation();deletePhoto('${e.id}','${p.id}')">&times;</button>
-      </div>`).join('');
-    return `
-      <div class="uploader-card" id="card-${e.id}" data-name="${esc(e.name.toLowerCase())}">
-        <div class="uploader-header" onclick="toggleCard('${e.id}')">
-          <div class="uploader-info">
-            <h3>${esc(e.name)}</h3>
-            <div class="uploader-meta">${dateStr} om ${timeStr}</div>
-            ${msgHtml}
-          </div>
-          <div class="uploader-actions">
-            <span class="badge">${e.photos.length} foto${e.photos.length!==1?"'s":''}</span>
-            <button class="btn btn-danger" onclick="event.stopPropagation();deleteUpload('${e.id}')">Verwijder</button>
-            <span class="expand-arrow">▼</span>
-          </div>
-        </div>
-        <div class="guest-photos"><div class="guest-photo-grid">${photosHtml}</div></div>
-      </div>`;
-  }
-
-  function toggleCard(id) { document.getElementById('card-'+id)?.classList.toggle('open'); }
-
-  function renderPhotos() {
-    const grid    = document.getElementById('photoGrid');
-    const countEl = document.getElementById('photoCount');
-    const all = [];
-    allData.forEach(e => e.photos.forEach(p => all.push({...p, uploaderName:e.name, uploaderId:e.id})));
-    all.sort((a,b) => new Date(b.uploadedAt)-new Date(a.uploadedAt));
-    countEl.textContent = `${all.length} foto's`;
-    grid.innerHTML = all.length ? all.map(p => `
-      <div class="photo-card">
-        <img src="/uploads/${p.filename}" alt="" onclick="openLightbox('/uploads/${p.filename}')" loading="lazy" />
-        <button class="photo-delete" onclick="deletePhoto('${p.uploaderId}','${p.id}')">&times;</button>
-        <div class="photo-info">
-          <div class="photo-name">${esc(p.uploaderName)}</div>
-          <div>${new Date(p.uploadedAt).toLocaleDateString('nl-NL')}</div>
-        </div>
-      </div>`).join('')
-    : '<div class="empty"><span class="empty-icon">🖼️</span>Nog geen foto\'s</div>';
-  }
-
-  // ── Guest search ──
-  function updateGuestDatalist() {
-    document.getElementById('guestNamesList').innerHTML = allData.map(e => `<option value="${esc(e.name)}">`).join('');
-    updateGuestCount();
-  }
-  function filterGuests() {
-    const q = document.getElementById('guestSearch').value.toLowerCase().trim();
-    let visible = 0;
-    document.querySelectorAll('#uploadersList .uploader-card').forEach(c => {
-      const show = !q || c.dataset.name.includes(q);
-      c.classList.toggle('hidden', !show);
-      if (show) visible++;
-    });
-    updateGuestCount(visible);
-  }
-  function updateGuestCount(visible) {
-    const total = allData.length;
-    const shown = visible !== undefined ? visible : total;
-    const el = document.getElementById('guestCount');
-    if (el) el.textContent = shown === total ? `${total} gast${total!==1?'en':''}` : `${shown} van ${total} gasten`;
-  }
-
-  // ── Deletes ──
-  async function deleteUpload(id) {
-    if (!confirm("Alle foto's van deze gast verwijderen?")) return;
-    const r = await fetch(`/api/events/${currentEventId}/uploads/${id}?password=${encodeURIComponent(password)}`,{method:'DELETE'});
-    if (r.ok) await refreshAll(); else alert('Verwijderen mislukt');
-  }
-  async function deletePhoto(uid, pid) {
-    if (!confirm('Deze foto verwijderen?')) return;
-    const r = await fetch(`/api/events/${currentEventId}/photos/${uid}/${pid}?password=${encodeURIComponent(password)}`,{method:'DELETE'});
-    if (r.ok) await refreshAll(); else alert('Verwijderen mislukt');
-  }
-
-  // ── Lightbox ──
-  function openLightbox(src) { document.getElementById('lightboxImg').src=src; document.getElementById('lightbox').style.display='flex'; document.body.style.overflow='hidden'; }
-  function closeLightbox()   { document.getElementById('lightbox').style.display='none'; document.body.style.overflow=''; }
-  document.addEventListener('keydown', e => { if(e.key==='Escape') { closeLightbox(); closeCreateModal(); } });
-
-  // ── QR ──
-  async function generateQR() {
-    const url = document.getElementById('urlInput').value.trim() || window.location.origin;
-    const r   = await fetch(`/api/events/${currentEventId}/qrcode?password=${encodeURIComponent(password)}&url=${encodeURIComponent(url)}`);
-    const d   = await r.json();
-    if (d.qr) { document.getElementById('qrImage').src=d.qr; document.getElementById('qrUrl').textContent=d.url; document.getElementById('qrOutput').style.display='block'; }
-  }
-  function downloadQR() { const a=document.createElement('a'); a.href=document.getElementById('qrImage').src; a.download='my-memories-qrcode.png'; a.click(); }
-  function copyUrl()    { navigator.clipboard.writeText(document.getElementById('qrUrl').textContent).then(()=>alert('Link gekopieerd!')); }
-
-  // ── Event type picker ──
-  function buildEventGrid() {
-    document.getElementById('eventGrid').innerHTML = Object.entries(EVENT_TYPES).map(([key, e]) => `
-      <div class="event-card" id="ecard-${key}" onclick="selectEventType('${key}')">
-        <div class="event-card-top" style="background:linear-gradient(135deg,${e.deep},${e.accent})">
-          <span>${e.icon}</span>
-          <span class="event-card-check">✓</span>
-        </div>
-        <div class="event-card-label" style="background:${e.bg};color:${e.deep}">${e.name}</div>
-      </div>`).join('');
-    if (selectedEventType) markSelectedEvent(selectedEventType);
-  }
-
-  function selectEventType(key) {
-    selectedEventType = key;
-    markSelectedEvent(key);
-    // Apply the event type's built-in colors as preview; clear theme selection
-    applyTheme(EVENT_TYPES[key]);
-    selectedTheme = '';
-    markSelectedTheme(''); // deselect all theme swatches
-    const t = document.getElementById('welcomeTitle');
-    const s = document.getElementById('welcomeSubtitle');
-    if (!t.value) t.value = EVENT_TYPES[key].defaultTitle;
-    if (!s.value) s.value = EVENT_TYPES[key].defaultSubtitle;
-  }
-
-  function markSelectedEvent(key) {
-    document.querySelectorAll('#eventGrid .event-card').forEach(c => c.classList.remove('selected'));
-    document.getElementById('ecard-' + key)?.classList.add('selected');
-  }
-
-  async function saveTypeAndTheme() {
-    const body = { theme: selectedTheme };
-    if (selectedEventType) body.eventType = selectedEventType;
-    const r = await fetch(`/api/events/${currentEventId}/settings?password=${encodeURIComponent(password)}`, {
-      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body)
-    });
-    if (r.ok) flash('typethemeSaveMsg');
-  }
-
-  // ── Settings load ──
-  async function loadCurrentSettings() {
-    const r = await fetch(`/api/events/${currentEventId}/settings?password=${encodeURIComponent(password)}`);
-    const s = await r.json();
-    // Apply theme / event type
-    if (s.eventType && EVENT_TYPES[s.eventType]) {
-      selectedEventType = s.eventType;
-      applyTheme(EVENT_TYPES[s.eventType]);
-      markSelectedEvent(s.eventType);
-    } else if (s.theme) {
-      selectedTheme = s.theme;
-      applyTheme(s.theme);
-      markSelectedTheme(s.theme);
+    if (_selType && EVENT_TYPES[_selType]) {
+      var et = EVENT_TYPES[_selType];
+      var th = (_selTheme && THEMES[_selTheme]) ? THEMES[_selTheme] : et;
+      applyTheme(Object.assign({}, th, { icon: et.icon }));
+      markSelection(_selType, _selTheme);
+    } else if (_selTheme && THEMES[_selTheme]) {
+      applyTheme(_selTheme);
     }
-    // Update sidebar event name
-    const evtName = document.getElementById('eventNameInput');
-    if (evtName) evtName.value = s.welcomeTitle || '';
-    // Try to get the actual event name from the list
-    const listR = await fetch(`/api/events?password=${encodeURIComponent(password)}`);
-    const list  = await listR.json();
-    const evt   = list.find(e => e.id === currentEventId);
-    if (evt) {
-      document.getElementById('currentEventName').textContent = evt.name;
-      document.getElementById('overviewTitle').textContent = evt.name;
-      document.getElementById('eventNameInput').value = evt.name;
+
+    // Load event name + slug from list
+    xhr('GET', '/api/events', null, function(list) {
+      var evt = null;
+      for (var i = 0; i < list.length; i++) { if (list[i].id === _eid) { evt = list[i]; break; } }
+      var evtName = evt ? evt.name : '';
+      _eSlug = evt ? (evt.slug || '') : '';
+      document.getElementById('sbEventChip').textContent    = evtName;
+      document.getElementById('overviewTitle').textContent  = evtName;
+      document.getElementById('eventNameInput').value       = evtName;
+    });
+
+    if (s.bannerUrl) {
+      document.getElementById('bannerPreviewImg').src = s.bannerUrl;
+      document.getElementById('bannerPreview').style.display = 'block';
+      document.getElementById('bannerUploadBtn').style.display = 'none';
     }
-    if (s.bannerUrl) showBannerPreview(s.bannerUrl, false);
-    else { document.getElementById('bannerPreview').style.display = 'none'; pendingBannerFile = null; }
     document.getElementById('welcomeTitle').value    = s.welcomeTitle    || '';
     document.getElementById('welcomeSubtitle').value = s.welcomeSubtitle || '';
-    const hasPw = !!s.guestPassword;
+    var hasPw = !!s.guestPassword;
     document.getElementById('guestPwToggle').checked = hasPw;
     document.getElementById('guestPwFieldWrap').classList.toggle('visible', hasPw);
-    if (s.guestPassword) document.getElementById('guestPwValue').value = s.guestPassword;
-    else document.getElementById('guestPwValue').value = '';
-  }
-
-  // ── Theme picker ──
-  function buildThemeGrid() {
-    document.getElementById('themeGrid').innerHTML = Object.entries(THEMES).map(([key, t]) => `
-      <div class="event-card" id="swatch-${key}" onclick="selectTheme('${key}')">
-        <div class="event-card-top" style="background:linear-gradient(135deg,${t.deep},${t.accent})">
-          <span>${t.icon}</span>
-          <span class="event-card-check">✓</span>
-        </div>
-        <div class="event-card-label" style="background:${t.bg};color:${t.deep}">${t.name}</div>
-      </div>`).join('');
-    markSelectedTheme(selectedTheme);
-  }
-
-  function selectTheme(key) {
-    selectedTheme = key;
-    markSelectedTheme(key);
-    applyTheme(key);
-    // If no event type is selected, a standalone theme is being picked
-    // (if eventType IS selected the theme acts as a color override — keep eventType selected)
-  }
-
-  function markSelectedTheme(key) {
-    document.querySelectorAll('#themeGrid .event-card').forEach(s => s.classList.remove('selected'));
-    document.getElementById('swatch-'+key)?.classList.add('selected');
-  }
-
-  // saveTheme is now merged into saveTypeAndTheme above
-
-  // ── Banner ──
-  const bannerDrop      = document.getElementById('bannerDrop');
-  const bannerFileInput = document.getElementById('bannerFileInput');
-
-  bannerDrop.addEventListener('dragover', e => { e.preventDefault(); bannerDrop.classList.add('drag-over'); });
-  bannerDrop.addEventListener('dragleave', () => bannerDrop.classList.remove('drag-over'));
-  bannerDrop.addEventListener('drop', e => {
-    e.preventDefault(); bannerDrop.classList.remove('drag-over');
-    const f = e.dataTransfer.files[0]; if (f?.type.startsWith('image/')) previewBannerFile(f);
+    document.getElementById('guestPwValue').value = s.guestPassword || '';
   });
-  bannerFileInput.addEventListener('change', () => { if (bannerFileInput.files[0]) previewBannerFile(bannerFileInput.files[0]); bannerFileInput.value=''; });
+}
 
-  function previewBannerFile(file) {
-    pendingBannerFile = file;
-    const rd = new FileReader(); rd.onload = e => showBannerPreview(e.target.result, true); rd.readAsDataURL(file);
-  }
-  function showBannerPreview(src, isPending) {
-    document.getElementById('bannerPreviewImg').src = src;
-    document.getElementById('bannerPreview').style.display = 'block';
-    document.getElementById('bannerUploadBtn').style.display = isPending ? '' : 'none';
-  }
-  async function uploadBanner() {
-    if (!pendingBannerFile) return;
-    const fd = new FormData(); fd.append('banner', pendingBannerFile);
-    const r  = await fetch(`/api/events/${currentEventId}/upload-banner?password=${encodeURIComponent(password)}`, {method:'POST',body:fd});
-    const d  = await r.json();
-    if (d.success) { pendingBannerFile=null; showBannerPreview(d.bannerUrl,false); flash('bannerSaveMsg'); }
-    else alert('Upload mislukt');
-  }
-  async function removeBanner() {
-    if (!confirm('Banner verwijderen?')) return;
-    const r = await fetch(`/api/events/${currentEventId}/banner?password=${encodeURIComponent(password)}`,{method:'DELETE'});
-    if (r.ok) { document.getElementById('bannerPreview').style.display='none'; pendingBannerFile=null; }
-  }
+// ═══════════════════════════════════════════════════════════════
+//  RENDER HELPERS
+// ═══════════════════════════════════════════════════════════════
+function renderRecent() {
+  var list = document.getElementById('recentList');
+  var recent = _photos.slice().sort(function(a,b) { return new Date(b.uploadedAt) - new Date(a.uploadedAt); }).slice(0,5);
+  list.innerHTML = recent.length
+    ? recent.map(uploaderCardHTML).join('')
+    : '<div class="empty"><span class="empty-icon">📷</span>Nog geen uploads</div>';
+}
 
-  // ── Welcome message ──
-  async function saveWelcomeMessage() {
-    const r = await fetch(`/api/events/${currentEventId}/settings?password=${encodeURIComponent(password)}`, {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({
-        welcomeTitle:    document.getElementById('welcomeTitle').value.trim(),
-        welcomeSubtitle: document.getElementById('welcomeSubtitle').value.trim()
-      })
-    });
-    if (r.ok) flash('welcomeSaveMsg');
-  }
+function renderUploaders() {
+  var list   = document.getElementById('uploadersList');
+  var sorted = _photos.slice().sort(function(a,b) { return new Date(b.uploadedAt) - new Date(a.uploadedAt); });
+  list.innerHTML = sorted.length
+    ? sorted.map(uploaderCardHTML).join('')
+    : '<div class="empty"><span class="empty-icon">👥</span>Nog geen gasten</div>';
+  updateGuestCount();
+}
 
-  // ── Event name ──
-  async function saveEventName() {
-    const name = document.getElementById('eventNameInput').value.trim();
-    if (!name) return;
-    const r = await fetch(`/api/events/${currentEventId}/settings?password=${encodeURIComponent(password)}`, {
-      method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ name })
-    });
-    if (r.ok) {
-      document.getElementById('currentEventName').textContent = name;
-      document.getElementById('overviewTitle').textContent    = name;
-      flash('eventNameSaveMsg');
+function uploaderCardHTML(e) {
+  var d  = new Date(e.uploadedAt);
+  var ds = d.toLocaleDateString('nl-NL', { day:'numeric', month:'long', year:'numeric' });
+  var ts = d.toLocaleTimeString('nl-NL', { hour:'2-digit', minute:'2-digit' });
+  var msg = e.message ? '<div class="uploader-msg">"' + esc(e.message) + '"</div>' : '';
+  var photos = '';
+  for (var i = 0; i < e.photos.length; i++) {
+    var p = e.photos[i];
+    photos += '<div class="guest-photo-item" onclick="openLightbox(\'/uploads/' + p.filename + '\')">';
+    photos += '  <img src="/uploads/' + p.filename + '" alt="" loading="lazy"/>';
+    photos += '  <button class="del-btn" onclick="event.stopPropagation();doDeletePhoto(\'' + e.id + '\',\'' + p.id + '\')">&times;</button>';
+    photos += '</div>';
+  }
+  var count = e.photos.length;
+  return '<div class="uploader-card" id="card-' + e.id + '" data-name="' + esc(e.name.toLowerCase()) + '">'
+    + '<div class="uploader-header" onclick="toggleCard(\'' + e.id + '\')">'
+    + '  <div class="uploader-info"><h3>' + esc(e.name) + '</h3>'
+    + '  <div class="uploader-meta">' + ds + ' om ' + ts + '</div>' + msg + '</div>'
+    + '  <div class="uploader-actions">'
+    + '    <span class="badge">' + count + ' foto' + (count !== 1 ? "'s" : '') + '</span>'
+    + '    <button class="btn btn-danger" onclick="event.stopPropagation();doDeleteUpload(\'' + e.id + '\')">Verwijder</button>'
+    + '    <span class="chevron">▼</span>'
+    + '  </div>'
+    + '</div>'
+    + '<div class="guest-photos"><div class="guest-photo-grid">' + photos + '</div></div>'
+    + '</div>';
+}
+
+window.toggleCard = function(id) {
+  var el = document.getElementById('card-' + id);
+  if (el) el.classList.toggle('open');
+};
+
+function renderPhotos() {
+  var grid    = document.getElementById('photoGrid');
+  var countEl = document.getElementById('photoCount');
+  var all = [];
+  for (var i = 0; i < _photos.length; i++) {
+    var e = _photos[i];
+    for (var j = 0; j < e.photos.length; j++) {
+      all.push({ id: e.photos[j].id, filename: e.photos[j].filename,
+        uploadedAt: e.photos[j].uploadedAt, uploaderName: e.name, uploaderId: e.id });
     }
   }
-
-  // ── Guest password ──
-  function toggleGuestPwField() {
-    const on = document.getElementById('guestPwToggle').checked;
-    document.getElementById('guestPwFieldWrap').classList.toggle('visible', on);
-    if (!on) document.getElementById('guestPwValue').value = '';
+  all.sort(function(a,b) { return new Date(b.uploadedAt) - new Date(a.uploadedAt); });
+  countEl.textContent = all.length + " foto's";
+  if (!all.length) { grid.innerHTML = '<div class="empty"><span class="empty-icon">🖼️</span>Nog geen foto\'s</div>'; return; }
+  var html = '';
+  for (var k = 0; k < all.length; k++) {
+    var p = all[k];
+    html += '<div class="photo-card">';
+    html += '  <img src="/uploads/' + p.filename + '" alt="" onclick="openLightbox(\'/uploads/' + p.filename + '\')" loading="lazy"/>';
+    html += '  <button class="photo-delete" onclick="doDeletePhoto(\'' + p.uploaderId + '\',\'' + p.id + '\')">&times;</button>';
+    html += '  <div class="photo-info"><span class="photo-name">' + esc(p.uploaderName) + '</span>';
+    html += '  ' + new Date(p.uploadedAt).toLocaleDateString('nl-NL') + '</div>';
+    html += '</div>';
   }
-  async function saveGuestPassword() {
-    const enabled = document.getElementById('guestPwToggle').checked;
-    const pw      = enabled ? document.getElementById('guestPwValue').value.trim() : '';
-    if (enabled && !pw) { alert('Vul een wachtwoord in of zet de schakelaar uit.'); return; }
-    const r = await fetch(`/api/events/${currentEventId}/settings?password=${encodeURIComponent(password)}`, {
-      method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({guestPassword:pw})
-    });
-    if (r.ok) flash('guestPwSaveMsg');
-  }
+  grid.innerHTML = html;
+}
 
-  // ── Helpers ──
-  function flash(id) { const el=document.getElementById(id); el.style.display='block'; setTimeout(()=>el.style.display='none',3000); }
-  function esc(str)  { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+// ═══════════════════════════════════════════════════════════════
+//  GUEST SEARCH
+// ═══════════════════════════════════════════════════════════════
+window.filterGuests = function() {
+  var q = document.getElementById('guestSearch').value.toLowerCase().trim();
+  var cards = document.querySelectorAll('#uploadersList .uploader-card');
+  var visible = 0;
+  cards.forEach(function(c) {
+    var show = !q || c.dataset.name.indexOf(q) >= 0;
+    c.classList.toggle('hidden', !show);
+    if (show) visible++;
+  });
+  updateGuestCount(visible);
+};
+
+function updateGuestCount(visible) {
+  var total = _photos.length;
+  var shown = visible !== undefined ? visible : total;
+  var el = document.getElementById('guestCount');
+  if (el) el.textContent = shown === total
+    ? total + ' gast' + (total !== 1 ? 'en' : '')
+    : shown + ' van ' + total + ' gasten';
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  DELETES
+// ═══════════════════════════════════════════════════════════════
+window.doDeleteUpload = function(uid) {
+  if (!confirm("Alle foto's van deze gast verwijderen?")) return;
+  xhr('DELETE', '/api/events/' + _eid + '/uploads/' + uid, null,
+    function() { loadStats(); loadPhotos(); },
+    function(err) { alert('Mislukt: ' + err); }
+  );
+};
+
+window.doDeletePhoto = function(uid, pid) {
+  if (!confirm('Deze foto verwijderen?')) return;
+  xhr('DELETE', '/api/events/' + _eid + '/photos/' + uid + '/' + pid, null,
+    function() { loadStats(); loadPhotos(); },
+    function(err) { alert('Mislukt: ' + err); }
+  );
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  LIGHTBOX
+// ═══════════════════════════════════════════════════════════════
+window.openLightbox = function(src) {
+  document.getElementById('lightboxImg').src = src;
+  document.getElementById('lightbox').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+};
+window.closeLightbox = function() {
+  document.getElementById('lightbox').style.display = 'none';
+  document.body.style.overflow = '';
+};
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    closeLightbox();
+    closeCreateModal();
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════
+//  QR CODE
+// ═══════════════════════════════════════════════════════════════
+window.generateQR = function() {
+  var urlEl = document.getElementById('urlInput');
+  var base  = urlEl.value.trim() || window.location.origin;
+  urlEl.value = base;
+  xhr('GET', '/api/events/' + _eid + '/qrcode?url=' + encodeURIComponent(base), null,
+    function(d) {
+      if (d.qr) {
+        document.getElementById('qrImage').src = d.qr;
+        document.getElementById('qrUrl').textContent = d.url;
+        document.getElementById('qrOutput').style.display = 'block';
+      }
+    }
+  );
+};
+window.downloadQR = function() {
+  var a = document.createElement('a');
+  a.href = document.getElementById('qrImage').src;
+  a.download = 'my-memories-qrcode.png';
+  a.click();
+};
+window.copyQrUrl = function() {
+  var url = document.getElementById('qrUrl').textContent;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(function() { alert('Link gekopieerd!'); });
+  } else {
+    window.prompt('Kopieer deze link:', url);
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  SAVE: WELCOME MESSAGE
+// ═══════════════════════════════════════════════════════════════
+window.saveWelcomeMessage = function() {
+  xhr('POST', '/api/events/' + _eid + '/settings', {
+    welcomeTitle:    document.getElementById('welcomeTitle').value.trim(),
+    welcomeSubtitle: document.getElementById('welcomeSubtitle').value.trim()
+  }, function() { flash('welcomeSaveMsg'); });
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  SAVE: EVENT NAME
+// ═══════════════════════════════════════════════════════════════
+window.saveEventName = function() {
+  var name = document.getElementById('eventNameInput').value.trim();
+  if (!name) return;
+  xhr('POST', '/api/events/' + _eid + '/settings', { name: name }, function(d) {
+    document.getElementById('sbEventChip').textContent   = name;
+    document.getElementById('overviewTitle').textContent = name;
+    if (d.slug) _eSlug = d.slug;
+    flash('eventNameSaveMsg');
+    loadEventsList();
+  });
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  SAVE: GUEST PASSWORD
+// ═══════════════════════════════════════════════════════════════
+window.toggleGuestPwField = function() {
+  var on = document.getElementById('guestPwToggle').checked;
+  document.getElementById('guestPwFieldWrap').classList.toggle('visible', on);
+  if (!on) document.getElementById('guestPwValue').value = '';
+};
+window.saveGuestPassword = function() {
+  var enabled = document.getElementById('guestPwToggle').checked;
+  var pw      = enabled ? document.getElementById('guestPwValue').value.trim() : '';
+  if (enabled && !pw) { alert('Vul een wachtwoord in of zet de schakelaar uit.'); return; }
+  xhr('POST', '/api/events/' + _eid + '/settings', { guestPassword: pw },
+    function() { flash('guestPwSaveMsg'); }
+  );
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  BANNER
+// ═══════════════════════════════════════════════════════════════
+window.uploadBanner = function() {
+  if (!_bannerFile) return;
+  var fd = new FormData();
+  fd.append('banner', _bannerFile);
+  var req = new XMLHttpRequest();
+  req.open('POST', '/api/events/' + _eid + '/upload-banner?password=' + encodeURIComponent(_pw));
+  req.onreadystatechange = function() {
+    if (req.readyState !== 4) return;
+    var d; try { d = JSON.parse(req.responseText); } catch(e) { d = {}; }
+    if (d.success) { _bannerFile = null; document.getElementById('bannerUploadBtn').style.display = 'none'; flash('bannerSaveMsg'); }
+    else alert('Upload mislukt');
+  };
+  req.send(fd);
+};
+window.removeBanner = function() {
+  if (!confirm('Banner verwijderen?')) return;
+  xhr('DELETE', '/api/events/' + _eid + '/banner', null, function() {
+    document.getElementById('bannerPreview').style.display = 'none';
+    _bannerFile = null;
+  });
+};
+
+(function initBanner() {
+  var bz = document.getElementById('bannerZone');
+  var bf = document.getElementById('bannerFileInput');
+  if (!bz || !bf) return;
+  bz.addEventListener('dragover',  function(e) { e.preventDefault(); bz.classList.add('drag-over'); });
+  bz.addEventListener('dragleave', function()  { bz.classList.remove('drag-over'); });
+  bz.addEventListener('drop', function(e) {
+    e.preventDefault(); bz.classList.remove('drag-over');
+    var f = e.dataTransfer.files[0];
+    if (f && f.type.indexOf('image/') === 0) previewBannerFile(f);
+  });
+  bf.addEventListener('change', function() {
+    if (bf.files[0]) previewBannerFile(bf.files[0]);
+    bf.value = '';
+  });
+})();
+
+function previewBannerFile(file) {
+  _bannerFile = file;
+  var rd = new FileReader();
+  rd.onload = function(e) {
+    document.getElementById('bannerPreviewImg').src = e.target.result;
+    document.getElementById('bannerPreview').style.display = 'block';
+    document.getElementById('bannerUploadBtn').style.display = '';
+  };
+  rd.readAsDataURL(file);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  EVENT TYPE + THEME PICKER
+// ═══════════════════════════════════════════════════════════════
+function buildEventGrid() {
+  var grid = document.getElementById('eventGrid');
+  if (!grid) return;
+  var html = '';
+  var eKeys = Object.keys(EVENT_TYPES);
+  for (var i = 0; i < eKeys.length; i++) {
+    var eKey = eKeys[i];
+    var e    = EVENT_TYPES[eKey];
+    var dots = '';
+    for (var j = 0; j < THEME_KEYS.length; j++) {
+      var tKey = THEME_KEYS[j];
+      var t    = THEMES[tKey];
+      dots += '<div class="cdot" id="cdot-' + eKey + '-' + tKey + '"'
+        + ' style="background:linear-gradient(135deg,' + t.deep + ',' + t.accent + ')"'
+        + ' title="' + t.name + '"'
+        + ' onclick="event.stopPropagation();selectCombined(\'' + eKey + '\',\'' + tKey + '\')"></div>';
+    }
+    html += '<div class="ecard" id="ecard-' + eKey + '" onclick="selectCombined(\'' + eKey + '\',\'\')">'
+      + '<div class="ecard-top" id="etop-' + eKey + '" style="background:linear-gradient(135deg,' + e.deep + ',' + e.accent + ')">'
+      + '  <span>' + e.icon + '</span><span class="ecard-check">✓</span>'
+      + '</div>'
+      + '<div class="ecard-label" id="elabel-' + eKey + '" style="background:' + e.bg + ';color:' + e.deep + '">' + e.name + '</div>'
+      + '<div class="ecard-dots">' + dots + '</div>'
+      + '</div>';
+  }
+  grid.innerHTML = html;
+  if (_selType) markSelection(_selType, _selTheme);
+}
+
+window.selectCombined = function(eKey, tKey) {
+  _selType  = eKey;
+  _selTheme = tKey;
+  markSelection(eKey, tKey);
+  var e = EVENT_TYPES[eKey];
+  var t = (tKey && THEMES[tKey]) ? THEMES[tKey] : e;
+  applyTheme(Object.assign({}, t, { icon: e.icon }));
+  var tEl = document.getElementById('welcomeTitle');
+  var sEl = document.getElementById('welcomeSubtitle');
+  if (tEl && !tEl.value) tEl.value = e.defaultTitle;
+  if (sEl && !sEl.value) sEl.value = e.defaultSubtitle;
+};
+
+function markSelection(eKey, tKey) {
+  document.querySelectorAll('#eventGrid .ecard').forEach(function(c) { c.classList.remove('selected'); });
+  document.querySelectorAll('.cdot').forEach(function(d) { d.classList.remove('cdot-sel'); });
+
+  var card = document.getElementById('ecard-' + eKey);
+  if (!card) return;
+  card.classList.add('selected');
+
+  var e   = EVENT_TYPES[eKey];
+  var t   = (tKey && THEMES[tKey]) ? THEMES[tKey] : e;
+  var top = document.getElementById('etop-' + eKey);
+  var lbl = document.getElementById('elabel-' + eKey);
+  if (top) top.style.background = 'linear-gradient(135deg,' + t.deep + ',' + t.accent + ')';
+  if (lbl) { lbl.style.background = t.bg; lbl.style.color = t.deep; }
+  if (tKey) {
+    var dot = document.getElementById('cdot-' + eKey + '-' + tKey);
+    if (dot) dot.classList.add('cdot-sel');
+  }
+}
+
+window.saveTypeAndTheme = function() {
+  if (!_selType) { alert('Selecteer eerst een evenementtype.'); return; }
+  xhr('POST', '/api/events/' + _eid + '/settings',
+    { eventType: _selType, theme: _selTheme },
+    function() {
+      flash('typethemeSaveMsg');
+      // Refresh event list so the tile gradient reflects the new type/theme
+      loadEventsList();
+      // Re-apply the full theme to ensure every CSS variable is in sync
+      var et = EVENT_TYPES[_selType];
+      var th = (_selTheme && THEMES[_selTheme]) ? THEMES[_selTheme] : et;
+      applyTheme(Object.assign({}, th, { icon: et.icon }));
+    }
+  );
+};
 </script>
 </body>
 </html>

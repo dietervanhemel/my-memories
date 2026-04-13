@@ -7,22 +7,20 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* ── Theme variables — overridden at runtime by applyTheme() ── */
     :root {
-      --bg:      #f4faf5;
-      --surface: #ffffff;
-      --light:   #e8f5ea;
-      --border:  #b2ddb8;
-      --accent:  #3a7d44;
-      --deep:    #1e4d28;
-      --text:    #1a3320;
-      --muted:   #6a9070;
+      --bg:     #f4faf5;
+      --light:  #e8f5ea;
+      --border: #b2ddb8;
+      --accent: #3a7d44;
+      --deep:   #1e4d28;
+      --text:   #1a3320;
+      --muted:  #6a9070;
     }
 
     body {
       min-height: 100vh;
       background: var(--bg);
-      font-family: Georgia, serif;
+      font-family: -apple-system, 'Segoe UI', Arial, sans-serif;
       color: var(--text);
       display: flex; flex-direction: column; align-items: center;
     }
@@ -31,138 +29,219 @@
     .header {
       width: 100%;
       background: linear-gradient(160deg, var(--deep) 0%, var(--accent) 100%);
-      color: #fff; text-align: center;
-      padding: 2.5rem 1.5rem 2rem;
+      color: #fff;
+      text-align: center;
+      padding: 3rem 1.5rem 2.5rem;
       position: relative; overflow: hidden;
     }
     .header::before {
-      content: ''; position: absolute; inset: 0;
-      /* background-image is set dynamically by applyEventType() */
+      content: '';
+      position: absolute; inset: 0;
+      background-repeat: repeat;
+      background-size: auto;
+      pointer-events: none;
     }
-    .header-icon { font-size: 2rem; margin-bottom: 0.4rem; position: relative; }
-    .header h1   { font-size: 1.8rem; font-weight: normal; letter-spacing: 0.05em; position: relative; }
-    .header p    { margin-top: 0.4rem; font-size: 0.95rem; opacity: 0.85; font-style: italic; position: relative; }
-    .accent-line { width: 60px; height: 2px; background: rgba(255,255,255,0.5); margin: 0.8rem auto 0; position: relative; }
+    .header-inner { position: relative; z-index: 1; }
+    .header-icon {
+      font-size: 3.2rem; display: block; margin-bottom: 0.7rem;
+      filter: drop-shadow(0 2px 8px rgba(0,0,0,0.25));
+    }
+    .header h1 {
+      font-family: Georgia, serif; font-size: 2rem; font-weight: normal;
+      letter-spacing: 0.04em; margin-bottom: 0.45rem;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.18);
+    }
+    .header p {
+      font-size: 1rem; opacity: 0.88; font-style: italic;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    }
+    .accent-bar {
+      width: 48px; height: 2px;
+      background: rgba(255,255,255,0.55);
+      margin: 1rem auto 0; border-radius: 2px;
+    }
 
     /* ── Banner ── */
-    .banner-wrap { width: 100%; max-height: 300px; overflow: hidden; display: none; }
-    .banner-wrap img { width: 100%; object-fit: cover; display: block; max-height: 300px; }
+    .banner { width: 100%; max-height: 280px; overflow: hidden; display: none; }
+    .banner img { width: 100%; object-fit: cover; display: block; max-height: 280px; }
 
     /* ── Card ── */
     .card {
-      background: var(--surface); border-radius: 16px;
-      box-shadow: 0 4px 30px rgba(0,0,0,0.08);
-      padding: 2rem 1.75rem; width: 92%; max-width: 520px; margin: 1.8rem 0;
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 4px 40px rgba(0,0,0,0.09), 0 1px 6px rgba(0,0,0,0.04);
+      padding: 2rem 1.75rem;
+      width: 94%; max-width: 500px;
+      margin: 1.75rem 0;
     }
 
-    /* ── Password screen ── */
-    .pw-header  { text-align: center; margin-bottom: 1.5rem; }
-    .pw-icon    { font-size: 2.8rem; margin-bottom: 0.5rem; }
-    .pw-header h2 { font-size: 1.4rem; color: var(--deep); font-weight: normal; }
-    .pw-header p  { font-size: 0.88rem; color: var(--muted); margin-top: 0.4rem; font-family: Arial, sans-serif; }
+    /* ── Password gate ── */
+    .pw-gate { text-align: center; margin-bottom: 1.5rem; }
+    .pw-gate .lock-icon { font-size: 3rem; display: block; margin-bottom: 0.75rem; }
+    .pw-gate h2 { font-family: Georgia, serif; font-size: 1.45rem; color: var(--deep); font-weight: normal; margin-bottom: 0.4rem; }
+    .pw-gate p  { font-size: 0.9rem; color: var(--muted); }
 
-    /* ── Form ── */
-    label {
-      display: block; font-size: 0.82rem; letter-spacing: 0.08em;
-      text-transform: uppercase; color: var(--deep); margin-bottom: 0.4rem; font-family: Arial, sans-serif;
+    /* ── Error ── */
+    .error-box {
+      background: #fef2f2; border: 1px solid #fca5a5; color: #dc2626;
+      border-radius: 10px; padding: 0.75rem 1rem; font-size: 0.87rem;
+      margin-bottom: 1.1rem; display: none;
     }
-    input[type="text"], input[type="password"], textarea {
-      width: 100%; padding: 0.75rem 1rem;
-      border: 1.5px solid var(--border); border-radius: 8px;
-      font-size: 1rem; font-family: Georgia, serif;
-      color: var(--text); background: var(--bg);
-      transition: border-color 0.2s; outline: none;
+
+    /* ── Form fields ── */
+    .field { margin-bottom: 1.3rem; }
+    .field label {
+      display: block; font-size: 0.72rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--deep); margin-bottom: 0.45rem;
     }
-    input[type="text"]:focus, input[type="password"]:focus, textarea:focus { border-color: var(--accent); }
-    textarea { resize: vertical; min-height: 70px; }
-    .field { margin-bottom: 1.25rem; }
+    .field input, .field textarea {
+      width: 100%; padding: 0.8rem 1rem;
+      border: 1.5px solid var(--border); border-radius: 10px;
+      font-size: 1rem; font-family: inherit;
+      color: var(--text); background: #fafafa;
+      outline: none; transition: border-color 0.2s, background 0.2s;
+    }
+    .field input:focus, .field textarea:focus {
+      border-color: var(--accent); background: #fff;
+    }
+    .field textarea { resize: vertical; min-height: 80px; }
+
+    /* ── Photo picker ── */
+    .picker-section { margin-bottom: 1.3rem; }
+    .picker-label {
+      display: block; font-size: 0.72rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--deep); margin-bottom: 0.6rem;
+    }
+    .picker-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem; }
+    .picker-btn {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 0.4rem; padding: 1.3rem 0.5rem;
+      border: 2px dashed var(--border); border-radius: 14px;
+      background: #fafafa; cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+      color: var(--deep); text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .picker-btn:hover, .picker-btn:active {
+      background: var(--light); border-color: var(--accent); border-style: solid;
+    }
+    .picker-btn input[type="file"] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer;
+      width: 100%; height: 100%; font-size: 0;
+    }
+    .picker-btn-icon { font-size: 2rem; line-height: 1; }
+    .picker-btn strong { font-size: 0.88rem; }
+    .picker-btn span { font-size: 0.74rem; color: var(--muted); }
 
     /* ── Drop zone ── */
     .drop-zone {
-      border: 2px dashed var(--border); border-radius: 12px;
-      padding: 2.5rem 1.5rem; text-align: center; cursor: pointer;
+      border: 1.5px dashed var(--border); border-radius: 10px;
+      padding: 1rem 1.25rem; text-align: center;
+      font-size: 0.82rem; color: var(--muted);
       transition: background 0.2s, border-color 0.2s;
-      background: var(--bg); margin-bottom: 1.25rem; position: relative;
     }
     .drop-zone.drag-over { background: var(--light); border-color: var(--accent); }
-    .drop-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
-    .drop-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
-    .drop-zone h3 { font-size: 1rem; color: var(--deep); font-weight: normal; }
-    .drop-zone p  { font-size: 0.82rem; color: var(--muted); margin-top: 0.3rem; font-family: Arial, sans-serif; }
 
-    /* ── Preview grid ── */
-    .preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; margin-bottom: 1.25rem; }
-    .preview-item { position: relative; aspect-ratio: 1; border-radius: 8px; overflow: hidden; background: var(--light); }
-    .preview-item img { width: 100%; height: 100%; object-fit: cover; }
-    .preview-item .remove-btn {
-      position: absolute; top: 3px; right: 3px; width: 20px; height: 20px; border-radius: 50%;
-      background: rgba(0,0,0,0.55); color: #fff; border: none; font-size: 12px; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
+    /* ── Preview ── */
+    .preview-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px; margin-bottom: 1rem;
     }
-    .file-count { font-size: 0.82rem; color: var(--accent); margin-bottom: 1rem; font-family: Arial, sans-serif; }
+    @media (max-width: 400px) { .preview-grid { grid-template-columns: repeat(2, 1fr); } }
+    .preview-item {
+      position: relative; aspect-ratio: 1;
+      border-radius: 10px; overflow: hidden; background: var(--light);
+    }
+    .preview-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .remove-btn {
+      position: absolute; top: 4px; right: 4px;
+      width: 24px; height: 24px; border-radius: 50%;
+      background: rgba(0,0,0,0.55); color: #fff;
+      border: none; font-size: 15px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      line-height: 1;
+    }
+
+    .file-count {
+      font-size: 0.83rem; color: var(--accent); font-weight: 600;
+      margin-bottom: 1rem;
+    }
+
+    /* ── Progress ── */
+    .progress-wrap { display: none; margin-bottom: 1.1rem; }
+    .progress-track {
+      height: 6px; background: var(--light);
+      border-radius: 3px; overflow: hidden; margin-bottom: 0.45rem;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--deep));
+      border-radius: 3px; transition: width 0.3s; width: 0%;
+    }
+    .progress-label { font-size: 0.82rem; color: var(--muted); }
 
     /* ── Buttons ── */
     .btn-main {
-      width: 100%; padding: 0.9rem;
+      width: 100%; padding: 1rem; border: none; border-radius: 12px;
+      font-size: 1rem; font-weight: 700; cursor: pointer; letter-spacing: 0.02em;
       background: linear-gradient(135deg, var(--accent), var(--deep));
-      color: #fff; border: none; border-radius: 10px;
-      font-size: 1.05rem; font-family: Georgia, serif; cursor: pointer;
-      letter-spacing: 0.04em; transition: opacity 0.2s, transform 0.1s;
+      color: #fff; transition: opacity 0.2s, transform 0.1s;
+      font-family: inherit;
     }
-    .btn-main:hover   { opacity: 0.92; }
-    .btn-main:active  { transform: scale(0.98); }
+    .btn-main:hover { opacity: 0.9; }
+    .btn-main:active { transform: scale(0.99); }
     .btn-main:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    /* ── Progress ── */
-    .progress-wrap { margin-top: 1rem; display: none; }
-    .progress-bar-bg   { height: 8px; background: var(--light); border-radius: 4px; overflow: hidden; }
-    .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--border)); width: 0%; transition: width 0.3s; border-radius: 4px; }
-    .progress-label    { font-size: 0.8rem; color: var(--accent); margin-top: 0.4rem; text-align: center; font-family: Arial, sans-serif; }
+    .btn-again {
+      width: 100%; padding: 0.85rem; border: 2px solid var(--accent);
+      border-radius: 12px; font-size: 0.95rem; font-weight: 600;
+      background: transparent; color: var(--accent);
+      cursor: pointer; transition: background 0.2s; font-family: inherit;
+    }
+    .btn-again:hover { background: var(--light); }
 
     /* ── Success ── */
-    .success-screen { display: none; text-align: center; padding: 1rem 0; }
-    .success-icon   { font-size: 3.5rem; margin-bottom: 0.8rem; }
-    .success-screen h2 { font-size: 1.5rem; color: var(--deep); font-weight: normal; }
-    .success-screen p  { margin-top: 0.5rem; color: var(--muted); font-size: 0.95rem; font-family: Arial, sans-serif; }
-    .btn-again {
-      margin-top: 1.5rem; padding: 0.7rem 2rem; background: transparent;
-      border: 1.5px solid var(--accent); color: var(--accent); border-radius: 8px;
-      font-family: Georgia, serif; font-size: 0.95rem; cursor: pointer;
-      transition: background 0.2s, color 0.2s;
+    .success { display: none; text-align: center; padding: 1rem 0; }
+    .success-icon { font-size: 4rem; display: block; margin-bottom: 1rem; }
+    .success h2 {
+      font-family: Georgia, serif; font-size: 1.5rem;
+      color: var(--deep); font-weight: normal; margin-bottom: 0.6rem;
     }
-    .btn-again:hover { background: var(--accent); color: #fff; }
+    .success p { color: var(--muted); line-height: 1.65; margin-bottom: 1.5rem; }
 
-    /* ── Error / info messages ── */
-    .error-msg {
-      background: #fde8e8; border: 1px solid #f5a3a3; color: #c0392b;
-      border-radius: 8px; padding: 0.7rem 1rem; font-size: 0.87rem;
-      margin-bottom: 1rem; font-family: Arial, sans-serif; display: none;
+    /* ── Footer ── */
+    .footer {
+      text-align: center; padding: 1.5rem;
+      font-size: 0.78rem; color: var(--muted);
     }
-
-    .footer { text-align: center; padding: 1.5rem; font-size: 0.78rem; color: var(--muted); font-family: Arial, sans-serif; }
   </style>
 </head>
 <body>
 
 <div class="header">
-  <div class="header-icon" id="headerIcon">🌿</div>
-  <h1 id="headerTitle">Deel jouw foto's</h1>
-  <p id="headerSubtitle">Help ons deze dag onvergetelijk te maken</p>
-  <div class="accent-line"></div>
+  <div class="header-inner">
+    <span class="header-icon" id="headerIcon">📸</span>
+    <h1 id="headerTitle">Deel jouw foto's</h1>
+    <p id="headerSubtitle">Help ons deze dag onvergetelijk te maken</p>
+    <div class="accent-bar"></div>
+  </div>
 </div>
 
-<div class="banner-wrap" id="bannerWrap">
+<div class="banner" id="bannerWrap">
   <img id="bannerImg" src="" alt="" />
 </div>
 
-<!-- ── Password gate ── -->
+<!-- Password gate -->
 <div class="card" id="passwordCard" style="display:none">
-  <div class="pw-header">
-    <div class="pw-icon">🔒</div>
+  <div class="pw-gate">
+    <span class="lock-icon">🔒</span>
     <h2>Welkom!</h2>
-    <p>Voer het wachtwoord in om foto's te kunnen uploaden.</p>
+    <p>Voer het wachtwoord in om foto's te uploaden.</p>
   </div>
-  <div class="error-msg" id="pwErrorMsg"></div>
+  <div class="error-box" id="pwError"></div>
   <div class="field">
     <label for="guestPwInput">Wachtwoord</label>
     <input type="password" id="guestPwInput" placeholder="Wachtwoord"
@@ -171,291 +250,514 @@
   <button class="btn-main" onclick="verifyGuestPassword()">Doorgaan →</button>
 </div>
 
-<!-- ── Upload form ── -->
+<!-- Upload form -->
 <div class="card" id="uploadCard">
-  <div class="error-msg" id="errorMsg"></div>
+  <div class="error-box" id="errorMsg"></div>
 
   <form id="uploadForm">
     <div class="field">
       <label for="nameInput">Jouw naam *</label>
-      <input type="text" id="nameInput" placeholder="Jan & Marie" autocomplete="name" required />
+      <input type="text" id="nameInput" placeholder="Jan &amp; Marie" autocomplete="name" required />
     </div>
     <div class="field">
       <label for="messageInput">Berichtje (optioneel)</label>
       <textarea id="messageInput" placeholder="Een lieve wens of herinnering..."></textarea>
     </div>
 
-    <label>Foto's toevoegen *</label>
-    <div class="drop-zone" id="dropZone">
-      <input type="file" id="fileInput" accept="image/*" multiple capture="environment" />
-      <div class="drop-icon" id="dropIcon">📷</div>
-      <h3>Tik hier om foto's te kiezen</h3>
-      <p>of sleep ze hiernaartoe &bull; max 50 MB per foto</p>
+    <div class="picker-section">
+      <span class="picker-label">Foto's toevoegen *</span>
+      <div class="picker-btns">
+        <label class="picker-btn">
+          <input type="file" id="fileInput" accept="image/*" multiple />
+          <span class="picker-btn-icon">🖼️</span>
+          <strong>Bibliotheek</strong>
+          <span>Meerdere tegelijk</span>
+        </label>
+        <label class="picker-btn">
+          <input type="file" id="cameraInput" accept="image/*" multiple capture="environment" />
+          <span class="picker-btn-icon" id="dropIcon">📷</span>
+          <strong>Camera</strong>
+          <span>Nieuwe foto</span>
+        </label>
+      </div>
+      <div class="drop-zone" id="dropZone">
+        🖥️ Op de computer: sleep foto's hiernaartoe &bull; max 50 MB per foto
+      </div>
     </div>
 
     <div id="previewGrid" class="preview-grid"></div>
     <div id="fileCount" class="file-count" style="display:none"></div>
 
     <div class="progress-wrap" id="progressWrap">
-      <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
       <div class="progress-label" id="progressLabel">Uploaden...</div>
     </div>
 
-    <button type="submit" class="btn-main" id="uploadBtn">Foto's versturen</button>
+    <button type="submit" class="btn-main" id="uploadBtn">📤 Foto's versturen</button>
   </form>
 
-  <div class="success-screen" id="successScreen">
-    <div class="success-icon" id="successIconEl">🎉</div>
+  <div class="success" id="successScreen">
+    <span class="success-icon" id="successIconEl">🎉</span>
     <h2>Dankjewel!</h2>
     <p id="successMsg">Jouw foto's zijn veilig ontvangen.<br>Geniet van de dag!</p>
     <button class="btn-again" onclick="resetForm()">Meer foto's toevoegen</button>
   </div>
 </div>
 
-<div class="footer">Met liefde gemaakt voor deze speciale dag &hearts;</div>
+<div class="footer" id="pageFooter">Met liefde gemaakt voor deze speciale dag ♥</div>
 
 <script>
-  // ── Event type definitions ──
-  // Each type defines: colors, header icon, pattern, default texts, success/footer copy.
-  const EVENT_TYPES = {
-    wedding: {
-      name:'Bruiloft', icon:'💍',
-      accent:'#c9806b', deep:'#5c3d2e', bg:'#fff8f0', light:'#faeae4', border:'#e8c4b0', text:'#3a2a20', muted:'#a08070',
-      defaultTitle:"Deel jouw bruiloftsfoto's", defaultSubtitle:'Help ons deze dag onvergetelijk te maken',
-      successIcon:'💐', footerText:'Met liefde gemaakt voor deze speciale dag ♥',
-      pattern:`url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Cpath d='M30 6L54 30L30 54L6 30Z' fill='%23ffffff' fill-opacity='0.12'/%3E%3Ccircle cx='30' cy='30' r='4' fill='%23ffffff' fill-opacity='0.08'/%3E%3C/g%3E%3C/svg%3E")`,
-    },
-    birthday: {
-      name:'Verjaardag', icon:'🎂',
-      accent:'#e0407a', deep:'#8b1048', bg:'#fff0f7', light:'#fddaec', border:'#f4a8cc', text:'#3a0820', muted:'#c060a0',
-      defaultTitle:"Deel jouw verjaardagsfoto's", defaultSubtitle:'Vier mee en deel de mooiste momenten!',
-      successIcon:'🎉', footerText:'Gefeliciteerd met deze bijzondere dag! 🎈',
-      pattern:`url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='20' cy='20' r='3' fill='%23ffffff' fill-opacity='0.15'/%3E%3Ccircle cx='0' cy='0' r='2' fill='%23ffffff' fill-opacity='0.1'/%3E%3Ccircle cx='40' cy='0' r='2' fill='%23ffffff' fill-opacity='0.1'/%3E%3Ccircle cx='0' cy='40' r='2' fill='%23ffffff' fill-opacity='0.1'/%3E%3Ccircle cx='40' cy='40' r='2' fill='%23ffffff' fill-opacity='0.1'/%3E%3Ccircle cx='10' cy='10' r='1' fill='%23ffffff' fill-opacity='0.08'/%3E%3Ccircle cx='30' cy='10' r='1' fill='%23ffffff' fill-opacity='0.08'/%3E%3Ccircle cx='10' cy='30' r='1' fill='%23ffffff' fill-opacity='0.08'/%3E%3Ccircle cx='30' cy='30' r='1' fill='%23ffffff' fill-opacity='0.08'/%3E%3C/svg%3E")`,
-    },
-    babyshower: {
-      name:'Baby Shower', icon:'👶',
-      accent:'#5ba3d0', deep:'#1e5f88', bg:'#f0f8ff', light:'#d4eaf8', border:'#9acce8', text:'#103050', muted:'#5888a8',
-      defaultTitle:"Deel jouw foto's", defaultSubtitle:'Welkom het nieuwe leven met ons!',
-      successIcon:'⭐', footerText:'Welkom in de wereld, kleine één ⭐',
-      pattern:`url("data:image/svg+xml,%3Csvg width='50' height='50' viewBox='0 0 50 50' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M25 8l2.4 7.3H35l-6.2 4.5 2.4 7.3L25 22.6l-6.2 4.5 2.4-7.3L15 15.3h7.6z' fill='%23ffffff' fill-opacity='0.14'/%3E%3Cpath d='M8 35l1.5 4.5H14l-3.8 2.8 1.5 4.5L8 44l-3.8 2.8 1.5-4.5L2 39.5h4.5z' fill='%23ffffff' fill-opacity='0.08'/%3E%3C/svg%3E")`,
-    },
-    anniversary: {
-      name:'Jubileum', icon:'🥂',
-      accent:'#b09030', deep:'#6a5010', bg:'#fdf8ee', light:'#f5e8b8', border:'#d8c078', text:'#302008', muted:'#907830',
-      defaultTitle:"Deel jouw jubileumfoto's", defaultSubtitle:'Samen vieren we dit bijzondere moment',
-      successIcon:'✨', footerText:'Op vele meer mooie jaren samen ✨',
-      pattern:`url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='30' cy='30' r='24' fill='none' stroke='%23ffffff' stroke-opacity='0.14' stroke-width='1.5'/%3E%3Ccircle cx='30' cy='30' r='14' fill='none' stroke='%23ffffff' stroke-opacity='0.09' stroke-width='1'/%3E%3Ccircle cx='30' cy='30' r='4' fill='%23ffffff' fill-opacity='0.09'/%3E%3C/svg%3E")`,
-    },
-    graduation: {
-      name:'Afstuderen', icon:'🎓',
-      accent:'#2c4a8a', deep:'#1a2d5a', bg:'#f0f4fa', light:'#dde6f5', border:'#9ab0d8', text:'#1a2040', muted:'#6070a0',
-      defaultTitle:"Deel jouw afstudeerfoto's", defaultSubtitle:'Gefeliciteerd met dit geweldige moment!',
-      successIcon:'🎓', footerText:'De toekomst is aan jou 🎓',
-      pattern:`url("data:image/svg+xml,%3Csvg width='60' height='40' viewBox='0 0 60 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolygon points='30,4 56,18 30,32 4,18' fill='%23ffffff' fill-opacity='0.09'/%3E%3Cpolygon points='30,10 50,18 30,26 10,18' fill='%23ffffff' fill-opacity='0.06'/%3E%3C/svg%3E")`,
-    },
-    christmas: {
-      name:'Kerst', icon:'🎄',
-      accent:'#c0392b', deep:'#7a1510', bg:'#fff8f8', light:'#fde0d8', border:'#e8a090', text:'#381008', muted:'#a05048',
-      defaultTitle:"Deel jouw kerstfoto's", defaultSubtitle:'Maak deze feestdagen onvergetelijk',
-      successIcon:'🎄', footerText:'Prettige kerstdagen en een gelukkig nieuwjaar 🎄',
-      pattern:`url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg stroke='%23ffffff' stroke-opacity='0.13' stroke-width='1.5' fill='none'%3E%3Cline x1='30' y1='5' x2='30' y2='55'/%3E%3Cline x1='5' y1='30' x2='55' y2='30'/%3E%3Cline x1='13' y1='13' x2='47' y2='47'/%3E%3Cline x1='47' y1='13' x2='13' y2='47'/%3E%3C/g%3E%3Ccircle cx='30' cy='30' r='3' fill='%23ffffff' fill-opacity='0.13'/%3E%3C/svg%3E")`,
-    },
-    corporate: {
-      name:'Bedrijfsfeest', icon:'🏢',
-      accent:'#1a7ab0', deep:'#0d4a70', bg:'#f0f7ff', light:'#d4e8f8', border:'#80bce0', text:'#0a2840', muted:'#4880a8',
-      defaultTitle:"Deel jouw foto's", defaultSubtitle:'Deel de hoogtepunten van dit feest',
-      successIcon:'🎊', footerText:'Bedankt voor jullie aanwezigheid 🎉',
-      pattern:`url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg stroke='%23ffffff' stroke-opacity='0.09' stroke-width='1.5' fill='none'%3E%3Crect x='8' y='8' width='44' height='44' rx='4'/%3E%3Crect x='18' y='18' width='24' height='24' rx='2'/%3E%3C/g%3E%3C/svg%3E")`,
-    },
-    nieuwjaar: {
-      name:'Nieuwjaar', icon:'🎆',
-      accent:'#c8a020', deep:'#1a0a40', bg:'#f8f4ff', light:'#e8d8f8', border:'#c0a0e0', text:'#1a0a30', muted:'#8060b0',
-      defaultTitle:"Deel jouw nieuwjaarsfoto's", defaultSubtitle:'Op een geweldig nieuw jaar samen!',
-      successIcon:'🥂', footerText:"Op een onvergetelijk nieuw jaar! 🥂",
-      pattern:`url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg stroke='%23ffffff' stroke-opacity='0.15' stroke-width='1.5' fill='none'%3E%3Cline x1='40' y1='10' x2='40' y2='30'/%3E%3Cline x1='40' y1='50' x2='40' y2='70'/%3E%3Cline x1='10' y1='40' x2='30' y2='40'/%3E%3Cline x1='50' y1='40' x2='70' y2='40'/%3E%3Cline x1='18' y1='18' x2='32' y2='32'/%3E%3Cline x1='48' y1='48' x2='62' y2='62'/%3E%3Cline x1='62' y1='18' x2='48' y2='32'/%3E%3Cline x1='32' y1='48' x2='18' y2='62'/%3E%3C/g%3E%3Ccircle cx='40' cy='40' r='4' fill='%23ffffff' fill-opacity='0.18'/%3E%3C/svg%3E")`,
-    },
-  };
+// ── Pattern helper: clean SVG → data URL ──
+function svgPat(svg) {
+  return 'url("data:image/svg+xml,' + encodeURIComponent(svg.trim()) + '")';
+}
 
-  function applyEventType(key, customTitle, customSubtitle) {
-    const e = EVENT_TYPES[key] || EVENT_TYPES.wedding;
-    const r = document.documentElement;
-    r.style.setProperty('--bg',     e.bg);
-    r.style.setProperty('--light',  e.light);
-    r.style.setProperty('--border', e.border);
-    r.style.setProperty('--accent', e.accent);
-    r.style.setProperty('--deep',   e.deep);
-    r.style.setProperty('--text',   e.text);
-    r.style.setProperty('--muted',  e.muted);
-    document.getElementById('headerIcon').textContent    = e.icon;
-    document.getElementById('headerTitle').textContent   = customTitle    || e.defaultTitle;
-    document.getElementById('headerSubtitle').textContent= customSubtitle || e.defaultSubtitle;
-    document.querySelector('.footer').textContent        = e.footerText;
-    const di = document.getElementById('dropIcon');
-    if (di) di.textContent = e.icon;
-    const si = document.getElementById('successIconEl');
-    if (si) si.textContent = e.successIcon;
-    // Inject header pattern via a dedicated style tag
-    let s = document.getElementById('dyn-style');
-    if (!s) { s = document.createElement('style'); s.id = 'dyn-style'; document.head.appendChild(s); }
-    s.textContent = `.header::before { background-image: ${e.pattern}; }`;
-  }
+// ── Event type definitions ──
+const EVENT_TYPES = {
+  wedding: {
+    name:'Bruiloft', icon:'💍',
+    accent:'#c9806b', deep:'#5c3d2e', bg:'#fff8f0', light:'#faeae4', border:'#e8c4b0', text:'#3a2a20', muted:'#a08070',
+    defaultTitle:"Deel jouw bruiloftsfoto's", defaultSubtitle:'Help ons deze dag onvergetelijk te maken',
+    successIcon:'💐', footerText:'Met liefde gemaakt voor deze bijzondere dag ♥',
+    pattern: svgPat(`<svg width="160" height="160" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
+      <g stroke="white" stroke-opacity="0.22" stroke-width="1.1" fill="none">
+        <line x1="40" y1="148" x2="40" y2="108"/>
+        <line x1="40" y1="108" x2="22" y2="85"/><line x1="40" y1="108" x2="40" y2="82"/><line x1="40" y1="108" x2="58" y2="86"/>
+        <line x1="22" y1="85" x2="13" y2="70"/><line x1="22" y1="85" x2="22" y2="68"/><line x1="22" y1="85" x2="31" y2="70"/>
+        <line x1="40" y1="82" x2="33" y2="67"/><line x1="40" y1="82" x2="40" y2="65"/><line x1="40" y1="82" x2="47" y2="67"/>
+        <line x1="58" y1="86" x2="51" y2="70"/><line x1="58" y1="86" x2="58" y2="68"/><line x1="58" y1="86" x2="65" y2="71"/>
+      </g>
+      <g fill="white" fill-opacity="0.30">
+        <circle cx="13" cy="67" r="3.2"/><circle cx="22" cy="65" r="3.2"/><circle cx="31" cy="67" r="3.2"/>
+        <circle cx="33" cy="64" r="3.2"/><circle cx="40" cy="62" r="3.2"/><circle cx="47" cy="64" r="3.2"/>
+        <circle cx="51" cy="67" r="3.2"/><circle cx="58" cy="65" r="3.2"/><circle cx="65" cy="68" r="3.2"/>
+      </g>
+      <g stroke="white" stroke-opacity="0.15" stroke-width="0.9" fill="none">
+        <line x1="118" y1="155" x2="118" y2="122"/>
+        <line x1="118" y1="122" x2="106" y2="103"/><line x1="118" y1="122" x2="118" y2="100"/><line x1="118" y1="122" x2="130" y2="104"/>
+        <line x1="106" y1="103" x2="100" y2="91"/><line x1="106" y1="103" x2="106" y2="89"/><line x1="106" y1="103" x2="112" y2="91"/>
+        <line x1="118" y1="100" x2="113" y2="88"/><line x1="118" y1="100" x2="118" y2="86"/><line x1="118" y1="100" x2="123" y2="88"/>
+        <line x1="130" y1="104" x2="125" y2="91"/><line x1="130" y1="104" x2="130" y2="89"/>
+      </g>
+      <g fill="white" fill-opacity="0.20">
+        <circle cx="100" cy="89" r="2.4"/><circle cx="106" cy="87" r="2.4"/><circle cx="112" cy="89" r="2.4"/>
+        <circle cx="113" cy="86" r="2.4"/><circle cx="118" cy="84" r="2.4"/><circle cx="123" cy="86" r="2.4"/>
+        <circle cx="125" cy="89" r="2.4"/><circle cx="130" cy="87" r="2.4"/>
+      </g>
+    </svg>`),
+  },
 
-  // Fallback: plain colour theme (no event type selected)
-  function applyTheme(name) {
-    const MAP = {
-      green:    { icon:'🌿', accent:'#3a7d44', deep:'#1e4d28', bg:'#f4faf5', light:'#e8f5ea', border:'#b2ddb8', text:'#1a3320', muted:'#6a9070' },
-      rose:     { icon:'🌹', accent:'#c9806b', deep:'#5c3d2e', bg:'#fff8f0', light:'#f2d7d0', border:'#f2d7d0', text:'#3a2a20', muted:'#a08070' },
-      navy:     { icon:'⚓',  accent:'#2c4a8a', deep:'#1a2d5a', bg:'#f0f4fa', light:'#dde6f5', border:'#9ab0d8', text:'#1a2040', muted:'#6070a0' },
-      lavender: { icon:'💜', accent:'#8050a8', deep:'#4a2870', bg:'#faf0ff', light:'#ecddf5', border:'#c8a8e0', text:'#301848', muted:'#8068a0' },
-      sage:     { icon:'🌾', accent:'#7a6040', deep:'#4a3820', bg:'#faf6f0', light:'#ede8d8', border:'#c0b090', text:'#302818', muted:'#907858' },
-      midnight: { icon:'✨', accent:'#b09030', deep:'#1a1a10', bg:'#f8f8f6', light:'#eeeee8', border:'#c8b870', text:'#201c08', muted:'#807040' },
-    };
-    const t = MAP[name] || MAP.green;
-    const r = document.documentElement;
-    r.style.setProperty('--bg', t.bg); r.style.setProperty('--light', t.light);
-    r.style.setProperty('--border', t.border); r.style.setProperty('--accent', t.accent);
-    r.style.setProperty('--deep', t.deep); r.style.setProperty('--text', t.text);
-    r.style.setProperty('--muted', t.muted);
-    document.getElementById('headerIcon').textContent = t.icon;
-  }
+  birthday: {
+    name:'Verjaardag', icon:'🎂',
+    accent:'#e0407a', deep:'#8b1048', bg:'#fff0f7', light:'#fddaec', border:'#f4a8cc', text:'#3a0820', muted:'#c060a0',
+    defaultTitle:"Deel jouw verjaardagsfoto's", defaultSubtitle:'Vier mee en deel de mooiste momenten!',
+    successIcon:'🎉', footerText:'Gefeliciteerd met deze bijzondere dag! 🎈',
+    pattern: svgPat(`<svg width="100" height="130" viewBox="0 0 100 130" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="28" cy="30" rx="18" ry="22" fill="white" fill-opacity="0.24"/>
+      <ellipse cx="22" cy="24" rx="6" ry="7" fill="white" fill-opacity="0.10"/>
+      <polygon points="28,52 24,58 32,58" fill="white" fill-opacity="0.24"/>
+      <path d="M28 58 Q34 72 28 88 Q24 100 28 118" fill="none" stroke="white" stroke-opacity="0.17" stroke-width="1.4"/>
+      <ellipse cx="72" cy="50" rx="14" ry="18" fill="white" fill-opacity="0.18"/>
+      <ellipse cx="67" cy="44" rx="4.5" ry="5.5" fill="white" fill-opacity="0.08"/>
+      <polygon points="72,68 69,73 75,73" fill="white" fill-opacity="0.18"/>
+      <path d="M72 73 Q68 84 72 96 Q76 108 70 120" fill="none" stroke="white" stroke-opacity="0.13" stroke-width="1.1"/>
+      <ellipse cx="56" cy="10" rx="10" ry="13" fill="white" fill-opacity="0.13"/>
+      <polygon points="56,23 54,27 58,27" fill="white" fill-opacity="0.13"/>
+      <path d="M56 27 Q59 36 55 46" fill="none" stroke="white" stroke-opacity="0.10" stroke-width="0.9"/>
+    </svg>`),
+  },
 
-  // ── Boot: read event ID from URL, load settings ──
-  const eventId = new URLSearchParams(location.search).get('event');
+  babyshower: {
+    name:'Baby Shower', icon:'👶',
+    accent:'#5ba3d0', deep:'#1e5f88', bg:'#f0f8ff', light:'#d4eaf8', border:'#9acce8', text:'#103050', muted:'#5888a8',
+    defaultTitle:"Deel jouw foto's", defaultSubtitle:'Welkom het nieuwe leven met ons!',
+    successIcon:'⭐', footerText:'Welkom in de wereld, kleine één ⭐',
+    pattern: svgPat(`<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+      <path d="M24 5 L27.3 15.2 L38 15.2 L29.5 21.5 L32.9 31.7 L24 25.4 L15.1 31.7 L18.5 21.5 L10 15.2 L20.7 15.2 Z" fill="white" fill-opacity="0.24"/>
+      <path d="M90 78 L92.5 86 L101 86 L94.3 91 L96.8 99 L90 94.3 L83.2 99 L85.7 91 L79 86 L87.5 86 Z" fill="white" fill-opacity="0.18"/>
+      <path d="M68 35 L69.8 40.4 L75.5 40.4 L71 43.8 L72.8 49.2 L68 45.9 L63.2 49.2 L65 43.8 L60.5 40.4 L66.2 40.4 Z" fill="white" fill-opacity="0.14"/>
+      <path d="M90 14 C90 10.5 93.5 8 96 10 C98.5 8 102 10.5 102 14 C102 19 96 25 96 25 C96 25 90 19 90 14 Z" fill="white" fill-opacity="0.22"/>
+      <path d="M14 80 C14 77.5 16.5 76 18 77.5 C19.5 76 22 77.5 22 80 C22 83.5 18 87 18 87 C18 87 14 83.5 14 80 Z" fill="white" fill-opacity="0.17"/>
+      <circle cx="55" cy="68" r="4" fill="white" fill-opacity="0.13"/>
+      <circle cx="38" cy="100" r="3" fill="white" fill-opacity="0.11"/>
+      <circle cx="100" cy="48" r="2.5" fill="white" fill-opacity="0.13"/>
+      <circle cx="8" cy="46" r="2" fill="white" fill-opacity="0.10"/>
+      <circle cx="75" cy="108" r="3.5" fill="white" fill-opacity="0.11"/>
+    </svg>`),
+  },
 
-  (async () => {
-    if (!eventId) {
-      // No event ID — show a friendly message instead of the upload form
-      document.getElementById('uploadCard').style.display = 'none';
-      document.getElementById('headerTitle').textContent  = 'My Memories';
-      document.getElementById('headerSubtitle').textContent = 'Scan de QR code van jouw evenement om foto\'s te uploaden.';
-      const di = document.getElementById('dropIcon');
-      if (di) di.textContent = '📷';
-      return;
+  anniversary: {
+    name:'Jubileum', icon:'🥂',
+    accent:'#b09030', deep:'#6a5010', bg:'#fdf8ee', light:'#f5e8b8', border:'#d8c078', text:'#302008', muted:'#907830',
+    defaultTitle:"Deel jouw jubileumfoto's", defaultSubtitle:'Samen vieren we dit bijzondere moment',
+    successIcon:'✨', footerText:'Op vele meer mooie jaren samen ✨',
+    pattern: svgPat(`<svg width="130" height="100" viewBox="0 0 130 100" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="42" cy="40" r="24" fill="none" stroke="white" stroke-opacity="0.24" stroke-width="3"/>
+      <circle cx="62" cy="40" r="24" fill="none" stroke="white" stroke-opacity="0.24" stroke-width="3"/>
+      <path d="M97 28 C97 24.5 100.5 22 103 24 C105.5 22 109 24.5 109 28 C109 33 103 39 103 39 C103 39 97 33 97 28 Z" fill="white" fill-opacity="0.22"/>
+      <circle cx="112" cy="76" r="3.5" fill="none" stroke="white" stroke-opacity="0.20" stroke-width="1.4"/>
+      <circle cx="117" cy="62" r="2.8" fill="none" stroke="white" stroke-opacity="0.16" stroke-width="1.1"/>
+      <circle cx="110" cy="50" r="2" fill="none" stroke="white" stroke-opacity="0.13" stroke-width="0.9"/>
+      <circle cx="119" cy="42" r="1.5" fill="none" stroke="white" stroke-opacity="0.10" stroke-width="0.8"/>
+      <path d="M14 72 C14 69.5 16 68 17.5 69.5 C19 68 21 69.5 21 72 C21 75 17.5 78 17.5 78 C17.5 78 14 75 14 72 Z" fill="white" fill-opacity="0.17"/>
+    </svg>`),
+  },
+
+  graduation: {
+    name:'Afstuderen', icon:'🎓',
+    accent:'#2c4a8a', deep:'#1a2d5a', bg:'#f0f4fa', light:'#dde6f5', border:'#9ab0d8', text:'#1a2040', muted:'#6070a0',
+    defaultTitle:"Deel jouw afstudeerfoto's", defaultSubtitle:'Gefeliciteerd met dit geweldige moment!',
+    successIcon:'🎓', footerText:'De toekomst is aan jou 🎓',
+    pattern: svgPat(`<svg width="140" height="100" viewBox="0 0 140 100" xmlns="http://www.w3.org/2000/svg">
+      <rect x="6" y="26" width="44" height="7" rx="1.5" fill="white" fill-opacity="0.24"/>
+      <rect x="14" y="33" width="28" height="16" rx="2" fill="white" fill-opacity="0.20"/>
+      <line x1="28" y1="26" x2="40" y2="40" stroke="white" stroke-opacity="0.22" stroke-width="2.2"/>
+      <rect x="38" y="40" width="6" height="13" rx="2" fill="white" fill-opacity="0.20"/>
+      <line x1="38" y1="53" x2="36" y2="61" stroke="white" stroke-opacity="0.18" stroke-width="1.6"/>
+      <line x1="41" y1="53" x2="41" y2="62" stroke="white" stroke-opacity="0.18" stroke-width="1.6"/>
+      <line x1="44" y1="53" x2="46" y2="61" stroke="white" stroke-opacity="0.18" stroke-width="1.6"/>
+      <rect x="88" y="56" width="36" height="6" rx="1.5" fill="white" fill-opacity="0.16"/>
+      <rect x="95" y="62" width="22" height="12" rx="2" fill="white" fill-opacity="0.13"/>
+      <line x1="106" y1="56" x2="116" y2="67" stroke="white" stroke-opacity="0.15" stroke-width="1.7"/>
+      <rect x="114" y="67" width="5" height="10" rx="1.5" fill="white" fill-opacity="0.14"/>
+      <line x1="114" y1="77" x2="112" y2="84" stroke="white" stroke-opacity="0.13" stroke-width="1.2"/>
+      <line x1="116.5" y1="77" x2="116.5" y2="85" stroke="white" stroke-opacity="0.13" stroke-width="1.2"/>
+      <line x1="119" y1="77" x2="121" y2="84" stroke="white" stroke-opacity="0.13" stroke-width="1.2"/>
+    </svg>`),
+  },
+
+  christmas: {
+    name:'Kerst', icon:'🎄',
+    accent:'#c0392b', deep:'#7a1510', bg:'#fff8f8', light:'#fde0d8', border:'#e8a090', text:'#381008', muted:'#a05048',
+    defaultTitle:"Deel jouw kerstfoto's", defaultSubtitle:'Maak deze feestdagen onvergetelijk',
+    successIcon:'🎄', footerText:'Prettige kerstdagen en een gelukkig nieuwjaar 🎄',
+    pattern: svgPat(`<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+      <g transform="translate(32,32)">
+        <g stroke="white" stroke-opacity="0.24" stroke-width="1.7" fill="none">
+          <g transform="rotate(0)"><line x1="0" y1="0" x2="0" y2="-22"/><line x1="-5" y1="-13" x2="0" y2="-17"/><line x1="5" y1="-13" x2="0" y2="-17"/><line x1="-3" y1="-7" x2="0" y2="-10"/><line x1="3" y1="-7" x2="0" y2="-10"/></g>
+          <g transform="rotate(60)"><line x1="0" y1="0" x2="0" y2="-22"/><line x1="-5" y1="-13" x2="0" y2="-17"/><line x1="5" y1="-13" x2="0" y2="-17"/><line x1="-3" y1="-7" x2="0" y2="-10"/><line x1="3" y1="-7" x2="0" y2="-10"/></g>
+          <g transform="rotate(120)"><line x1="0" y1="0" x2="0" y2="-22"/><line x1="-5" y1="-13" x2="0" y2="-17"/><line x1="5" y1="-13" x2="0" y2="-17"/><line x1="-3" y1="-7" x2="0" y2="-10"/><line x1="3" y1="-7" x2="0" y2="-10"/></g>
+          <g transform="rotate(180)"><line x1="0" y1="0" x2="0" y2="-22"/><line x1="-5" y1="-13" x2="0" y2="-17"/><line x1="5" y1="-13" x2="0" y2="-17"/><line x1="-3" y1="-7" x2="0" y2="-10"/><line x1="3" y1="-7" x2="0" y2="-10"/></g>
+          <g transform="rotate(240)"><line x1="0" y1="0" x2="0" y2="-22"/><line x1="-5" y1="-13" x2="0" y2="-17"/><line x1="5" y1="-13" x2="0" y2="-17"/><line x1="-3" y1="-7" x2="0" y2="-10"/><line x1="3" y1="-7" x2="0" y2="-10"/></g>
+          <g transform="rotate(300)"><line x1="0" y1="0" x2="0" y2="-22"/><line x1="-5" y1="-13" x2="0" y2="-17"/><line x1="5" y1="-13" x2="0" y2="-17"/><line x1="-3" y1="-7" x2="0" y2="-10"/><line x1="3" y1="-7" x2="0" y2="-10"/></g>
+        </g>
+        <circle cx="0" cy="0" r="3" fill="white" fill-opacity="0.24"/>
+      </g>
+      <g transform="translate(90,88)">
+        <g stroke="white" stroke-opacity="0.16" stroke-width="1.2" fill="none">
+          <g transform="rotate(0)"><line x1="0" y1="0" x2="0" y2="-15"/><line x1="-3.5" y1="-9" x2="0" y2="-12"/><line x1="3.5" y1="-9" x2="0" y2="-12"/></g>
+          <g transform="rotate(60)"><line x1="0" y1="0" x2="0" y2="-15"/><line x1="-3.5" y1="-9" x2="0" y2="-12"/><line x1="3.5" y1="-9" x2="0" y2="-12"/></g>
+          <g transform="rotate(120)"><line x1="0" y1="0" x2="0" y2="-15"/><line x1="-3.5" y1="-9" x2="0" y2="-12"/><line x1="3.5" y1="-9" x2="0" y2="-12"/></g>
+          <g transform="rotate(180)"><line x1="0" y1="0" x2="0" y2="-15"/><line x1="-3.5" y1="-9" x2="0" y2="-12"/><line x1="3.5" y1="-9" x2="0" y2="-12"/></g>
+          <g transform="rotate(240)"><line x1="0" y1="0" x2="0" y2="-15"/><line x1="-3.5" y1="-9" x2="0" y2="-12"/><line x1="3.5" y1="-9" x2="0" y2="-12"/></g>
+          <g transform="rotate(300)"><line x1="0" y1="0" x2="0" y2="-15"/><line x1="-3.5" y1="-9" x2="0" y2="-12"/><line x1="3.5" y1="-9" x2="0" y2="-12"/></g>
+        </g>
+        <circle cx="0" cy="0" r="2" fill="white" fill-opacity="0.16"/>
+      </g>
+    </svg>`),
+  },
+
+  corporate: {
+    name:'Bedrijfsfeest', icon:'🏢',
+    accent:'#1a7ab0', deep:'#0d4a70', bg:'#f0f7ff', light:'#d4e8f8', border:'#80bce0', text:'#0a2840', muted:'#4880a8',
+    defaultTitle:"Deel jouw foto's", defaultSubtitle:'Deel de hoogtepunten van dit feest',
+    successIcon:'🎊', footerText:'Bedankt voor jullie aanwezigheid 🎉',
+    pattern: svgPat(`<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <rect x="7" y="9" width="10" height="5" rx="2" transform="rotate(-25 12 11.5)" fill="white" fill-opacity="0.24"/>
+      <rect x="38" y="4" width="8" height="4" rx="2" transform="rotate(40 42 6)" fill="white" fill-opacity="0.20"/>
+      <rect x="68" y="16" width="10" height="5" rx="2" transform="rotate(-50 73 18.5)" fill="white" fill-opacity="0.24"/>
+      <rect x="83" y="43" width="8" height="4" rx="2" transform="rotate(20 87 45)" fill="white" fill-opacity="0.18"/>
+      <rect x="58" y="63" width="10" height="4.5" rx="2" transform="rotate(-35 63 65.25)" fill="white" fill-opacity="0.20"/>
+      <rect x="18" y="58" width="9" height="4" rx="2" transform="rotate(55 22.5 60)" fill="white" fill-opacity="0.22"/>
+      <rect x="4" y="78" width="11" height="5" rx="2" transform="rotate(-15 9.5 80.5)" fill="white" fill-opacity="0.18"/>
+      <rect x="42" y="80" width="8" height="4" rx="2" transform="rotate(30 46 82)" fill="white" fill-opacity="0.15"/>
+      <rect x="78" y="76" width="9" height="4" rx="2" transform="rotate(-45 82.5 78)" fill="white" fill-opacity="0.20"/>
+      <circle cx="30" cy="26" r="3.5" fill="white" fill-opacity="0.18"/>
+      <circle cx="53" cy="46" r="4" fill="white" fill-opacity="0.13"/>
+      <circle cx="76" cy="32" r="2.5" fill="white" fill-opacity="0.18"/>
+      <circle cx="10" cy="46" r="2.5" fill="white" fill-opacity="0.13"/>
+      <circle cx="90" cy="66" r="3" fill="white" fill-opacity="0.15"/>
+      <path d="M50 17 L51.5 22 L57 22 L52.5 25.2 L54 30 L50 27 L46 30 L47.5 25.2 L43 22 L48.5 22 Z" fill="white" fill-opacity="0.15"/>
+    </svg>`),
+  },
+
+  nieuwjaar: {
+    name:'Nieuwjaar', icon:'🎆',
+    accent:'#c8a020', deep:'#1a0a40', bg:'#f8f4ff', light:'#e8d8f8', border:'#c0a0e0', text:'#1a0a30', muted:'#8060b0',
+    defaultTitle:"Deel jouw nieuwjaarsfoto's", defaultSubtitle:'Op een geweldig nieuw jaar samen!',
+    successIcon:'🥂', footerText:'Op een onvergetelijk nieuw jaar! 🥂',
+    pattern: svgPat(`<svg width="140" height="140" viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg">
+      <g transform="translate(44,55)">
+        <g stroke="white" stroke-opacity="0.24" stroke-width="1.6" fill="none">
+          <g transform="rotate(0)"><line x1="0" y1="-8" x2="0" y2="-26"/></g>
+          <g transform="rotate(45)"><line x1="0" y1="-8" x2="0" y2="-26"/></g>
+          <g transform="rotate(90)"><line x1="0" y1="-8" x2="0" y2="-26"/></g>
+          <g transform="rotate(135)"><line x1="0" y1="-8" x2="0" y2="-26"/></g>
+          <g transform="rotate(180)"><line x1="0" y1="-8" x2="0" y2="-26"/></g>
+          <g transform="rotate(225)"><line x1="0" y1="-8" x2="0" y2="-26"/></g>
+          <g transform="rotate(270)"><line x1="0" y1="-8" x2="0" y2="-26"/></g>
+          <g transform="rotate(315)"><line x1="0" y1="-8" x2="0" y2="-26"/></g>
+        </g>
+        <g fill="white" fill-opacity="0.30">
+          <g transform="rotate(0)"><circle cx="0" cy="-27" r="2.8"/></g>
+          <g transform="rotate(45)"><circle cx="0" cy="-27" r="2.8"/></g>
+          <g transform="rotate(90)"><circle cx="0" cy="-27" r="2.8"/></g>
+          <g transform="rotate(135)"><circle cx="0" cy="-27" r="2.8"/></g>
+          <g transform="rotate(180)"><circle cx="0" cy="-27" r="2.8"/></g>
+          <g transform="rotate(225)"><circle cx="0" cy="-27" r="2.8"/></g>
+          <g transform="rotate(270)"><circle cx="0" cy="-27" r="2.8"/></g>
+          <g transform="rotate(315)"><circle cx="0" cy="-27" r="2.8"/></g>
+        </g>
+        <circle cx="0" cy="0" r="3.5" fill="white" fill-opacity="0.30"/>
+      </g>
+      <g transform="translate(104,32)">
+        <g stroke="white" stroke-opacity="0.17" stroke-width="1.2" fill="none">
+          <g transform="rotate(0)"><line x1="0" y1="-6" x2="0" y2="-18"/></g>
+          <g transform="rotate(51.4)"><line x1="0" y1="-6" x2="0" y2="-18"/></g>
+          <g transform="rotate(102.9)"><line x1="0" y1="-6" x2="0" y2="-18"/></g>
+          <g transform="rotate(154.3)"><line x1="0" y1="-6" x2="0" y2="-18"/></g>
+          <g transform="rotate(205.7)"><line x1="0" y1="-6" x2="0" y2="-18"/></g>
+          <g transform="rotate(257.1)"><line x1="0" y1="-6" x2="0" y2="-18"/></g>
+          <g transform="rotate(308.6)"><line x1="0" y1="-6" x2="0" y2="-18"/></g>
+        </g>
+        <g fill="white" fill-opacity="0.22">
+          <g transform="rotate(0)"><circle cx="0" cy="-19" r="2.2"/></g>
+          <g transform="rotate(51.4)"><circle cx="0" cy="-19" r="2.2"/></g>
+          <g transform="rotate(102.9)"><circle cx="0" cy="-19" r="2.2"/></g>
+          <g transform="rotate(154.3)"><circle cx="0" cy="-19" r="2.2"/></g>
+          <g transform="rotate(205.7)"><circle cx="0" cy="-19" r="2.2"/></g>
+          <g transform="rotate(257.1)"><circle cx="0" cy="-19" r="2.2"/></g>
+          <g transform="rotate(308.6)"><circle cx="0" cy="-19" r="2.2"/></g>
+        </g>
+        <circle cx="0" cy="0" r="2.5" fill="white" fill-opacity="0.22"/>
+      </g>
+      <g transform="translate(118,108)">
+        <g stroke="white" stroke-opacity="0.13" stroke-width="0.9" fill="none">
+          <g transform="rotate(0)"><line x1="0" y1="-4" x2="0" y2="-13"/></g>
+          <g transform="rotate(60)"><line x1="0" y1="-4" x2="0" y2="-13"/></g>
+          <g transform="rotate(120)"><line x1="0" y1="-4" x2="0" y2="-13"/></g>
+          <g transform="rotate(180)"><line x1="0" y1="-4" x2="0" y2="-13"/></g>
+          <g transform="rotate(240)"><line x1="0" y1="-4" x2="0" y2="-13"/></g>
+          <g transform="rotate(300)"><line x1="0" y1="-4" x2="0" y2="-13"/></g>
+        </g>
+        <g fill="white" fill-opacity="0.17">
+          <g transform="rotate(0)"><circle cx="0" cy="-14" r="1.6"/></g>
+          <g transform="rotate(60)"><circle cx="0" cy="-14" r="1.6"/></g>
+          <g transform="rotate(120)"><circle cx="0" cy="-14" r="1.6"/></g>
+          <g transform="rotate(180)"><circle cx="0" cy="-14" r="1.6"/></g>
+          <g transform="rotate(240)"><circle cx="0" cy="-14" r="1.6"/></g>
+          <g transform="rotate(300)"><circle cx="0" cy="-14" r="1.6"/></g>
+        </g>
+      </g>
+    </svg>`),
+  },
+};
+
+// ── Theme color overrides (only affect CSS vars, not icon/pattern) ──
+const THEME_COLORS = {
+  green:    { accent:'#3a7d44', deep:'#1e4d28', bg:'#f4faf5', light:'#e8f5ea', border:'#b2ddb8', text:'#1a3320', muted:'#6a9070' },
+  rose:     { accent:'#c9806b', deep:'#5c3d2e', bg:'#fff8f0', light:'#f2d7d0', border:'#f2d7d0', text:'#3a2a20', muted:'#a08070' },
+  navy:     { accent:'#2c4a8a', deep:'#1a2d5a', bg:'#f0f4fa', light:'#dde6f5', border:'#9ab0d8', text:'#1a2040', muted:'#6070a0' },
+  lavender: { accent:'#8050a8', deep:'#4a2870', bg:'#faf0ff', light:'#ecddf5', border:'#c8a8e0', text:'#301848', muted:'#8068a0' },
+  sage:     { accent:'#7a6040', deep:'#4a3820', bg:'#faf6f0', light:'#ede8d8', border:'#c0b090', text:'#302818', muted:'#907858' },
+  midnight: { accent:'#b09030', deep:'#1a1a10', bg:'#f8f8f6', light:'#eeeee8', border:'#c8b870', text:'#201c08', muted:'#807040' },
+};
+
+function applyEventType(key, customTitle, customSubtitle) {
+  const e = EVENT_TYPES[key] || EVENT_TYPES.wedding;
+  const r = document.documentElement;
+  r.style.setProperty('--bg',     e.bg);
+  r.style.setProperty('--light',  e.light);
+  r.style.setProperty('--border', e.border);
+  r.style.setProperty('--accent', e.accent);
+  r.style.setProperty('--deep',   e.deep);
+  r.style.setProperty('--text',   e.text);
+  r.style.setProperty('--muted',  e.muted);
+  document.getElementById('headerIcon').textContent     = e.icon;
+  document.getElementById('headerTitle').textContent    = customTitle    || e.defaultTitle;
+  document.getElementById('headerSubtitle').textContent = customSubtitle || e.defaultSubtitle;
+  document.getElementById('pageFooter').textContent     = e.footerText;
+  const di = document.getElementById('dropIcon');
+  if (di) di.textContent = e.icon;
+  const si = document.getElementById('successIconEl');
+  if (si) si.textContent = e.successIcon;
+  // Inject pattern
+  let s = document.getElementById('dyn-style');
+  if (!s) { s = document.createElement('style'); s.id = 'dyn-style'; document.head.appendChild(s); }
+  s.textContent = `.header::before { background-image: ${e.pattern}; }`;
+}
+
+function applyThemeColors(name) {
+  const t = THEME_COLORS[name];
+  if (!t) return;
+  const r = document.documentElement;
+  r.style.setProperty('--bg',     t.bg);
+  r.style.setProperty('--light',  t.light);
+  r.style.setProperty('--border', t.border);
+  r.style.setProperty('--accent', t.accent);
+  r.style.setProperty('--deep',   t.deep);
+  r.style.setProperty('--text',   t.text);
+  r.style.setProperty('--muted',  t.muted);
+}
+
+// ── Boot: resolve event ID from ?event= or /e/:slug ──
+let eventId = new URLSearchParams(location.search).get('event');
+
+(async () => {
+  if (!eventId && window.location.pathname.startsWith('/e/')) {
+    const slug = window.location.pathname.replace(/^\/e\//, '').split('/')[0];
+    if (slug) {
+      try {
+        const r = await fetch('/api/events/by-slug/' + slug);
+        if (r.ok) { const d = await r.json(); eventId = d.id; }
+      } catch(e) { /* fall through */ }
     }
-    try {
-      const r = await fetch(`/api/events/${eventId}/settings`);
-      if (!r.ok) throw new Error('Evenement niet gevonden');
-      const s = await r.json();
-      if (s.eventType && EVENT_TYPES[s.eventType]) {
-        applyEventType(s.eventType, s.welcomeTitle, s.welcomeSubtitle);
-      } else {
-        if (s.theme) applyTheme(s.theme);
-        if (s.welcomeTitle)    document.getElementById('headerTitle').textContent    = s.welcomeTitle;
-        if (s.welcomeSubtitle) document.getElementById('headerSubtitle').textContent = s.welcomeSubtitle;
-      }
-      if (s.bannerUrl) {
-        document.getElementById('bannerImg').src = s.bannerUrl;
-        document.getElementById('bannerWrap').style.display = 'block';
-      }
-      if (s.hasGuestPassword) {
-        document.getElementById('passwordCard').style.display = 'block';
-        document.getElementById('uploadCard').style.display   = 'none';
-      }
-    } catch { /* use defaults */ }
-  })();
+  }
 
-  // ── Guest password verification ──
-  async function verifyGuestPassword() {
-    const pw  = document.getElementById('guestPwInput').value;
-    const err = document.getElementById('pwErrorMsg');
-    try {
-      const r = await fetch(`/api/events/${eventId}/verify-guest-password`, {
-        method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ password: pw })
-      });
-      if (r.ok) {
-        document.getElementById('passwordCard').style.display = 'none';
-        document.getElementById('uploadCard').style.display   = 'block';
-      } else {
-        err.textContent = 'Onjuist wachtwoord. Probeer opnieuw.';
-        err.style.display = 'block';
-        setTimeout(() => err.style.display = 'none', 4000);
-        document.getElementById('guestPwInput').select();
-      }
-    } catch {
-      err.textContent = 'Er ging iets mis. Probeer opnieuw.';
-      err.style.display = 'block';
+  if (!eventId) {
+    document.getElementById('uploadCard').style.display = 'none';
+    document.getElementById('headerTitle').textContent = 'My Memories';
+    document.getElementById('headerSubtitle').textContent = 'Scan de QR-code van jouw evenement om foto\'s te uploaden.';
+    return;
+  }
+
+  try {
+    const r = await fetch(`/api/events/${eventId}/settings`);
+    if (!r.ok) throw new Error('Niet gevonden');
+    const s = await r.json();
+
+    if (s.eventType && EVENT_TYPES[s.eventType]) {
+      applyEventType(s.eventType, s.welcomeTitle, s.welcomeSubtitle);
+      // Only override colours if user explicitly chose a theme
+      if (s.theme && THEME_COLORS[s.theme]) applyThemeColors(s.theme);
+    } else {
+      if (s.welcomeTitle)    document.getElementById('headerTitle').textContent    = s.welcomeTitle;
+      if (s.welcomeSubtitle) document.getElementById('headerSubtitle').textContent = s.welcomeSubtitle;
     }
-  }
 
-  // ── Upload logic ──
-  const fileInput     = document.getElementById('fileInput');
-  const dropZone      = document.getElementById('dropZone');
-  const previewGrid   = document.getElementById('previewGrid');
-  const fileCount     = document.getElementById('fileCount');
-  const uploadForm    = document.getElementById('uploadForm');
-  const uploadBtn     = document.getElementById('uploadBtn');
-  const progressWrap  = document.getElementById('progressWrap');
-  const progressFill  = document.getElementById('progressFill');
-  const progressLabel = document.getElementById('progressLabel');
-  const successScreen = document.getElementById('successScreen');
-  const errorMsg      = document.getElementById('errorMsg');
-  let selectedFiles   = [];
+    if (s.bannerUrl) {
+      document.getElementById('bannerImg').src = s.bannerUrl;
+      document.getElementById('bannerWrap').style.display = 'block';
+    }
+    if (s.hasGuestPassword) {
+      document.getElementById('passwordCard').style.display = 'block';
+      document.getElementById('uploadCard').style.display   = 'none';
+    }
+  } catch { /* use defaults */ }
+})();
 
-  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
-  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
-  dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('drag-over'); addFiles([...e.dataTransfer.files]); });
-  fileInput.addEventListener('change', () => { addFiles([...fileInput.files]); fileInput.value = ''; });
-
-  function addFiles(files) {
-    files.filter(f => f.type.startsWith('image/') || /\.(heic|heif)$/i.test(f.name))
-         .forEach(f => { if (!selectedFiles.find(s => s.name===f.name && s.size===f.size)) selectedFiles.push(f); });
-    renderPreviews();
-  }
-
-  function renderPreviews() {
-    previewGrid.innerHTML = '';
-    selectedFiles.forEach((file, i) => {
-      const item = document.createElement('div'); item.className = 'preview-item';
-      const img  = document.createElement('img');
-      const rd   = new FileReader(); rd.onload = e => img.src = e.target.result; rd.readAsDataURL(file);
-      const btn  = document.createElement('button'); btn.className = 'remove-btn'; btn.innerHTML = '&times;'; btn.type = 'button';
-      btn.onclick = () => { selectedFiles.splice(i,1); renderPreviews(); };
-      item.appendChild(img); item.appendChild(btn); previewGrid.appendChild(item);
+// ── Guest password ──
+async function verifyGuestPassword() {
+  const pw  = document.getElementById('guestPwInput').value;
+  const err = document.getElementById('pwError');
+  try {
+    const r = await fetch(`/api/events/${eventId}/verify-guest-password`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ password: pw })
     });
-    fileCount.style.display = selectedFiles.length ? 'block' : 'none';
-    fileCount.textContent   = `${selectedFiles.length} foto${selectedFiles.length!==1?"'s":''} geselecteerd`;
-  }
-
-  function showError(msg) { errorMsg.textContent=msg; errorMsg.style.display='block'; setTimeout(()=>errorMsg.style.display='none',5000); }
-
-  uploadForm.addEventListener('submit', async e => {
-    e.preventDefault(); errorMsg.style.display='none';
-    const name = document.getElementById('nameInput').value.trim();
-    if (!name) return showError('Vul alsjeblieft jouw naam in.');
-    if (!selectedFiles.length) return showError('Voeg minstens één foto toe.');
-    const fd = new FormData();
-    fd.append('name', name);
-    fd.append('message', document.getElementById('messageInput').value.trim());
-    selectedFiles.forEach(f => fd.append('photos', f));
-    uploadBtn.disabled = true;
-    progressWrap.style.display = 'block'; progressFill.style.width = '5%';
-    progressLabel.textContent = "Foto's uploaden...";
-    try {
-      let prog = 5;
-      const iv = setInterval(() => { prog = Math.min(prog + Math.random()*8, 88); progressFill.style.width = prog+'%'; }, 400);
-      const res  = await fetch(`/api/events/${eventId}/upload`, { method:'POST', body:fd });
-      clearInterval(iv);
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Upload mislukt');
-      progressFill.style.width = '100%'; progressLabel.textContent = 'Klaar!';
-      setTimeout(() => {
-        uploadForm.style.display = 'none';
-        document.getElementById('successMsg').innerHTML = `<strong>${data.count} foto${data.count!==1?"'s":''}</strong> veilig ontvangen.<br>Geniet van de dag!`;
-        successScreen.style.display = 'block';
-      }, 600);
-    } catch(err) {
-      progressWrap.style.display='none'; uploadBtn.disabled=false;
-      showError(err.message || 'Er ging iets mis. Probeer opnieuw.');
+    if (r.ok) {
+      document.getElementById('passwordCard').style.display = 'none';
+      document.getElementById('uploadCard').style.display   = 'block';
+    } else {
+      err.textContent = 'Onjuist wachtwoord. Probeer opnieuw.';
+      err.style.display = 'block';
+      setTimeout(() => err.style.display = 'none', 4000);
+      document.getElementById('guestPwInput').select();
     }
-  });
-
-  function resetForm() {
-    selectedFiles=[]; renderPreviews();
-    document.getElementById('nameInput').value=''; document.getElementById('messageInput').value='';
-    progressWrap.style.display='none'; progressFill.style.width='0%';
-    uploadBtn.disabled=false; successScreen.style.display='none'; uploadForm.style.display='block';
+  } catch {
+    err.textContent = 'Verbindingsfout. Probeer opnieuw.';
+    err.style.display = 'block';
   }
+}
+
+// ── Upload logic ──
+const fileInput    = document.getElementById('fileInput');
+const cameraInput  = document.getElementById('cameraInput');
+const dropZone     = document.getElementById('dropZone');
+const previewGrid  = document.getElementById('previewGrid');
+const fileCount    = document.getElementById('fileCount');
+const uploadForm   = document.getElementById('uploadForm');
+const uploadBtn    = document.getElementById('uploadBtn');
+const progressWrap = document.getElementById('progressWrap');
+const progressFill = document.getElementById('progressFill');
+const progressLabel= document.getElementById('progressLabel');
+const successScreen= document.getElementById('successScreen');
+const errorMsg     = document.getElementById('errorMsg');
+let selectedFiles  = [];
+
+fileInput.addEventListener('change',   () => { addFiles([...fileInput.files]);   fileInput.value   = ''; });
+cameraInput.addEventListener('change', () => { addFiles([...cameraInput.files]); cameraInput.value = ''; });
+dropZone.addEventListener('dragover',  e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop',      e => { e.preventDefault(); dropZone.classList.remove('drag-over'); addFiles([...e.dataTransfer.files]); });
+
+function addFiles(files) {
+  files.filter(f => f.type.startsWith('image/') || /\.(heic|heif)$/i.test(f.name))
+       .forEach(f => { if (!selectedFiles.find(s => s.name === f.name && s.size === f.size)) selectedFiles.push(f); });
+  renderPreviews();
+}
+
+function renderPreviews() {
+  previewGrid.innerHTML = '';
+  selectedFiles.forEach((file, i) => {
+    const item = document.createElement('div'); item.className = 'preview-item';
+    const img  = document.createElement('img');
+    const rd   = new FileReader(); rd.onload = e => img.src = e.target.result; rd.readAsDataURL(file);
+    const btn  = document.createElement('button'); btn.className = 'remove-btn'; btn.innerHTML = '&times;'; btn.type = 'button';
+    btn.onclick = () => { selectedFiles.splice(i, 1); renderPreviews(); };
+    item.appendChild(img); item.appendChild(btn); previewGrid.appendChild(item);
+  });
+  fileCount.style.display = selectedFiles.length ? 'block' : 'none';
+  fileCount.textContent   = `${selectedFiles.length} foto${selectedFiles.length !== 1 ? "'s" : ''} geselecteerd`;
+}
+
+function showError(msg) {
+  errorMsg.textContent = msg; errorMsg.style.display = 'block';
+  setTimeout(() => errorMsg.style.display = 'none', 5000);
+}
+
+uploadForm.addEventListener('submit', async e => {
+  e.preventDefault(); errorMsg.style.display = 'none';
+  const name = document.getElementById('nameInput').value.trim();
+  if (!name) return showError('Vul alsjeblieft jouw naam in.');
+  if (!selectedFiles.length) return showError('Voeg minstens één foto toe.');
+  const fd = new FormData();
+  fd.append('name', name);
+  fd.append('message', document.getElementById('messageInput').value.trim());
+  selectedFiles.forEach(f => fd.append('photos', f));
+  uploadBtn.disabled = true;
+  progressWrap.style.display = 'block'; progressFill.style.width = '5%';
+  progressLabel.textContent = "Foto's uploaden...";
+  try {
+    let prog = 5;
+    const iv = setInterval(() => { prog = Math.min(prog + Math.random() * 8, 88); progressFill.style.width = prog + '%'; }, 400);
+    const res  = await fetch(`/api/events/${eventId}/upload`, { method:'POST', body: fd });
+    clearInterval(iv);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Upload mislukt');
+    progressFill.style.width = '100%'; progressLabel.textContent = 'Klaar!';
+    setTimeout(() => {
+      uploadForm.style.display = 'none';
+      document.getElementById('successMsg').innerHTML = `<strong>${data.count} foto${data.count !== 1 ? "'s" : ''}</strong> veilig ontvangen.<br>Geniet van de dag!`;
+      successScreen.style.display = 'block';
+    }, 600);
+  } catch(err) {
+    progressWrap.style.display = 'none'; uploadBtn.disabled = false;
+    showError(err.message || 'Er ging iets mis. Probeer opnieuw.');
+  }
+});
+
+function resetForm() {
+  selectedFiles = []; renderPreviews();
+  document.getElementById('nameInput').value = '';
+  document.getElementById('messageInput').value = '';
+  progressWrap.style.display = 'none'; progressFill.style.width = '0%';
+  uploadBtn.disabled = false;
+  successScreen.style.display = 'none';
+  uploadForm.style.display = 'block';
+}
 </script>
 </body>
 </html>

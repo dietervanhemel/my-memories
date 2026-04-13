@@ -1,7 +1,7 @@
 @echo off
-title Trouw Fotoapp
+title My Memories
 echo.
-echo  === Trouw Fotoapp ===
+echo  === My Memories – Fotoapp ===
 echo.
 
 :: Check if node is installed
@@ -16,6 +16,13 @@ if %errorlevel% neq 0 (
     exit /b
 )
 
+:: Kill any existing node process on port 3000 so we can restart cleanly
+echo  Vorige server stoppen (als die nog actief is)...
+for /f "tokens=5" %%a in ('netstat -aon ^| findstr ":3000 " ^| findstr "LISTENING"') do (
+    taskkill /F /PID %%a >nul 2>&1
+)
+timeout /t 1 /nobreak >nul
+
 :: Install dependencies if needed
 if not exist "node_modules" (
     echo  Installeren van benodigde bestanden...
@@ -23,12 +30,7 @@ if not exist "node_modules" (
     echo.
 )
 
-echo  App wordt gestart op http://localhost:3000
-echo  Dashboard: http://localhost:3000/dashboard.html
-echo  Wachtwoord: bruid2024
+echo  App wordt gestart...
 echo.
-echo  Druk op Ctrl+C om de app te stoppen.
-echo.
-
 node server.js
 pause

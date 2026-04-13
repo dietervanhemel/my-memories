@@ -2,16 +2,15 @@ const express = require('express');
 const multer  = require('multer');
 const path    = require('path');
 const fs      = require('fs');
+const os      = require('os');
 const { v4: uuidv4 } = require('uuid');
 const QRCode  = require('qrcode');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
 
-// Dashboard password — change this!
 const DASHBOARD_PASSWORD = 'bruid2024';
 
-// Ensure directories exist
 const uploadsDir = path.join(__dirname, 'uploads');
 const dataDir    = path.join(__dirname, 'data');
 const bannerDir  = path.join(__dirname, 'public', 'banner');
@@ -23,9 +22,9 @@ const eventsFile = path.join(dataDir, 'events.json');
 
 function readEvents() {
   try {
-    const raw  = fs.readFileSync(eventsFile, 'utf-8').replace(/^\uFEFF/, ''); // strip BOM
+    const raw  = fs.readFileSync(eventsFile, 'utf-8').replace(/^\uFEFF/, '');
     const data = JSON.parse(raw);
-    return Array.isArray(data) ? data : [data]; // guard against PS serialisation bug
+    return Array.isArray(data) ? data : [data];
   } catch { return []; }
 }
 function writeEvents(data) { fs.writeFileSync(eventsFile, JSON.stringify(data, null, 2)); }
@@ -35,6 +34,26 @@ function auth(req, res, next) {
   next();
 }
 
+// ─── Slug helpers ────────────────────────────────────────────────────────────
+
+function slugify(name) {
+  return String(name)
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60) || 'event';
+}
+
+function makeUniqueSlug(name, events, excludeId) {
+  const base = slugify(name);
+  let slug = base, n = 2;
+  while (events.some(e => e.slug === slug && e.id !== excludeId)) {
+    slug = base + '-' + n++;
+  }
+  return slug;
+}
+
 // ─── One-time migration from legacy single-event files ───────────────────────
 
 if (!fs.existsSync(eventsFile)) {
@@ -42,13 +61,28 @@ if (!fs.existsSync(eventsFile)) {
   let p = [];
   try { s = JSON.parse(fs.readFileSync(path.join(dataDir, 'settings.json'), 'utf-8')); } catch {}
   try { p = JSON.parse(fs.readFileSync(path.join(dataDir, 'photos.json'),   'utf-8')); } catch {}
+  const name = s.welcomeTitle || 'Mijn evenement';
   writeEvents([{
-    id: uuidv4(), name: s.welcomeTitle || 'Mijn evenement', createdAt: new Date().toISOString(),
+    id: uuidv4(), name, slug: slugify(name), createdAt: new Date().toISOString(),
     theme: s.theme || 'green', eventType: s.eventType || '', bannerUrl: s.bannerUrl || null,
-    guestPassword: s.guestPassword || '', welcomeTitle: s.welcomeTitle || '', welcomeSubtitle: s.welcomeSubtitle || '',
+    guestPassword: s.guestPassword || '', welcomeTitle: name, welcomeSubtitle: s.welcomeSubtitle || '',
     photos: p
   }]);
 }
+
+// ─── Migration: add slugs to existing events that don't have one ─────────────
+
+(function ensureSlugs() {
+  const events = readEvents();
+  let changed = false;
+  events.forEach(e => {
+    if (!e.slug) {
+      e.slug = makeUniqueSlug(e.name || e.welcomeTitle || 'event', events, e.id);
+      changed = true;
+    }
+  });
+  if (changed) writeEvents(events);
+})();
 
 // ─── Multer: photos ──────────────────────────────────────────────────────────
 
@@ -81,6 +115,12 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(uploadsDir));
 
+// ─── Guest upload page by slug (before other routes) ────────────────────────
+
+app.get('/e/:slug', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 // ─── Auth ────────────────────────────────────────────────────────────────────
 
 app.post('/api/auth', (req, res) => {
@@ -91,32 +131,32 @@ app.post('/api/auth', (req, res) => {
 
 // ─── Events CRUD (protected) ─────────────────────────────────────────────────
 
-// List all events (summary — no photo payloads)
 app.get('/api/events', auth, (req, res) => {
   const events = readEvents();
   res.json(events.map(e => ({
-    id: e.id, name: e.name, createdAt: e.createdAt,
-    eventType: e.eventType || '', theme: e.theme || 'green',
+    id: e.id, name: e.name, slug: e.slug || slugify(e.name),
+    createdAt: e.createdAt, eventType: e.eventType || '', theme: e.theme || '',
     totalUploaders: (e.photos || []).length,
     totalPhotos: (e.photos || []).reduce((s, u) => s + u.photos.length, 0)
   })));
 });
 
-// Create new event
 app.post('/api/events', auth, (req, res) => {
   if (!req.body.name?.trim()) return res.status(400).json({ error: 'Naam is verplicht' });
   const events = readEvents();
+  const name   = req.body.name.trim();
+  const slug   = makeUniqueSlug(name, events, null);
   const evt = {
-    id: uuidv4(), name: req.body.name.trim(), createdAt: new Date().toISOString(),
-    theme: 'green', eventType: '', bannerUrl: null,
-    guestPassword: '', welcomeTitle: req.body.name.trim(), welcomeSubtitle: '', photos: []
+    id: uuidv4(), name, slug, createdAt: new Date().toISOString(),
+    theme: '', eventType: '', bannerUrl: null,
+    guestPassword: '', welcomeTitle: name, welcomeSubtitle: '', photos: []
   };
   events.push(evt);
   writeEvents(events);
-  res.json({ success: true, id: evt.id, name: evt.name, createdAt: evt.createdAt, eventType: '', theme: 'green', totalUploaders: 0, totalPhotos: 0 });
+  res.json({ success: true, id: evt.id, name: evt.name, slug: evt.slug,
+    createdAt: evt.createdAt, eventType: '', theme: '', totalUploaders: 0, totalPhotos: 0 });
 });
 
-// Delete event
 app.delete('/api/events/:eid', auth, (req, res) => {
   const events = readEvents();
   const idx    = events.findIndex(e => e.id === req.params.eid);
@@ -133,12 +173,24 @@ app.delete('/api/events/:eid', auth, (req, res) => {
   res.json({ success: true });
 });
 
+// ─── Public: event by slug ────────────────────────────────────────────────────
+
+app.get('/api/events/by-slug/:slug', (req, res) => {
+  const evt = readEvents().find(e => e.slug === req.params.slug);
+  if (!evt) return res.status(404).json({ error: 'Niet gevonden' });
+  res.json({
+    id: evt.id, theme: evt.theme || '', eventType: evt.eventType || '',
+    bannerUrl: evt.bannerUrl || null, hasGuestPassword: !!evt.guestPassword,
+    welcomeTitle: evt.welcomeTitle || '', welcomeSubtitle: evt.welcomeSubtitle || ''
+  });
+});
+
 // ─── Public: guest page (event-scoped) ───────────────────────────────────────
 
 app.get('/api/events/:eid/settings', (req, res) => {
   const evt = readEvents().find(e => e.id === req.params.eid);
   if (!evt) return res.status(404).json({ error: 'Niet gevonden' });
-  const out = { theme: evt.theme || 'green', eventType: evt.eventType || '', bannerUrl: evt.bannerUrl || null,
+  const out = { theme: evt.theme || '', eventType: evt.eventType || '', bannerUrl: evt.bannerUrl || null,
     hasGuestPassword: !!evt.guestPassword, welcomeTitle: evt.welcomeTitle || '', welcomeSubtitle: evt.welcomeSubtitle || '' };
   if (req.query.password === DASHBOARD_PASSWORD) out.guestPassword = evt.guestPassword || '';
   res.json(out);
@@ -220,11 +272,16 @@ app.post('/api/events/:eid/settings', auth, (req, res) => {
   const events = readEvents();
   const ei     = events.findIndex(e => e.id === req.params.eid);
   if (ei === -1) return res.status(404).json({ error: 'Niet gevonden' });
-  ['name','theme','bannerUrl','guestPassword','eventType','welcomeTitle','welcomeSubtitle'].forEach(k => {
+  ['theme','bannerUrl','guestPassword','eventType','welcomeTitle','welcomeSubtitle'].forEach(k => {
     if (req.body[k] !== undefined) events[ei][k] = req.body[k];
   });
+  // If name is updated, regenerate slug
+  if (req.body.name !== undefined && req.body.name.trim()) {
+    events[ei].name = req.body.name.trim();
+    events[ei].slug = makeUniqueSlug(req.body.name.trim(), events, events[ei].id);
+  }
   writeEvents(events);
-  res.json({ success: true });
+  res.json({ success: true, slug: events[ei].slug });
 });
 
 app.post('/api/events/:eid/upload-banner', auth, bannerUpload.single('banner'), (req, res) => {
@@ -258,16 +315,53 @@ app.get('/api/events/:eid/qrcode', auth, async (req, res) => {
   const baseUrl = req.query.url || `http://localhost:${PORT}`;
   try {
     const evt = readEvents().find(e => e.id === req.params.eid);
-    const COLORS = { green:'#1e4d28', rose:'#5c3d2e', navy:'#1a2d5a', lavender:'#4a2870', sage:'#4a3820', midnight:'#1a1a10' };
-    const dark   = COLORS[(evt && evt.theme) || 'green'] || '#1e4d28';
-    const url    = `${baseUrl}?event=${req.params.eid}`;
+    const THEME_COLORS = { green:'#1e4d28', rose:'#5c3d2e', navy:'#1a2d5a', lavender:'#4a2870', sage:'#4a3820', midnight:'#1a1a10' };
+    const EVENT_COLORS = { wedding:'#5c3d2e', birthday:'#8b1048', babyshower:'#1e5f88', anniversary:'#6a5010', graduation:'#1a2d5a', christmas:'#7a1510', corporate:'#0d4a70', nieuwjaar:'#1a0a40' };
+    const dark = (evt && evt.theme && THEME_COLORS[evt.theme])
+               ? THEME_COLORS[evt.theme]
+               : (evt && evt.eventType && EVENT_COLORS[evt.eventType])
+               ? EVENT_COLORS[evt.eventType]
+               : '#1e4d28';
+    // Use slug URL if available, otherwise fall back to ?event= URL
+    const url    = evt && evt.slug ? `${baseUrl}/e/${evt.slug}` : `${baseUrl}?event=${req.params.eid}`;
     const qr     = await QRCode.toDataURL(url, { width: 400, margin: 2, color: { dark, light: '#ffffff' } });
     res.json({ qr, url });
   } catch { res.status(500).json({ error: 'QR generatie mislukt' }); }
 });
 
-app.listen(PORT, () => {
-  console.log(`\n  My Memories draait op http://localhost:${PORT}`);
-  console.log(`  Dashboard:  http://localhost:${PORT}/dashboard.html`);
-  console.log(`  Wachtwoord: ${DASHBOARD_PASSWORD}\n`);
+function getLocalIP() {
+  const ifaces = os.networkInterfaces();
+  for (const name of Object.keys(ifaces)) {
+    for (const iface of ifaces[name]) {
+      if (iface.family === 'IPv4' && !iface.internal) return iface.address;
+    }
+  }
+  return null;
+}
+
+const server = app.listen(PORT, '0.0.0.0', () => {
+  const localIP = getLocalIP();
+  console.log('\n  ╔══════════════════════════════════════════════════╗');
+  console.log('  ║           My Memories – Fotoapp                  ║');
+  console.log('  ╚══════════════════════════════════════════════════╝\n');
+  console.log(`  Op deze computer:`);
+  console.log(`    http://localhost:${PORT}/dashboard.html\n`);
+  if (localIP) {
+    console.log(`  Op het lokale netwerk (WiFi – deel dit met gasten):`);
+    console.log(`    http://${localIP}:${PORT}\n`);
+    console.log(`  Dashboard voor netwerk:`);
+    console.log(`    http://${localIP}:${PORT}/dashboard.html\n`);
+  }
+  console.log(`  Dashboard wachtwoord: ${DASHBOARD_PASSWORD}`);
+  console.log(`  Stoppen: Ctrl+C\n`);
+});
+
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`\n  [!] Poort ${PORT} is al in gebruik.`);
+    console.error(`      Sluit het andere Node.js venster of dubbelklik opnieuw op start.bat\n`);
+  } else {
+    console.error('  Server fout:', err.message);
+  }
+  process.exit(1);
 });
