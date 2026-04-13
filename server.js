@@ -312,7 +312,6 @@ app.delete('/api/events/:eid/banner', auth, (req, res) => {
 });
 
 app.get('/api/events/:eid/qrcode', auth, async (req, res) => {
-  const baseUrl = req.query.url || `http://localhost:${PORT}`;
   try {
     const evt = readEvents().find(e => e.id === req.params.eid);
     const THEME_COLORS = { green:'#1e4d28', rose:'#5c3d2e', navy:'#1a2d5a', lavender:'#4a2870', sage:'#4a3820', midnight:'#1a1a10' };
@@ -322,9 +321,16 @@ app.get('/api/events/:eid/qrcode', auth, async (req, res) => {
                : (evt && evt.eventType && EVENT_COLORS[evt.eventType])
                ? EVENT_COLORS[evt.eventType]
                : '#1e4d28';
-    // Use slug URL if available, otherwise fall back to ?event= URL
-    const url    = evt && evt.slug ? `${baseUrl}/e/${evt.slug}` : `${baseUrl}?event=${req.params.eid}`;
-    const qr     = await QRCode.toDataURL(url, { width: 400, margin: 2, color: { dark, light: '#ffffff' } });
+    // fullUrl: client sends the complete guest-page URL directly (e.g. http://host/e/slug)
+    // Fallback: construct from base URL (legacy / custom-domain use)
+    let url;
+    if (req.query.fullUrl) {
+      url = req.query.fullUrl;
+    } else {
+      const baseUrl = req.query.url || `http://localhost:${PORT}`;
+      url = evt && evt.slug ? `${baseUrl}/e/${evt.slug}` : `${baseUrl}?event=${req.params.eid}`;
+    }
+    const qr = await QRCode.toDataURL(url, { width: 400, margin: 2, color: { dark, light: '#ffffff' } });
     res.json({ qr, url });
   } catch { res.status(500).json({ error: 'QR generatie mislukt' }); }
 });

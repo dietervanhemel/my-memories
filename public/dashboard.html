@@ -176,6 +176,31 @@
     }
     .tile-url-text { font-size: 0.75rem; color: var(--accent); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: monospace; }
     .tile-actions { padding: 0 1.25rem 1.1rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .event-tile.tile-hidden { display: none; }
+
+    /* ─── Filter bar ─── */
+    .filter-bar {
+      display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+    }
+    .filter-search { position: relative; flex: 1; min-width: 200px; }
+    .filter-search input {
+      width: 100%; padding: 0.7rem 1rem 0.7rem 2.5rem;
+      border: 2px solid var(--border); border-radius: 10px; font-size: 0.9rem;
+      outline: none; transition: border-color 0.2s; background: var(--card);
+    }
+    .filter-search input:focus { border-color: var(--accent); }
+    .filter-search .fi { position: absolute; left: 0.8rem; top: 50%; transform: translateY(-50%); pointer-events: none; font-size: 0.9rem; color: var(--muted); }
+    .filter-select {
+      padding: 0.7rem 2rem 0.7rem 0.9rem; border: 2px solid var(--border); border-radius: 10px;
+      font-size: 0.9rem; outline: none; background: var(--card); color: var(--text);
+      cursor: pointer; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236a9070' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 0.7rem center;
+      transition: border-color 0.2s;
+    }
+    .filter-select:focus { border-color: var(--accent); }
+    .filter-count { font-size: 0.82rem; color: var(--muted); font-weight: 500; white-space: nowrap; }
 
     /* ─── Stats ─── */
     .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
@@ -506,6 +531,17 @@
         <button class="btn btn-primary" onclick="openCreateModal()">+ Nieuw evenement</button>
       </div>
 
+      <div class="filter-bar">
+        <div class="filter-search">
+          <span class="fi">🔍</span>
+          <input type="text" id="eventSearch" placeholder="Zoek op naam..." oninput="filterEvents()" autocomplete="off" />
+        </div>
+        <select class="filter-select" id="eventTypeFilter" onchange="filterEvents()">
+          <option value="">Alle typen</option>
+        </select>
+        <span class="filter-count" id="filterCount"></span>
+      </div>
+
       <div class="events-grid" id="eventsList">
         <div class="empty"><span class="empty-icon">🗓</span>Laden…</div>
       </div>
@@ -570,10 +606,10 @@
       <div class="qr-wrap">
         <div class="qr-card">
           <h3>Upload-link voor gasten</h3>
-          <p>Gasten scannen de QR code en komen direct op de uploadpagina van dit evenement.</p>
+          <p>Gasten scannen de QR code en komen direct op de uploadpagina van dit evenement. Pas de URL aan als de app op een eigen domein draait.</p>
           <div class="url-row">
-            <input type="text" id="urlInput" placeholder="https://jouw-domein.nl" />
-            <button class="btn btn-primary" onclick="generateQR()">Genereer</button>
+            <input type="text" id="urlInput" placeholder="https://jouw-domein.nl/e/evenement" />
+            <button class="btn btn-primary" onclick="generateQR()">↻ Genereer</button>
           </div>
           <div id="qrOutput" style="display:none">
             <img id="qrImage" src="" alt="QR Code" />
@@ -892,6 +928,7 @@ window.doLogin = function() {
       document.getElementById('loginOverlay').style.display = 'none';
       document.getElementById('app').style.display = 'block';
       buildEventGrid();
+      buildTypeFilterOptions();
       loadEventsList();
     },
     function() { err.style.display = 'block'; }
@@ -908,8 +945,12 @@ window.showSection = function(name) {
   var nav = document.getElementById('nav-' + name);
   if (sec) sec.classList.add('active');
   if (nav) nav.classList.add('active');
-  if (name === 'qr' && !document.getElementById('urlInput').value) {
-    document.getElementById('urlInput').value = window.location.origin;
+  if (name === 'qr') {
+    // Always fill in the full event URL and auto-generate the QR
+    if (_eSlug) {
+      document.getElementById('urlInput').value = eventUrl(_eSlug);
+      generateQR();
+    }
   }
 };
 
@@ -957,7 +998,8 @@ function renderEventsList(events, highlightId) {
     var date = new Date(e.createdAt).toLocaleDateString('nl-NL', { day:'numeric', month:'long', year:'numeric' });
     var isNew = e.id === highlightId;
     var url  = eventUrl(e.slug || e.id);
-    html += '<div class="event-tile' + (isNew ? ' tile-new' : '') + '" id="elc-' + e.id + '">';
+    html += '<div class="event-tile' + (isNew ? ' tile-new' : '') + '" id="elc-' + e.id + '"'
+         + ' data-name="' + esc(e.name.toLowerCase()) + '" data-type="' + esc(e.eventType || '') + '">';
     html += '  <div class="tile-hero" style="background:' + grad + '" onclick="openEvent(\'' + e.id + '\')">';
     html += '    ' + icon;
     if (isNew) html += '    <span class="tile-badge">NIEUW</span>';
@@ -980,6 +1022,8 @@ function renderEventsList(events, highlightId) {
     html += '</div>';
   }
   grid.innerHTML = html;
+  buildTypeFilterOptions();
+  filterEvents();   // apply any active filter after re-render
   if (highlightId) {
     var el = document.getElementById('elc-' + highlightId);
     if (el) setTimeout(function() { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
@@ -991,6 +1035,42 @@ window.copyUrl = function(url) {
     navigator.clipboard.writeText(url).then(function() { alert('Link gekopieerd!\n\n' + url); });
   } else {
     window.prompt('Kopieer deze link:', url);
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  EVENT LIST FILTER
+// ═══════════════════════════════════════════════════════════════
+function buildTypeFilterOptions() {
+  var sel = document.getElementById('eventTypeFilter');
+  if (!sel) return;
+  // Keep the first "Alle typen" option, rebuild the rest
+  while (sel.options.length > 1) sel.remove(1);
+  Object.keys(EVENT_TYPES).forEach(function(key) {
+    var opt = document.createElement('option');
+    opt.value = key;
+    opt.textContent = EVENT_TYPES[key].icon + ' ' + EVENT_TYPES[key].name;
+    sel.appendChild(opt);
+  });
+}
+
+window.filterEvents = function() {
+  var q = (document.getElementById('eventSearch').value || '').toLowerCase().trim();
+  var t = document.getElementById('eventTypeFilter').value;
+  var tiles = document.querySelectorAll('#eventsList .event-tile');
+  var shown = 0, total = tiles.length;
+  tiles.forEach(function(tile) {
+    var matchName = !q || tile.dataset.name.indexOf(q) >= 0;
+    var matchType = !t || tile.dataset.type === t;
+    var visible = matchName && matchType;
+    tile.classList.toggle('tile-hidden', !visible);
+    if (visible) shown++;
+  });
+  var countEl = document.getElementById('filterCount');
+  if (countEl) {
+    countEl.textContent = (shown === total)
+      ? total + ' evenement' + (total !== 1 ? 'en' : '')
+      : shown + ' van ' + total + ' evenementen';
   }
 };
 
@@ -1204,7 +1284,7 @@ window.openEvent = function(id) {
   document.getElementById('nav-home').classList.remove('active');
   document.getElementById('bannerPreview').style.display = 'none';
   document.getElementById('qrOutput').style.display = 'none';
-  document.getElementById('urlInput').value = window.location.origin;
+  document.getElementById('urlInput').value = '';   // will be set once slug is loaded
   loadStats();
   loadPhotos();
   loadSettings();
@@ -1260,6 +1340,8 @@ function loadSettings() {
       document.getElementById('sbEventChip').textContent    = evtName;
       document.getElementById('overviewTitle').textContent  = evtName;
       document.getElementById('eventNameInput').value       = evtName;
+      // Pre-fill the QR URL input with the full event URL now that we have the slug
+      if (_eSlug) document.getElementById('urlInput').value = eventUrl(_eSlug);
     });
 
     if (s.bannerUrl) {
@@ -1422,10 +1504,12 @@ document.addEventListener('keydown', function(e) {
 //  QR CODE
 // ═══════════════════════════════════════════════════════════════
 window.generateQR = function() {
-  var urlEl = document.getElementById('urlInput');
-  var base  = urlEl.value.trim() || window.location.origin;
-  urlEl.value = base;
-  xhr('GET', '/api/events/' + _eid + '/qrcode?url=' + encodeURIComponent(base), null,
+  var urlEl   = document.getElementById('urlInput');
+  var fullUrl = urlEl.value.trim() || eventUrl(_eSlug);
+  if (!fullUrl) return;
+  urlEl.value = fullUrl;
+  // Send the full URL directly; server uses it as-is
+  xhr('GET', '/api/events/' + _eid + '/qrcode?fullUrl=' + encodeURIComponent(fullUrl), null,
     function(d) {
       if (d.qr) {
         document.getElementById('qrImage').src = d.qr;
