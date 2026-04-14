@@ -109,11 +109,76 @@ const bannerUpload = multer({
   limits: { fileSize: 10 * 1024 * 1024 }
 });
 
+// ─── Auto-generate PWA icons on first run ────────────────────────────────────
+
+try {
+  require('./scripts/generate-icons');
+} catch (e) {
+  console.warn('[icons] could not generate icons:', e.message);
+}
+
 // ─── Middleware ──────────────────────────────────────────────────────────────
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(uploadsDir));
+
+// ─── Dynamic PWA manifest per event (for iOS "Add to Home Screen") ───────────
+// Served at /e/:slug/manifest.json  OR  /manifest.json?slug=:slug
+// so the installed app opens directly to the right event page.
+
+const EVENT_THEME_COLORS = {
+  wedding:     { bg: '#5c3d2e', theme: '#c9806b' },
+  birthday:    { bg: '#8b1048', theme: '#e0407a' },
+  babyshower:  { bg: '#1e5f88', theme: '#5ba3d0' },
+  anniversary: { bg: '#6a5010', theme: '#b09030' },
+  graduation:  { bg: '#1a2d5a', theme: '#2c4a8a' },
+  christmas:   { bg: '#7a1510', theme: '#c0392b' },
+  corporate:   { bg: '#0d4a70', theme: '#1a7ab0' },
+  nieuwjaar:   { bg: '#1a0a40', theme: '#c8a020' },
+};
+
+function buildManifest(evt) {
+  const colors = (evt && EVENT_THEME_COLORS[evt.eventType]) || { bg: '#0f1f13', theme: '#3a7d44' };
+  const name   = evt ? evt.name : 'My Memories';
+  const slug   = evt ? (evt.slug || '') : '';
+  return {
+    name:             name + ' · My Memories',
+    short_name:       name.length > 14 ? name.slice(0, 13) + '…' : name,
+    description:      'Upload jouw foto\'s naar ' + name,
+    start_url:        slug ? '/e/' + slug : '/',
+    display:          'standalone',
+    orientation:      'portrait',
+    background_color: colors.bg,
+    theme_color:      colors.theme,
+    icons: [
+      { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+      { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
+    ],
+  };
+}
+
+// /e/:slug/manifest.json  – linked from the guest page via relative href="manifest.json"
+app.get('/e/:slug/manifest.json', (req, res) => {
+  const events = readEvents();
+  const evt    = events.find(e => e.slug === req.params.slug) || null;
+  res.setHeader('Content-Type', 'application/manifest+json');
+  res.json(buildManifest(evt));
+});
+
+// /manifest.json?slug=:slug  – fallback used by the PWA setup script
+app.get('/manifest.json', (req, res) => {
+  if (req.query.slug) {
+    const events = readEvents();
+    const evt    = events.find(e => e.slug === req.query.slug) || null;
+    if (evt) {
+      res.setHeader('Content-Type', 'application/manifest+json');
+      return res.json(buildManifest(evt));
+    }
+  }
+  // Serve the static default manifest
+  res.sendFile(path.join(__dirname, 'public', 'manifest.json'));
+});
 
 // ─── Guest upload page by slug (before other routes) ────────────────────────
 

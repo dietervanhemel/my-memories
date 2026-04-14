@@ -4,6 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <title>My Memories</title>
+
+  <!-- PWA / iOS "Add to Home Screen" -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#3a7d44" id="themeColor" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="My Memories" id="pwaTitle" />
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -758,6 +768,22 @@ function resetForm() {
   successScreen.style.display = 'none';
   uploadForm.style.display = 'block';
 }
+
+// ── PWA: swap manifest to event-specific URL once slug is known ──────────────
+(function pwaSetup() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  }
+  // When the page loads inside /e/:slug, point the manifest at the event-specific
+  // one so iOS "Add to Home Screen" uses the right event name and start URL.
+  if (window.location.pathname.startsWith('/e/')) {
+    const slugPart = window.location.pathname.replace(/^\/e\//, '').split('/')[0];
+    if (slugPart) {
+      const link = document.querySelector('link[rel="manifest"]');
+      if (link) link.href = 'manifest.json?slug=' + encodeURIComponent(slugPart);
+    }
+  }
+})();
 </script>
 </body>
 </html>
