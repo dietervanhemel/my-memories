@@ -64,23 +64,7 @@
     .sb-brand-text h2 { font-size: 1rem; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
     .sb-brand-text p  { font-size: 0.72rem; color: rgba(255,255,255,0.35); margin-top: 1px; }
 
-    .sb-event-chip {
-      display: none; margin: 0.75rem 1rem; padding: 0.55rem 0.9rem;
-      background: rgba(255,255,255,0.07); border-radius: 10px;
-      font-size: 0.78rem; color: var(--mint); white-space: nowrap;
-      overflow: hidden; text-overflow: ellipsis;
-    }
-    #app.event-active .sb-event-chip { display: block; }
-
-    .sb-nav { flex: 1; overflow-y: auto; padding: 0.5rem 0; }
-    .nav-group { margin-bottom: 0.25rem; }
-    .nav-group-label {
-      padding: 0.75rem 1.5rem 0.3rem;
-      font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em;
-      text-transform: uppercase; color: rgba(255,255,255,0.3);
-      display: none;
-    }
-    #app.event-active .nav-group-label { display: block; }
+.sb-nav { flex: 1; overflow-y: auto; padding: 0.5rem 0; }
     .nav-item {
       display: flex; align-items: center; gap: 0.65rem;
       padding: 0.65rem 1.5rem; cursor: pointer; font-size: 0.88rem;
@@ -90,15 +74,30 @@
     .nav-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
     .nav-item.active { background: rgba(255,255,255,0.1); border-left-color: var(--mint); color: #fff; }
     .nav-icon { font-size: 1rem; width: 18px; text-align: center; flex-shrink: 0; }
-    .nav-back { color: rgba(255,255,255,0.4) !important; font-size: 0.82rem !important; }
-    .nav-back:hover { color: rgba(255,255,255,0.8) !important; }
-    .nav-back .nav-icon { font-size: 0.75rem !important; }
 
-    .event-nav { display: none; }
-    .nav-home  { display: flex; }
-    #app.event-active .nav-back  { display: flex; }
-    #app.event-active .nav-home  { display: none; }
-    #app.event-active .event-nav { display: flex; }
+    /* Evenementen — always visible; dims when inside an event so it reads as "back" */
+    .nav-home { display: flex; }
+    #app.event-active .nav-home { color: rgba(255,255,255,0.45); border-left-color: transparent !important; background: transparent !important; }
+    #app.event-active .nav-home:hover { color: rgba(255,255,255,0.85); background: rgba(255,255,255,0.05) !important; }
+
+    /* Event sub-tree */
+    .event-tree { display: none; }
+    #app.event-active .event-tree { display: block; }
+
+    .event-tree-header {
+      display: flex; align-items: center; gap: 0.55rem;
+      padding: 0.55rem 1.5rem 0.4rem 1.4rem;
+      border-left: 3px solid var(--mint);
+      background: rgba(255,255,255,0.06);
+    }
+    .event-tree-arrow { font-size: 0.6rem; color: var(--mint); flex-shrink: 0; line-height: 1; }
+    .event-tree-title {
+      font-size: 0.82rem; font-weight: 700; color: #fff;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+
+    /* Sub-nav items — indented under the event header */
+    .event-nav { display: flex; padding-left: 2.5rem !important; font-size: 0.85rem; }
 
     /* ─── Main content ─── */
     .main {
@@ -517,19 +516,21 @@
         <p>Beheer dashboard</p>
       </div>
     </div>
-    <div class="sb-event-chip" id="sbEventChip">–</div>
     <div class="sb-nav">
-      <div class="nav-item nav-back" onclick="backToEvents()">
-        <span class="nav-icon">‹</span> Alle evenementen
-      </div>
+      <!-- Always-visible Evenementen (also acts as "back" when inside an event) -->
       <div class="nav-item nav-home active" id="nav-home" onclick="backToEvents()">
         <span class="nav-icon">🗓</span> Evenementen
       </div>
-      <div class="nav-group">
-        <div class="nav-group-label">Evenement</div>
+
+      <!-- Expanded event sub-tree (only shown when event-active) -->
+      <div class="event-tree" id="eventTree">
+        <div class="event-tree-header">
+          <span class="event-tree-arrow">▸</span>
+          <span class="event-tree-title" id="sbEventChip">–</span>
+        </div>
         <div class="nav-item event-nav" onclick="showSection('overview')"  id="nav-overview">  <span class="nav-icon">📊</span> Overzicht</div>
         <div class="nav-item event-nav" onclick="showSection('uploaders')" id="nav-uploaders"> <span class="nav-icon">👥</span> Gasten</div>
-        <div class="nav-item event-nav" onclick="showSection('photos')"    id="nav-photos">    <span class="nav-icon">🖼️</span> Alle foto's</div>
+        <div class="nav-item event-nav" onclick="showSection('photos')"    id="nav-photos">    <span class="nav-icon">🖼️</span> Foto's</div>
         <div class="nav-item event-nav" onclick="showSection('qr')"        id="nav-qr">        <span class="nav-icon">📱</span> QR code</div>
         <div class="nav-item event-nav" onclick="showSection('customize')" id="nav-customize"> <span class="nav-icon">🎨</span> Uiterlijk</div>
       </div>
