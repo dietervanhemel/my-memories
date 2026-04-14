@@ -56,15 +56,18 @@
       transition: background 0.4s;
     }
     .sb-brand {
-      padding: 1.75rem 1.5rem 1.25rem;
+      padding: 1.6rem 1.5rem 1.1rem;
       border-bottom: 1px solid rgba(255,255,255,0.07);
       display: flex; align-items: center; gap: 0.75rem;
+      flex-shrink: 0;
     }
     .sb-brand-icon { font-size: 1.6rem; flex-shrink: 0; }
     .sb-brand-text h2 { font-size: 1rem; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
     .sb-brand-text p  { font-size: 0.72rem; color: rgba(255,255,255,0.35); margin-top: 1px; }
 
-.sb-nav { flex: 1; overflow-y: auto; padding: 0.5rem 0; }
+    .sb-nav { flex: 1; overflow-y: auto; padding: 0.5rem 0; }
+
+    /* Top-level nav item (Evenementen link) */
     .nav-item {
       display: flex; align-items: center; gap: 0.65rem;
       padding: 0.65rem 1.5rem; cursor: pointer; font-size: 0.88rem;
@@ -75,29 +78,84 @@
     .nav-item.active { background: rgba(255,255,255,0.1); border-left-color: var(--mint); color: #fff; }
     .nav-icon { font-size: 1rem; width: 18px; text-align: center; flex-shrink: 0; }
 
-    /* Evenementen — always visible; dims when inside an event so it reads as "back" */
-    .nav-home { display: flex; }
-    #app.event-active .nav-home { color: rgba(255,255,255,0.45); border-left-color: transparent !important; background: transparent !important; }
-    #app.event-active .nav-home:hover { color: rgba(255,255,255,0.85); background: rgba(255,255,255,0.05) !important; }
+    /* Section label & divider */
+    .sb-section-label {
+      padding: 1rem 1.5rem 0.3rem;
+      font-size: 0.62rem; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: rgba(255,255,255,0.28);
+    }
+    .sb-divider { height: 1px; background: rgba(255,255,255,0.07); margin: 0.3rem 0; }
 
-    /* Event sub-tree */
-    .event-tree { display: none; }
-    #app.event-active .event-tree { display: block; }
+    /* New event button at bottom of list */
+    .sb-new-btn {
+      display: flex; align-items: center; gap: 0.6rem;
+      padding: 0.6rem 1.5rem; cursor: pointer; font-size: 0.82rem;
+      color: var(--mint); transition: background 0.15s; border-left: 3px solid transparent;
+    }
+    .sb-new-btn:hover { background: rgba(255,255,255,0.06); }
+    .sb-new-icon { font-size: 1.1rem; width: 18px; text-align: center; }
 
-    .event-tree-header {
+    /* Empty events state in sidebar */
+    .sb-events-empty { padding: 0.5rem 1.5rem; font-size: 0.8rem; color: rgba(255,255,255,0.28); }
+
+    /* ─── Sidebar type group (level 1) ─── */
+    .sb-type { border-left: 3px solid transparent; }
+    .sb-type-row {
       display: flex; align-items: center; gap: 0.55rem;
-      padding: 0.55rem 1.5rem 0.4rem 1.4rem;
-      border-left: 3px solid var(--mint);
-      background: rgba(255,255,255,0.06);
+      padding: 0.58rem 0.9rem 0.58rem 1.25rem; cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      color: rgba(255,255,255,0.55); font-size: 0.84rem; font-weight: 600;
     }
-    .event-tree-arrow { font-size: 0.6rem; color: var(--mint); flex-shrink: 0; line-height: 1; }
-    .event-tree-title {
-      font-size: 0.82rem; font-weight: 700; color: #fff;
-      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    .sb-type-row:hover { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.85); }
+    .sb-type-icon  { font-size: 1rem; width: 20px; text-align: center; flex-shrink: 0; }
+    .sb-type-label { flex: 1; }
+    .sb-type-count {
+      font-size: 0.68rem; color: rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.08); border-radius: 10px;
+      padding: 1px 7px; flex-shrink: 0;
     }
+    .sb-type-chevron {
+      font-size: 0.7rem; color: rgba(255,255,255,0.22); flex-shrink: 0;
+      transition: transform 0.2s, color 0.15s;
+    }
+    .sb-type-events { display: none; }
+    .sb-type.sb-type-open { border-left-color: rgba(255,255,255,0.12); }
+    .sb-type.sb-type-open > .sb-type-row { color: rgba(255,255,255,0.85); }
+    .sb-type.sb-type-open > .sb-type-row .sb-type-chevron { transform: rotate(90deg); color: rgba(255,255,255,0.45); }
+    .sb-type.sb-type-open > .sb-type-events { display: block; }
 
-    /* Sub-nav items — indented under the event header */
-    .event-nav { display: flex; padding-left: 2.5rem !important; font-size: 0.85rem; }
+    /* ─── Event row (level 2, inside a type group) ─── */
+    .sb-event { border-left: 3px solid transparent; }
+    .sb-event-row {
+      display: flex; align-items: center; gap: 0.55rem;
+      padding: 0.52rem 0.9rem 0.52rem 2.5rem; cursor: pointer;
+      transition: background 0.15s, color 0.15s; color: rgba(255,255,255,0.55);
+      font-size: 0.84rem;
+    }
+    .sb-event-row:hover { background: rgba(255,255,255,0.05); color: #fff; }
+    .sb-event-icon  { font-size: 0.95rem; width: 18px; text-align: center; flex-shrink: 0; }
+    .sb-event-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .sb-chevron {
+      font-size: 0.7rem; color: rgba(255,255,255,0.22); flex-shrink: 0;
+      transition: transform 0.2s, color 0.15s;
+    }
+    /* Active / open event */
+    .sb-event.sb-event-open { border-left-color: var(--mint); }
+    .sb-event.sb-event-open > .sb-event-row { color: #fff; background: rgba(255,255,255,0.07); }
+    .sb-event.sb-event-open > .sb-event-row .sb-chevron { transform: rotate(90deg); color: var(--mint); }
+
+    /* ─── Sub-items (level 3, inside an open event) ─── */
+    .sb-event-sub { display: none; }
+    .sb-event.sb-event-open .sb-event-sub { display: block; }
+    .sb-sub-item {
+      display: flex; align-items: center; gap: 0.55rem;
+      padding: 0.45rem 1rem 0.45rem 4rem; cursor: pointer;
+      font-size: 0.82rem; color: rgba(255,255,255,0.42);
+      transition: background 0.15s, color 0.15s;
+    }
+    .sb-sub-item:hover { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.85); }
+    .sb-sub-item.active { color: #fff; background: rgba(255,255,255,0.09); }
+    .sb-sub-icon { font-size: 0.82rem; width: 16px; text-align: center; flex-shrink: 0; }
 
     /* ─── Main content ─── */
     .main {
@@ -517,22 +575,14 @@
       </div>
     </div>
     <div class="sb-nav">
-      <!-- Always-visible Evenementen (also acts as "back" when inside an event) -->
       <div class="nav-item nav-home active" id="nav-home" onclick="backToEvents()">
         <span class="nav-icon">🗓</span> Evenementen
       </div>
-
-      <!-- Expanded event sub-tree (only shown when event-active) -->
-      <div class="event-tree" id="eventTree">
-        <div class="event-tree-header">
-          <span class="event-tree-arrow">▸</span>
-          <span class="event-tree-title" id="sbEventChip">–</span>
-        </div>
-        <div class="nav-item event-nav" onclick="showSection('overview')"  id="nav-overview">  <span class="nav-icon">📊</span> Overzicht</div>
-        <div class="nav-item event-nav" onclick="showSection('uploaders')" id="nav-uploaders"> <span class="nav-icon">👥</span> Gasten</div>
-        <div class="nav-item event-nav" onclick="showSection('photos')"    id="nav-photos">    <span class="nav-icon">🖼️</span> Foto's</div>
-        <div class="nav-item event-nav" onclick="showSection('qr')"        id="nav-qr">        <span class="nav-icon">📱</span> QR code</div>
-        <div class="nav-item event-nav" onclick="showSection('customize')" id="nav-customize"> <span class="nav-icon">🎨</span> Uiterlijk</div>
+      <div class="sb-divider"></div>
+      <div class="sb-section-label">Evenementen</div>
+      <div id="sbEventsList"></div>
+      <div class="sb-new-btn" onclick="openCreateModal()">
+        <span class="sb-new-icon">＋</span> Nieuw evenement
       </div>
     </div>
   </nav>
@@ -869,6 +919,15 @@ var _allEvents = [];
 var _photoUploaderFilter = '';
 var _photoSort = 'date-desc';
 
+// Sidebar section tracker
+var _currentSection = 'events';
+
+// Which type-group headers are expanded in the sidebar
+var _openTypes = {};
+
+// Whether the active event's sub-items are visible in the sidebar
+var _eventSubOpen = true;
+
 // ═══════════════════════════════════════════════════════════════
 //  STATIC DATA
 // ═══════════════════════════════════════════════════════════════
@@ -985,30 +1044,29 @@ window.doLogin = function() {
 //  NAVIGATION
 // ═══════════════════════════════════════════════════════════════
 window.showSection = function(name) {
+  _currentSection = name;
   document.querySelectorAll('.section').forEach(function(s) { s.classList.remove('active'); });
-  document.querySelectorAll('.nav-item.event-nav').forEach(function(n) { n.classList.remove('active'); });
   var sec = document.getElementById('section-' + name);
-  var nav = document.getElementById('nav-' + name);
   if (sec) sec.classList.add('active');
-  if (nav) nav.classList.add('active');
-  if (name === 'qr') {
-    // Always fill in the full event URL and auto-generate the QR
-    if (_eSlug) {
-      document.getElementById('urlInput').value = eventUrl(_eSlug);
-      generateQR();
-    }
+  // Update sidebar sub-item active state without full re-render
+  document.querySelectorAll('#sbEventsList .sb-sub-item').forEach(function(n) {
+    n.classList.toggle('active', n.dataset.sec === name);
+  });
+  if (name === 'qr' && _eSlug) {
+    document.getElementById('urlInput').value = eventUrl(_eSlug);
+    generateQR();
   }
 };
 
 window.backToEvents = function() {
   _eid = null; _eSlug = ''; _selType = ''; _selTheme = '';
+  _currentSection = 'events'; _eventSubOpen = true;
   document.getElementById('app').classList.remove('event-active');
   document.querySelectorAll('.section').forEach(function(s) { s.classList.remove('active'); });
   document.getElementById('section-events').classList.add('active');
-  document.querySelectorAll('.nav-item.event-nav').forEach(function(n) { n.classList.remove('active'); });
   document.getElementById('nav-home').classList.add('active');
   applyTheme(DEFAULT_THEME);
-  loadEventsList(); // refresh tiles so updated theme/event colors are visible
+  loadEventsList(); // refresh tiles + sidebar
 };
 
 // ═══════════════════════════════════════════════════════════════
@@ -1037,7 +1095,99 @@ function renderEventsList(events, highlightId) {
   _allEvents = events || [];
   buildTypeFilterOptions();
   applyFilter(highlightId);
+  renderSidebarEvents();
 }
+
+var _SB_SUBS = [
+  { key: 'overview',  icon: '📊', label: 'Overzicht' },
+  { key: 'uploaders', icon: '👥', label: 'Gasten' },
+  { key: 'photos',    icon: '🖼️', label: "Foto's" },
+  { key: 'qr',        icon: '📱', label: 'QR Code' },
+  { key: 'customize', icon: '🎨', label: 'Uiterlijk' }
+];
+
+function renderSidebarEvents() {
+  var container = document.getElementById('sbEventsList');
+  if (!container) return;
+  if (!_allEvents.length) {
+    container.innerHTML = '<div class="sb-events-empty">Nog geen evenementen</div>';
+    return;
+  }
+
+  // Group events by eventType, in EVENT_TYPES order, unknowns → '_other'
+  var grouped = {};
+  var typeOrder = Object.keys(EVENT_TYPES).concat(['_other']);
+  typeOrder.forEach(function(k) { grouped[k] = []; });
+  _allEvents.forEach(function(e) {
+    var key = (e.eventType && EVENT_TYPES[e.eventType]) ? e.eventType : '_other';
+    grouped[key].push(e);
+  });
+
+  var html = '';
+  typeOrder.forEach(function(tKey) {
+    var evts = grouped[tKey];
+    if (!evts.length) return; // hide empty type groups
+    var isTypeOpen = !!_openTypes[tKey];
+    var typeIcon  = tKey === '_other' ? '🌿' : EVENT_TYPES[tKey].icon;
+    var typeName  = tKey === '_other' ? 'Overig'   : EVENT_TYPES[tKey].name;
+
+    html += '<div class="sb-type' + (isTypeOpen ? ' sb-type-open' : '') + '">';
+    html += '<div class="sb-type-row" onclick="toggleSidebarType(\'' + tKey + '\')">';
+    html += '<span class="sb-type-icon">' + typeIcon + '</span>';
+    html += '<span class="sb-type-label">' + typeName + '</span>';
+    html += '<span class="sb-type-count">' + evts.length + '</span>';
+    html += '<span class="sb-type-chevron">▶</span>';
+    html += '</div>';
+    html += '<div class="sb-type-events">';
+    evts.forEach(function(e) { html += renderSidebarEventRow(e); });
+    html += '</div>';
+    html += '</div>';
+  });
+
+  container.innerHTML = html;
+}
+
+function renderSidebarEventRow(e) {
+  var et       = EVENT_TYPES[e.eventType] || null;
+  var icon     = et ? et.icon : '🌿';
+  var isActive = (e.id === _eid);
+  var isOpen   = isActive && _eventSubOpen;
+  var html     = '<div class="sb-event' + (isOpen ? ' sb-event-open' : '') + '">';
+  html += '<div class="sb-event-row" onclick="openEventFromSidebar(\'' + e.id + '\')">';
+  html += '<span class="sb-event-icon">' + icon + '</span>';
+  html += '<span class="sb-event-label">' + esc(e.name) + '</span>';
+  html += '<span class="sb-chevron">▶</span>';
+  html += '</div>';
+  if (isOpen) {
+    html += '<div class="sb-event-sub">';
+    for (var j = 0; j < _SB_SUBS.length; j++) {
+      var sub = _SB_SUBS[j];
+      html += '<div class="sb-sub-item' + (_currentSection === sub.key ? ' active' : '') + '"'
+            + ' data-sec="' + sub.key + '" onclick="showSection(\'' + sub.key + '\')">';
+      html += '<span class="sb-sub-icon">' + sub.icon + '</span> ' + sub.label;
+      html += '</div>';
+    }
+    html += '</div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+window.toggleSidebarType = function(typeKey) {
+  _openTypes[typeKey] = !_openTypes[typeKey];
+  renderSidebarEvents();
+};
+
+window.openEventFromSidebar = function(id) {
+  if (id === _eid) {
+    // Toggle sub-items for the already-active event
+    _eventSubOpen = !_eventSubOpen;
+    renderSidebarEvents();
+    return;
+  }
+  _eventSubOpen = true; // always expand sub-items when switching to a new event
+  openEvent(id);
+};
 
 function applyFilter(highlightId) {
   var grid = document.getElementById('eventsList');
@@ -1356,12 +1506,21 @@ window.doDeleteEvent = function(id, name) {
 // ═══════════════════════════════════════════════════════════════
 window.openEvent = function(id) {
   _eid = id;
+  _eventSubOpen = true;
   _bannerFile = null;
+  // Auto-expand the type group for this event (only on navigation, not on every render)
+  for (var k = 0; k < _allEvents.length; k++) {
+    if (_allEvents[k].id === id) {
+      _openTypes[_allEvents[k].eventType || '_other'] = true;
+      break;
+    }
+  }
   document.getElementById('app').classList.add('event-active');
   document.getElementById('nav-home').classList.remove('active');
   document.getElementById('bannerPreview').style.display = 'none';
   document.getElementById('qrOutput').style.display = 'none';
-  document.getElementById('urlInput').value = '';   // will be set once slug is loaded
+  document.getElementById('urlInput').value = '';
+  renderSidebarEvents(); // expand this event in the sidebar
   loadStats();
   loadPhotos();
   loadSettings();
@@ -1417,15 +1576,15 @@ function loadSettings() {
 
     // Load event name + slug from list
     xhr('GET', '/api/events', null, function(list) {
+      _allEvents = Array.isArray(list) ? list : _allEvents;
       var evt = null;
       for (var i = 0; i < list.length; i++) { if (list[i].id === _eid) { evt = list[i]; break; } }
       var evtName = evt ? evt.name : '';
       _eSlug = evt ? (evt.slug || '') : '';
-      document.getElementById('sbEventChip').textContent    = evtName;
-      document.getElementById('overviewTitle').textContent  = evtName;
-      document.getElementById('eventNameInput').value       = evtName;
-      // Pre-fill the QR URL input with the full event URL now that we have the slug
+      document.getElementById('overviewTitle').textContent = evtName;
+      document.getElementById('eventNameInput').value      = evtName;
       if (_eSlug) document.getElementById('urlInput').value = eventUrl(_eSlug);
+      renderSidebarEvents(); // update name in sidebar if it changed
     });
 
     if (s.bannerUrl) {
@@ -1674,11 +1833,10 @@ window.saveEventName = function() {
   var name = document.getElementById('eventNameInput').value.trim();
   if (!name) return;
   xhr('POST', '/api/events/' + _eid + '/settings', { name: name }, function(d) {
-    document.getElementById('sbEventChip').textContent   = name;
     document.getElementById('overviewTitle').textContent = name;
     if (d.slug) _eSlug = d.slug;
     flash('eventNameSaveMsg');
-    loadEventsList();
+    loadEventsList(); // refreshes _allEvents + sidebar
   });
 };
 
