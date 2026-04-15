@@ -803,26 +803,6 @@
       <div id="photoGrid" class="photo-grid"></div>
     </div>
 
-    <!-- ═══ QR Code ═══ -->
-    <div class="section" id="section-qr">
-      <div class="topbar"><div class="topbar-left"><h1>QR Code</h1><p>Scan om direct foto's te uploaden</p></div></div>
-      <div class="qr-wrap">
-        <div class="qr-card">
-          <h3>Upload-link voor gasten</h3>
-          <p>De QR-code verwijst altijd naar de huidige URL van dit evenement en wordt automatisch bijgewerkt als je de naam aanpast.</p>
-          <div class="qr-spinner" id="qrSpinner">QR code laden…</div>
-          <div id="qrOutput" style="display:none">
-            <img id="qrImage" src="" alt="QR Code" />
-            <div class="qr-link" id="qrUrl"></div>
-            <div class="qr-btns">
-              <button class="btn btn-outline" onclick="downloadQR()">⬇ QR downloaden</button>
-              <button class="btn btn-outline" onclick="copyQrUrl()">🔗 Link kopiëren</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- ═══ Uiterlijk ═══ -->
     <div class="section" id="section-customize">
       <div class="topbar"><div class="topbar-left"><h1>Uiterlijk</h1><p>Personaliseer de gastpagina</p></div></div>
@@ -1021,6 +1001,8 @@ var _pw         = '';
 var _eid        = null;
 var _eSlug      = '';
 var _eArchived  = false;
+var _qrDataUrl  = '';
+var _qrGuestUrl = '';
 var _photos     = [];
 var _bannerFile = null;
 var _selType    = '';
@@ -1175,7 +1157,6 @@ window.showSection = function(name) {
   document.querySelectorAll('#sbEventsList .sb-sub-item').forEach(function(n) {
     n.classList.toggle('active', n.dataset.sec === name);
   });
-  if (name === 'qr') refreshQR();
 };
 
 window.backToEvents = function() {
@@ -1243,20 +1224,21 @@ function formatSize(mb) {
 function updateEventsSummary() {
   var active = _allEvents.filter(function(e) { return e.archived !== true; });
   var totalPhotos = active.reduce(function(s, e) { return s + (e.totalPhotos || 0); }, 0);
-  var totalMB     = active.reduce(function(s, e) { return s + (e.totalSizeMB || 0); }, 0);
   var bar = document.getElementById('eventsSummary');
   if (!bar) return;
   document.getElementById('sumEvents').textContent = active.length;
   document.getElementById('sumPhotos').textContent = totalPhotos;
-  document.getElementById('sumSize').textContent   = formatSize(totalMB);
   bar.style.display = active.length ? '' : 'none';
+  // Fetch real disk-based storage total from server
+  xhr('GET', '/api/stats', null, function(d) {
+    document.getElementById('sumSize').textContent = formatSize(d.totalSizeMB || 0);
+  });
 }
 
 var _SB_SUBS = [
   { key: 'overview',  icon: '📊', label: 'Overzicht' },
   { key: 'uploaders', icon: '👥', label: 'Gasten' },
   { key: 'photos',    icon: '🖼️', label: "Foto's" },
-  { key: 'qr',        icon: '📱', label: 'QR Code' },
   { key: 'customize', icon: '🎨', label: 'Uiterlijk' }
 ];
 
@@ -1824,9 +1806,8 @@ window.openEvent = function(id) {
   document.getElementById('nav-home').classList.remove('active');
   document.getElementById('nav-archive').classList.remove('active');
   document.getElementById('bannerPreview').style.display = 'none';
-  // Reset QR panels
-  document.getElementById('qrOutput').style.display = 'none';
-  var qrSpin = document.getElementById('qrSpinner'); if (qrSpin) qrSpin.style.display = '';
+  // Reset overview QR card
+  _qrDataUrl = ''; _qrGuestUrl = '';
   var ovImg  = document.getElementById('ovQrImage'); if (ovImg)  { ovImg.src = ''; ovImg.style.display = 'none'; }
   var ovSpin = document.getElementById('ovQrSpinner'); if (ovSpin) ovSpin.style.display = '';
   var ovUrl  = document.getElementById('ovQrUrl');  if (ovUrl)  ovUrl.textContent = '';
@@ -2109,15 +2090,8 @@ function refreshQR() {
   xhr('GET', '/api/events/' + _eid + '/qrcode?fullUrl=' + encodeURIComponent(fullUrl), null,
     function(d) {
       if (!d.qr) return;
-      // ── QR section ──
-      var qrImg  = document.getElementById('qrImage');
-      var qrLink = document.getElementById('qrUrl');
-      var qrOut  = document.getElementById('qrOutput');
-      var qrSpin = document.getElementById('qrSpinner');
-      if (qrImg)  qrImg.src = d.qr;
-      if (qrLink) qrLink.textContent = d.url;
-      if (qrOut)  qrOut.style.display = 'block';
-      if (qrSpin) qrSpin.style.display = 'none';
+      _qrDataUrl  = d.qr;
+      _qrGuestUrl = d.url;
       // ── Overview QR card ──
       var ovImg  = document.getElementById('ovQrImage');
       var ovLink = document.getElementById('ovQrUrl');
@@ -2130,16 +2104,15 @@ function refreshQR() {
 }
 
 window.downloadQR = function() {
-  var img = document.getElementById('qrImage');
-  if (!img || !img.src || img.src === window.location.href) return;
+  if (!_qrDataUrl) return;
   var a = document.createElement('a');
-  a.href = img.src;
+  a.href = _qrDataUrl;
   a.download = (_eSlug || 'event') + '-qrcode.png';
   a.click();
 };
 
 window.copyQrUrl = function() {
-  var url = (document.getElementById('qrUrl') || {}).textContent || eventUrl(_eSlug);
+  var url = _qrGuestUrl || eventUrl(_eSlug);
   if (!url) return;
   if (navigator.clipboard) {
     navigator.clipboard.writeText(url).then(function() { alert('Link gekopieerd!\n\n' + url); });

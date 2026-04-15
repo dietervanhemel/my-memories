@@ -354,6 +354,21 @@ app.get('/api/events/:eid/photos', auth, (req, res) => {
   res.json(evt.photos || []);
 });
 
+app.get('/api/stats', auth, (req, res) => {
+  const events = readEvents().filter(e => !e.archived);
+  let totalPhotos = 0, totalBytes = 0;
+  events.forEach(e => {
+    (e.photos || []).forEach(u => {
+      u.photos.forEach(p => {
+        totalPhotos++;
+        const fp = path.join(uploadsDir, p.filename);
+        try { totalBytes += fs.statSync(fp).size; } catch { totalBytes += p.size || 0; }
+      });
+    });
+  });
+  res.json({ totalEvents: events.length, totalPhotos, totalSizeMB: parseFloat((totalBytes / 1048576).toFixed(2)) });
+});
+
 app.get('/api/events/:eid/stats', auth, (req, res) => {
   const evt = readEvents().find(e => e.id === req.params.eid);
   if (!evt) return res.status(404).json({ error: 'Niet gevonden' });
