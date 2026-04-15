@@ -252,6 +252,10 @@
     }
     .tile-icon-btn--archive { border-color: #fbbf24; color: #b45309; }
     .tile-icon-btn--archive:hover { background: #fffbeb; border-color: #b45309; }
+    .sb-archive-badge {
+      margin-left: auto; font-size: 0.68rem; color: rgba(255,255,255,0.55);
+      background: rgba(255,255,255,0.1); border-radius: 10px; padding: 1px 7px; flex-shrink: 0;
+    }
 
     /* ─── Filter bar ─── */
     .filter-bar {
@@ -592,6 +596,11 @@
       <div class="sb-new-btn" onclick="openCreateModal()">
         <span class="sb-new-icon">＋</span> Nieuw evenement
       </div>
+      <div class="sb-divider"></div>
+      <div class="nav-item nav-archive" id="nav-archive" onclick="showArchive()">
+        <span class="nav-icon">📦</span> Archief
+        <span class="sb-archive-badge" id="sbArchiveBadge" style="display:none"></span>
+      </div>
     </div>
   </nav>
 
@@ -622,16 +631,37 @@
           <option value="name-asc">A → Z</option>
           <option value="name-desc">Z → A</option>
         </select>
-        <select class="filter-select" id="eventStatus" onchange="filterEvents()">
-          <option value="active">Actief</option>
-          <option value="archived">Gearchiveerd</option>
-          <option value="all">Alle</option>
-        </select>
         <span class="filter-count" id="filterCount"></span>
       </div>
 
       <div class="events-grid" id="eventsList">
         <div class="empty"><span class="empty-icon">🗓</span>Laden…</div>
+      </div>
+    </div>
+
+    <!-- ═══ Archief ═══ -->
+    <div class="section" id="section-archive">
+      <div class="topbar">
+        <div class="topbar-left">
+          <h1>Archief</h1>
+          <p>Gearchiveerde evenementen — foto's blijven bewaard</p>
+        </div>
+      </div>
+      <div class="filter-bar">
+        <div class="filter-search">
+          <span class="fi">🔍</span>
+          <input type="text" id="archiveSearch" placeholder="Zoek op naam..." oninput="filterArchive()" autocomplete="off" />
+        </div>
+        <select class="filter-select" id="archiveSort" onchange="filterArchive()">
+          <option value="date-desc">Nieuwste eerst</option>
+          <option value="date-asc">Oudste eerst</option>
+          <option value="name-asc">A → Z</option>
+          <option value="name-desc">Z → A</option>
+        </select>
+        <span class="filter-count" id="archiveCount"></span>
+      </div>
+      <div class="events-grid" id="archiveList">
+        <div class="empty"><span class="empty-icon">📦</span>Geen gearchiveerde evenementen.</div>
       </div>
     </div>
 
@@ -641,7 +671,10 @@
         <div class="topbar-left">
           <h1 id="overviewTitle">Overzicht</h1>
         </div>
-        <button class="btn btn-outline" onclick="refreshAll()">↻ Vernieuwen</button>
+        <div style="display:flex;gap:0.6rem;align-items:center">
+          <button class="btn btn-outline" id="archiveEventBtn" onclick="doArchiveCurrentEvent()" style="display:none"></button>
+          <button class="btn btn-outline" onclick="refreshAll()">↻ Vernieuwen</button>
+        </div>
       </div>
       <div class="stats-row">
         <div class="stat-card" onclick="showSection('uploaders')">
@@ -915,6 +948,7 @@
 var _pw         = '';
 var _eid        = null;
 var _eSlug      = '';
+var _eArchived  = false;
 var _photos     = [];
 var _bannerFile = null;
 var _selType    = '';
@@ -1072,12 +1106,13 @@ window.showSection = function(name) {
 };
 
 window.backToEvents = function() {
-  _eid = null; _eSlug = ''; _selType = ''; _selTheme = '';
+  _eid = null; _eSlug = ''; _selType = ''; _selTheme = ''; _eArchived = false;
   _currentSection = 'events'; _eventSubOpen = true;
   document.getElementById('app').classList.remove('event-active');
   document.querySelectorAll('.section').forEach(function(s) { s.classList.remove('active'); });
   document.getElementById('section-events').classList.add('active');
   document.getElementById('nav-home').classList.add('active');
+  document.getElementById('nav-archive').classList.remove('active');
   applyTheme(DEFAULT_THEME);
   loadEventsList(); // refresh tiles + sidebar
 };
@@ -1111,6 +1146,15 @@ function renderEventsList(events, highlightId) {
   buildTypeFilterOptions();
   applyFilter(highlightId);
   renderSidebarEvents();
+  updateArchiveBadge();
+}
+
+function updateArchiveBadge() {
+  var count = _allEvents.filter(function(e) { return e.archived === true; }).length;
+  var badge = document.getElementById('sbArchiveBadge');
+  if (!badge) return;
+  if (count > 0) { badge.textContent = count; badge.style.display = ''; }
+  else { badge.style.display = 'none'; }
 }
 
 var _SB_SUBS = [
@@ -1206,45 +1250,78 @@ window.openEventFromSidebar = function(id) {
   openEvent(id);
 };
 
+// ─── Shared tile builder ────────────────────────────────────────────────────
+function buildEventTileHTML(e, isNew, inArchive) {
+  var et   = EVENT_TYPES[e.eventType] || null;
+  var th   = (e.theme && THEMES[e.theme]) ? THEMES[e.theme] : null;
+  var pal  = th || et || DEFAULT_THEME;
+  var icon = et ? et.icon : '🌿';
+  var grad = 'linear-gradient(135deg,' + pal.deep + ',' + pal.accent + ')';
+  var date = new Date(e.createdAt).toLocaleDateString('nl-NL', { day:'numeric', month:'long', year:'numeric' });
+  var url  = eventUrl(e.slug || e.id);
+  var html = '<div class="event-tile' + (isNew ? ' tile-new' : '') + (inArchive ? ' tile-archived' : '') + '" id="elc-' + e.id + '"'
+           + ' data-name="' + esc(e.name.toLowerCase()) + '" data-type="' + esc(e.eventType || '') + '">';
+  html += '  <div class="tile-hero" style="background:' + grad + '" onclick="openEvent(\'' + e.id + '\')">';
+  html += '    ' + icon;
+  if (isNew) html += '    <span class="tile-badge">NIEUW</span>';
+  html += '  </div>';
+  html += '  <div class="tile-body">';
+  html += '    <h3 onclick="openEvent(\'' + e.id + '\')">' + esc(e.name) + '</h3>';
+  var gStr = e.totalUploaders + ' gast' + (e.totalUploaders !== 1 ? 'en' : '');
+  var pStr = e.totalPhotos + ' foto' + (e.totalPhotos !== 1 ? "'s" : '');
+  html += '    <div class="tile-meta">Aangemaakt ' + date + '<br>' + gStr + ' · ' + pStr + '</div>';
+  html += '    <div class="tile-url">';
+  html += '      <span class="tile-url-text" title="' + esc(url) + '">' + esc(url) + '</span>';
+  html += '      <button class="btn-copy" onclick="copyUrl(\'' + esc(url) + '\')">Kopieer</button>';
+  html += '    </div>';
+  html += '  </div>';
+  html += '  <div class="tile-actions">';
+  html += '    <button class="tile-icon-btn" title="Beheer" onclick="openEvent(\'' + e.id + '\')">' + SVG_MANAGE + '</button>';
+  if (!inArchive) {
+    html += '    <a class="tile-icon-btn" title="Gastpagina openen" href="' + esc(url) + '" target="_blank">' + SVG_EXTERNAL + '</a>';
+    html += '    <button class="tile-icon-btn tile-icon-btn--archive" title="Archiveren" onclick="doArchiveEvent(\'' + e.id + '\',\'' + esc(e.name) + '\',false)">' + SVG_ARCHIVE + '</button>';
+  } else {
+    html += '    <button class="tile-icon-btn tile-icon-btn--archive" title="Herstellen uit archief" onclick="doArchiveEvent(\'' + e.id + '\',\'' + esc(e.name) + '\',true)">' + SVG_UNARCHIVE + '</button>';
+  }
+  html += '    <button class="tile-icon-btn tile-icon-btn--danger" title="Verwijderen" onclick="doDeleteEvent(\'' + e.id + '\',\'' + esc(e.name) + '\')">' + SVG_TRASH + '</button>';
+  html += '  </div>';
+  html += '</div>';
+  return html;
+}
+
 function applyFilter(highlightId) {
   var grid = document.getElementById('eventsList');
-  if (!_allEvents.length) {
+  // Active events only
+  var active = _allEvents.filter(function(e) { return e.archived !== true; });
+
+  if (!active.length) {
     grid.innerHTML = '<div class="empty"><span class="empty-icon">🗓</span>Nog geen evenementen. Maak er een aan hierboven!</div>';
     document.getElementById('filterCount').textContent = '';
     return;
   }
 
-  var q      = (document.getElementById('eventSearch').value || '').toLowerCase().trim();
-  var type   = document.getElementById('eventTypeFilter').value;
-  var sort   = document.getElementById('eventSort').value;
-  var status = document.getElementById('eventStatus').value;
+  var q    = (document.getElementById('eventSearch').value || '').toLowerCase().trim();
+  var type = document.getElementById('eventTypeFilter').value;
+  var sort = document.getElementById('eventSort').value;
 
-  // Filter
-  var filtered = _allEvents.filter(function(e) {
-    var matchName   = !q    || e.name.toLowerCase().indexOf(q) >= 0;
-    var matchType   = !type || e.eventType === type;
-    var matchStatus = status === 'all'
-      ? true
-      : status === 'archived'
-      ? e.archived === true
-      : e.archived !== true;
-    return matchName && matchType && matchStatus;
+  var filtered = active.filter(function(e) {
+    var matchName = !q    || e.name.toLowerCase().indexOf(q) >= 0;
+    var matchType = !type || e.eventType === type;
+    return matchName && matchType;
   });
 
-  // Sort
   filtered.sort(function(a, b) {
     if (sort === 'date-asc')  return new Date(a.createdAt) - new Date(b.createdAt);
     if (sort === 'name-asc')  return a.name.localeCompare(b.name, 'nl');
     if (sort === 'name-desc') return b.name.localeCompare(a.name, 'nl');
-    return new Date(b.createdAt) - new Date(a.createdAt); // date-desc default
+    return new Date(b.createdAt) - new Date(a.createdAt);
   });
 
-  // Count
   var countEl = document.getElementById('filterCount');
   if (countEl) {
-    countEl.textContent = filtered.length === _allEvents.length
-      ? _allEvents.length + ' evenement' + (_allEvents.length !== 1 ? 'en' : '')
-      : filtered.length + ' van ' + _allEvents.length + ' evenementen';
+    countEl.textContent = filtered.length === active.length
+      ? active.length + ' evenement' + (active.length !== 1 ? 'en' : '')
+      : filtered.length + ' van ' + active.length + ' evenementen';
   }
 
   if (!filtered.length) {
@@ -1252,43 +1329,9 @@ function applyFilter(highlightId) {
     return;
   }
 
-  // Render tiles
   var html = '';
   for (var i = 0; i < filtered.length; i++) {
-    var e    = filtered[i];
-    var et   = EVENT_TYPES[e.eventType] || null;
-    var th   = (e.theme && THEMES[e.theme]) ? THEMES[e.theme] : null;
-    var pal  = th || et || DEFAULT_THEME;
-    var icon = et ? et.icon : '🌿';
-    var grad = 'linear-gradient(135deg,' + pal.deep + ',' + pal.accent + ')';
-    var date = new Date(e.createdAt).toLocaleDateString('nl-NL', { day:'numeric', month:'long', year:'numeric' });
-    var isNew = e.id === highlightId;
-    var url   = eventUrl(e.slug || e.id);
-    var isArchived = e.archived === true;
-    html += '<div class="event-tile' + (isNew ? ' tile-new' : '') + (isArchived ? ' tile-archived' : '') + '" id="elc-' + e.id + '"'
-          + ' data-name="' + esc(e.name.toLowerCase()) + '" data-type="' + esc(e.eventType || '') + '">';
-    html += '  <div class="tile-hero" style="background:' + grad + '" onclick="openEvent(\'' + e.id + '\')">';
-    html += '    ' + icon;
-    if (isNew) html += '    <span class="tile-badge">NIEUW</span>';
-    html += '  </div>';
-    html += '  <div class="tile-body">';
-    html += '    <h3 onclick="openEvent(\'' + e.id + '\')">' + esc(e.name) + '</h3>';
-    var gStr = e.totalUploaders + ' gast' + (e.totalUploaders !== 1 ? 'en' : '');
-    var pStr = e.totalPhotos + ' foto' + (e.totalPhotos !== 1 ? "'s" : '');
-    html += '    <div class="tile-meta">Aangemaakt ' + date + '<br>' + gStr + ' · ' + pStr + '</div>';
-    html += '    <div class="tile-url">';
-    html += '      <span class="tile-url-text" title="' + esc(url) + '">' + esc(url) + '</span>';
-    html += '      <button class="btn-copy" onclick="copyUrl(\'' + esc(url) + '\')">Kopieer</button>';
-    html += '    </div>';
-    html += '  </div>';
-    // Icon action buttons
-    html += '  <div class="tile-actions">';
-    html += '    <button class="tile-icon-btn" title="Beheer" onclick="openEvent(\'' + e.id + '\')">' + SVG_MANAGE + '</button>';
-    html += '    <a class="tile-icon-btn" title="Gastpagina openen" href="' + esc(url) + '" target="_blank">' + SVG_EXTERNAL + '</a>';
-    html += '    <button class="tile-icon-btn tile-icon-btn--archive" title="' + (isArchived ? 'Herstellen' : 'Archiveren') + '" onclick="doArchiveEvent(\'' + e.id + '\',\'' + esc(e.name) + '\',' + isArchived + ')">' + (isArchived ? SVG_UNARCHIVE : SVG_ARCHIVE) + '</button>';
-    html += '    <button class="tile-icon-btn tile-icon-btn--danger" title="Verwijderen" onclick="doDeleteEvent(\'' + e.id + '\',\'' + esc(e.name) + '\')">' + SVG_TRASH + '</button>';
-    html += '  </div>';
-    html += '</div>';
+    html += buildEventTileHTML(filtered[i], filtered[i].id === highlightId, false);
   }
   grid.innerHTML = html;
 
@@ -1296,6 +1339,64 @@ function applyFilter(highlightId) {
     var el = document.getElementById('elc-' + highlightId);
     if (el) setTimeout(function() { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
   }
+}
+
+// ─── Archive section ─────────────────────────────────────────────────────────
+window.showArchive = function() {
+  _eid = null; _eSlug = ''; _selType = ''; _selTheme = ''; _eArchived = false;
+  _currentSection = 'archive'; _eventSubOpen = true;
+  document.getElementById('app').classList.remove('event-active');
+  document.querySelectorAll('.section').forEach(function(s) { s.classList.remove('active'); });
+  document.getElementById('section-archive').classList.add('active');
+  document.getElementById('nav-archive').classList.add('active');
+  document.getElementById('nav-home').classList.remove('active');
+  applyTheme(DEFAULT_THEME);
+  applyArchiveFilter();
+};
+
+window.filterArchive = function() { applyArchiveFilter(); };
+
+function applyArchiveFilter() {
+  var grid = document.getElementById('archiveList');
+  var archived = _allEvents.filter(function(e) { return e.archived === true; });
+
+  if (!archived.length) {
+    grid.innerHTML = '<div class="empty"><span class="empty-icon">📦</span>Geen gearchiveerde evenementen.</div>';
+    document.getElementById('archiveCount').textContent = '';
+    return;
+  }
+
+  var q    = (document.getElementById('archiveSearch').value || '').toLowerCase().trim();
+  var sort = document.getElementById('archiveSort').value;
+
+  var filtered = archived.filter(function(e) {
+    return !q || e.name.toLowerCase().indexOf(q) >= 0;
+  });
+
+  filtered.sort(function(a, b) {
+    if (sort === 'date-asc')  return new Date(a.createdAt) - new Date(b.createdAt);
+    if (sort === 'name-asc')  return a.name.localeCompare(b.name, 'nl');
+    if (sort === 'name-desc') return b.name.localeCompare(a.name, 'nl');
+    return new Date(b.createdAt) - new Date(a.createdAt);
+  });
+
+  var countEl = document.getElementById('archiveCount');
+  if (countEl) {
+    countEl.textContent = filtered.length === archived.length
+      ? archived.length + ' evenement' + (archived.length !== 1 ? 'en' : '')
+      : filtered.length + ' van ' + archived.length + ' evenementen';
+  }
+
+  if (!filtered.length) {
+    grid.innerHTML = '<div class="empty"><span class="empty-icon">🔍</span>Geen resultaten.</div>';
+    return;
+  }
+
+  var html = '';
+  for (var i = 0; i < filtered.length; i++) {
+    html += buildEventTileHTML(filtered[i], false, true);
+  }
+  grid.innerHTML = html;
 }
 
 window.copyUrl = function(url) {
@@ -1529,12 +1630,39 @@ window.doDeleteEvent = function(id, name) {
 window.doArchiveEvent = function(id, name, isArchived) {
   var msg = isArchived
     ? 'Evenement "' + name + '" herstellen uit archief?'
-    : 'Evenement "' + name + '" archiveren? Het blijft bewaard maar is standaard verborgen.';
+    : 'Evenement "' + name + '" archiveren? Het blijft bewaard maar is zichtbaar via Archief.';
   if (!confirm(msg)) return;
   xhr('PATCH', '/api/events/' + id + '/archive', null,
-    function() { loadEventsList(); },
+    function() {
+      // Reload event list; after reload decide which view to refresh
+      xhr('GET', '/api/events', null, function(events) {
+        if (!Array.isArray(events)) return;
+        _allEvents = events;
+        updateArchiveBadge();
+        renderSidebarEvents();
+        if (_currentSection === 'archive') {
+          applyArchiveFilter();
+        } else {
+          applyFilter();
+        }
+        // If we archived the currently open event, navigate back
+        if (!isArchived && id === _eid) {
+          backToEvents();
+        }
+      });
+    },
     function(err) { alert('Mislukt: ' + err); }
   );
+};
+
+window.doArchiveCurrentEvent = function() {
+  if (!_eid) return;
+  var evt = null;
+  for (var i = 0; i < _allEvents.length; i++) {
+    if (_allEvents[i].id === _eid) { evt = _allEvents[i]; break; }
+  }
+  if (!evt) return;
+  doArchiveEvent(_eid, evt.name, _eArchived);
 };
 
 // ═══════════════════════════════════════════════════════════════
@@ -1544,18 +1672,27 @@ window.openEvent = function(id) {
   _eid = id;
   _eventSubOpen = true;
   _bannerFile = null;
-  // Auto-expand the type group for this event (only on navigation, not on every render)
+  // Detect archived state and auto-expand type group
+  _eArchived = false;
   for (var k = 0; k < _allEvents.length; k++) {
     if (_allEvents[k].id === id) {
       _openTypes[_allEvents[k].eventType || '_other'] = true;
+      _eArchived = _allEvents[k].archived === true;
       break;
     }
   }
   document.getElementById('app').classList.add('event-active');
   document.getElementById('nav-home').classList.remove('active');
+  document.getElementById('nav-archive').classList.remove('active');
   document.getElementById('bannerPreview').style.display = 'none';
   document.getElementById('qrOutput').style.display = 'none';
   document.getElementById('urlInput').value = '';
+  // Show archive/restore button in topbar
+  var archBtn = document.getElementById('archiveEventBtn');
+  if (archBtn) {
+    archBtn.textContent = _eArchived ? '↩ Herstellen' : '📦 Archiveren';
+    archBtn.style.display = '';
+  }
   renderSidebarEvents(); // expand this event in the sidebar
   loadStats();
   loadPhotos();
