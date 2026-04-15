@@ -1,10 +1,11 @@
-const express = require('express');
-const multer  = require('multer');
-const path    = require('path');
-const fs      = require('fs');
-const os      = require('os');
+const express  = require('express');
+const multer   = require('multer');
+const path     = require('path');
+const fs       = require('fs');
+const os       = require('os');
 const { v4: uuidv4 } = require('uuid');
-const QRCode  = require('qrcode');
+const QRCode   = require('qrcode');
+const archiver = require('archiver');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -218,6 +219,49 @@ app.patch('/api/events/:eid/archive', auth, (req, res) => {
   events[ei].archived = !events[ei].archived;
   writeEvents(events);
   res.json({ success: true, archived: events[ei].archived });
+});
+
+// ─── Download: single event as ZIP ──────────────────────────────────────────
+
+function streamEventsZip(evtList, res, zipName) {
+  const archive = archiver('zip', { zlib: { level: 6 } });
+  archive.on('error', err => { console.error('[zip]', err); res.end(); });
+  res.setHeader('Content-Type', 'application/zip');
+  res.setHeader('Content-Disposition', `attachment; filename="${zipName}"`);
+  archive.pipe(res);
+  evtList.forEach(evt => {
+    const folder = evt.name.replace(/[\\/:*?"<>|]/g, '_').trim() || evt.id;
+    (evt.photos || []).forEach(uploader => {
+      const uploaderFolder = uploader.name.replace(/[\\/:*?"<>|]/g, '_').trim() || 'gast';
+      uploader.photos.forEach(photo => {
+        const fp = path.join(uploadsDir, photo.filename);
+        if (fs.existsSync(fp)) {
+          const ext  = path.extname(photo.filename);
+          const base = path.basename(photo.originalName || photo.filename, ext);
+          archive.file(fp, { name: `${folder}/${uploaderFolder}/${base}${ext}` });
+        }
+      });
+    });
+  });
+  archive.finalize();
+}
+
+app.get('/api/events/:eid/download', auth, (req, res) => {
+  const evt = readEvents().find(e => e.id === req.params.eid);
+  if (!evt) return res.status(404).json({ error: 'Niet gevonden' });
+  const safeName = evt.name.replace(/[\\/:*?"<>|]/g, '_').trim() || evt.id;
+  streamEventsZip([evt], res, `${safeName}.zip`);
+});
+
+// ─── Download: multiple events as ZIP ───────────────────────────────────────
+
+app.get('/api/download-bulk', auth, (req, res) => {
+  const ids    = req.query.ids ? String(req.query.ids).split(',').filter(Boolean) : [];
+  if (!ids.length) return res.status(400).json({ error: 'Geen evenementen opgegeven' });
+  const all    = readEvents();
+  const evtList = ids.map(id => all.find(e => e.id === id)).filter(Boolean);
+  if (!evtList.length) return res.status(404).json({ error: 'Geen van de opgegeven evenementen gevonden' });
+  streamEventsZip(evtList, res, 'my-memories.zip');
 });
 
 app.post('/api/events', auth, (req, res) => {
