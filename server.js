@@ -208,7 +208,8 @@ app.get('/api/events', auth, (req, res) => {
     createdAt: e.createdAt, eventType: e.eventType || '', theme: e.theme || '',
     archived: e.archived || false,
     totalUploaders: (e.photos || []).length,
-    totalPhotos: (e.photos || []).reduce((s, u) => s + u.photos.length, 0)
+    totalPhotos: (e.photos || []).reduce((s, u) => s + u.photos.length, 0),
+    totalSizeMB: parseFloat(((e.photos || []).reduce((s, u) => s + u.photos.reduce((x, p) => x + (p.size || 0), 0), 0) / 1048576).toFixed(2))
   })));
 });
 

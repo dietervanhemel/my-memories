@@ -393,12 +393,34 @@
     .qr-card { background: var(--card); border-radius: var(--radius); padding: 2rem; text-align: center; box-shadow: 0 2px 16px rgba(0,0,0,0.07); }
     .qr-card h3 { font-size: 1.15rem; font-weight: 700; color: var(--deep); margin-bottom: 0.4rem; }
     .qr-card p  { font-size: 0.88rem; color: var(--muted); margin-bottom: 1.75rem; }
-    .url-row { display: flex; gap: 0.6rem; margin-bottom: 1.5rem; }
-    .url-row input { flex: 1; padding: 0.7rem 1rem; border: 2px solid var(--border); border-radius: 10px; font-size: 0.9rem; outline: none; transition: border-color 0.2s; }
-    .url-row input:focus { border-color: var(--accent); }
     #qrImage { max-width: 260px; border-radius: 12px; border: 2px solid var(--border); }
     .qr-link { font-size: 0.82rem; color: var(--accent); margin-top: 0.8rem; word-break: break-all; font-weight: 500; }
     .qr-btns { display: flex; gap: 0.5rem; justify-content: center; margin-top: 1.2rem; flex-wrap: wrap; }
+    .qr-auto-note { font-size: 0.75rem; color: var(--muted); margin-top: 0.6rem; }
+
+    /* ─── Overview bottom grid (recent + QR) ─── */
+    .overview-bottom-grid { display: grid; grid-template-columns: 1fr 260px; gap: 1.5rem; align-items: start; }
+    @media (max-width: 900px) { .overview-bottom-grid { grid-template-columns: 1fr; } }
+    .overview-qr-card {
+      background: var(--card); border-radius: var(--radius); padding: 1.4rem 1.25rem;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.07); text-align: center;
+      position: sticky; top: 1.5rem;
+    }
+    .overview-qr-card .section-title { margin-bottom: 1rem; }
+    .overview-qr-card img { max-width: 170px; border-radius: 10px; border: 2px solid var(--border); margin-bottom: 0.65rem; display: block; margin-left: auto; margin-right: auto; }
+    .overview-qr-card .qr-link { font-size: 0.7rem; margin-top: 0; margin-bottom: 0.75rem; }
+    .overview-qr-card .qr-btns { flex-direction: column; margin-top: 0; gap: 0.4rem; }
+    .overview-qr-card .qr-btns .btn { font-size: 0.8rem; padding: 0.5rem 0.75rem; width: 100%; }
+    .qr-spinner { font-size: 0.8rem; color: var(--muted); padding: 1rem 0; }
+
+    /* ─── Events summary bar ─── */
+    .events-summary {
+      display: flex; gap: 1.5rem; flex-wrap: wrap; align-items: center;
+      padding: 0.65rem 1rem; border-radius: 10px;
+      background: var(--card); border: 1.5px solid var(--border);
+      margin-bottom: 1.25rem; font-size: 0.83rem; color: var(--muted);
+    }
+    .events-summary span strong { color: var(--deep); font-size: 1rem; display: block; line-height: 1.2; }
 
     /* ─── Customize ─── */
     .custom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
@@ -641,6 +663,12 @@
         </div>
       </div>
 
+      <div class="events-summary" id="eventsSummary" style="display:none">
+        <span>📅 <strong id="sumEvents">–</strong> evenementen</span>
+        <span>📷 <strong id="sumPhotos">–</strong> foto's</span>
+        <span>💾 <strong id="sumSize">–</strong> opslag</span>
+      </div>
+
       <div class="filter-bar">
         <div class="filter-search">
           <span class="fi">🔍</span>
@@ -720,8 +748,23 @@
           <div class="stat-value" id="stat-size">–</div>
         </div>
       </div>
-      <p class="section-title">Recente uploads</p>
-      <div id="recentList"></div>
+      <div class="overview-bottom-grid">
+        <div>
+          <p class="section-title">Recente uploads</p>
+          <div id="recentList"></div>
+        </div>
+        <div class="overview-qr-card">
+          <p class="section-title">QR Code &amp; Link</p>
+          <div class="qr-spinner" id="ovQrSpinner">QR code laden…</div>
+          <img id="ovQrImage" src="" alt="QR Code" style="display:none" />
+          <div class="qr-link" id="ovQrUrl"></div>
+          <div class="qr-btns">
+            <button class="btn btn-outline" onclick="downloadQR()">⬇ QR downloaden</button>
+            <button class="btn btn-outline" onclick="copyQrUrl()">🔗 Link kopiëren</button>
+          </div>
+          <div class="qr-auto-note">Wordt automatisch bijgewerkt bij naamswijziging</div>
+        </div>
+      </div>
     </div>
 
     <!-- ═══ Gasten ═══ -->
@@ -762,15 +805,12 @@
 
     <!-- ═══ QR Code ═══ -->
     <div class="section" id="section-qr">
-      <div class="topbar"><div class="topbar-left"><h1>QR Code</h1></div></div>
+      <div class="topbar"><div class="topbar-left"><h1>QR Code</h1><p>Scan om direct foto's te uploaden</p></div></div>
       <div class="qr-wrap">
         <div class="qr-card">
           <h3>Upload-link voor gasten</h3>
-          <p>Gasten scannen de QR code en komen direct op de uploadpagina van dit evenement. Pas de URL aan als de app op een eigen domein draait.</p>
-          <div class="url-row">
-            <input type="text" id="urlInput" placeholder="https://jouw-domein.nl/e/evenement" />
-            <button class="btn btn-primary" onclick="generateQR()">↻ Genereer</button>
-          </div>
+          <p>De QR-code verwijst altijd naar de huidige URL van dit evenement en wordt automatisch bijgewerkt als je de naam aanpast.</p>
+          <div class="qr-spinner" id="qrSpinner">QR code laden…</div>
           <div id="qrOutput" style="display:none">
             <img id="qrImage" src="" alt="QR Code" />
             <div class="qr-link" id="qrUrl"></div>
@@ -1135,10 +1175,7 @@ window.showSection = function(name) {
   document.querySelectorAll('#sbEventsList .sb-sub-item').forEach(function(n) {
     n.classList.toggle('active', n.dataset.sec === name);
   });
-  if (name === 'qr' && _eSlug) {
-    document.getElementById('urlInput').value = eventUrl(_eSlug);
-    generateQR();
-  }
+  if (name === 'qr') refreshQR();
 };
 
 window.backToEvents = function() {
@@ -1184,6 +1221,7 @@ function renderEventsList(events, highlightId) {
   applyFilter(highlightId);
   renderSidebarEvents();
   updateArchiveBadge();
+  updateEventsSummary();
   // Keep archive section in sync if it's currently visible
   if (_currentSection === 'archive') applyArchiveFilter();
 }
@@ -1194,6 +1232,24 @@ function updateArchiveBadge() {
   if (!badge) return;
   if (count > 0) { badge.textContent = count; badge.style.display = ''; }
   else { badge.style.display = 'none'; }
+}
+
+function formatSize(mb) {
+  if (mb < 0.1)    return (mb * 1024).toFixed(0) + ' KB';
+  if (mb < 1024)   return mb.toFixed(1) + ' MB';
+  return (mb / 1024).toFixed(2) + ' GB';
+}
+
+function updateEventsSummary() {
+  var active = _allEvents.filter(function(e) { return e.archived !== true; });
+  var totalPhotos = active.reduce(function(s, e) { return s + (e.totalPhotos || 0); }, 0);
+  var totalMB     = active.reduce(function(s, e) { return s + (e.totalSizeMB || 0); }, 0);
+  var bar = document.getElementById('eventsSummary');
+  if (!bar) return;
+  document.getElementById('sumEvents').textContent = active.length;
+  document.getElementById('sumPhotos').textContent = totalPhotos;
+  document.getElementById('sumSize').textContent   = formatSize(totalMB);
+  bar.style.display = active.length ? '' : 'none';
 }
 
 var _SB_SUBS = [
@@ -1768,8 +1824,12 @@ window.openEvent = function(id) {
   document.getElementById('nav-home').classList.remove('active');
   document.getElementById('nav-archive').classList.remove('active');
   document.getElementById('bannerPreview').style.display = 'none';
+  // Reset QR panels
   document.getElementById('qrOutput').style.display = 'none';
-  document.getElementById('urlInput').value = '';
+  var qrSpin = document.getElementById('qrSpinner'); if (qrSpin) qrSpin.style.display = '';
+  var ovImg  = document.getElementById('ovQrImage'); if (ovImg)  { ovImg.src = ''; ovImg.style.display = 'none'; }
+  var ovSpin = document.getElementById('ovQrSpinner'); if (ovSpin) ovSpin.style.display = '';
+  var ovUrl  = document.getElementById('ovQrUrl');  if (ovUrl)  ovUrl.textContent = '';
   // Show archive/restore + download buttons in topbar
   var archBtn = document.getElementById('archiveEventBtn');
   if (archBtn) {
@@ -1798,7 +1858,7 @@ function loadStats() {
   xhr('GET', '/api/events/' + _eid + '/stats', null, function(d) {
     document.getElementById('stat-uploaders').textContent = d.totalUploaders;
     document.getElementById('stat-photos').textContent    = d.totalPhotos;
-    document.getElementById('stat-size').textContent      = d.totalSizeMB + ' MB';
+    document.getElementById('stat-size').textContent      = formatSize(parseFloat(d.totalSizeMB) || 0);
   });
 }
 
@@ -1841,8 +1901,8 @@ function loadSettings() {
       _eSlug = evt ? (evt.slug || '') : '';
       document.getElementById('overviewTitle').textContent = evtName;
       document.getElementById('eventNameInput').value      = evtName;
-      if (_eSlug) document.getElementById('urlInput').value = eventUrl(_eSlug);
       renderSidebarEvents(); // update name in sidebar if it changed
+      refreshQR(); // auto-generate QR now that slug is known
     });
 
     if (s.bannerUrl) {
@@ -2043,32 +2103,46 @@ document.addEventListener('keydown', function(e) {
 // ═══════════════════════════════════════════════════════════════
 //  QR CODE
 // ═══════════════════════════════════════════════════════════════
-window.generateQR = function() {
-  var urlEl   = document.getElementById('urlInput');
-  var fullUrl = urlEl.value.trim() || eventUrl(_eSlug);
-  if (!fullUrl) return;
-  urlEl.value = fullUrl;
-  // Send the full URL directly; server uses it as-is
+function refreshQR() {
+  if (!_eid || !_eSlug) return;
+  var fullUrl = eventUrl(_eSlug);
   xhr('GET', '/api/events/' + _eid + '/qrcode?fullUrl=' + encodeURIComponent(fullUrl), null,
     function(d) {
-      if (d.qr) {
-        document.getElementById('qrImage').src = d.qr;
-        document.getElementById('qrUrl').textContent = d.url;
-        document.getElementById('qrOutput').style.display = 'block';
-      }
+      if (!d.qr) return;
+      // ── QR section ──
+      var qrImg  = document.getElementById('qrImage');
+      var qrLink = document.getElementById('qrUrl');
+      var qrOut  = document.getElementById('qrOutput');
+      var qrSpin = document.getElementById('qrSpinner');
+      if (qrImg)  qrImg.src = d.qr;
+      if (qrLink) qrLink.textContent = d.url;
+      if (qrOut)  qrOut.style.display = 'block';
+      if (qrSpin) qrSpin.style.display = 'none';
+      // ── Overview QR card ──
+      var ovImg  = document.getElementById('ovQrImage');
+      var ovLink = document.getElementById('ovQrUrl');
+      var ovSpin = document.getElementById('ovQrSpinner');
+      if (ovImg)  { ovImg.src = d.qr; ovImg.style.display = 'block'; }
+      if (ovLink) ovLink.textContent = d.url;
+      if (ovSpin) ovSpin.style.display = 'none';
     }
   );
-};
+}
+
 window.downloadQR = function() {
+  var img = document.getElementById('qrImage');
+  if (!img || !img.src || img.src === window.location.href) return;
   var a = document.createElement('a');
-  a.href = document.getElementById('qrImage').src;
-  a.download = 'my-memories-qrcode.png';
+  a.href = img.src;
+  a.download = (_eSlug || 'event') + '-qrcode.png';
   a.click();
 };
+
 window.copyQrUrl = function() {
-  var url = document.getElementById('qrUrl').textContent;
+  var url = (document.getElementById('qrUrl') || {}).textContent || eventUrl(_eSlug);
+  if (!url) return;
   if (navigator.clipboard) {
-    navigator.clipboard.writeText(url).then(function() { alert('Link gekopieerd!'); });
+    navigator.clipboard.writeText(url).then(function() { alert('Link gekopieerd!\n\n' + url); });
   } else {
     window.prompt('Kopieer deze link:', url);
   }
@@ -2092,7 +2166,7 @@ window.saveEventName = function() {
   if (!name) return;
   xhr('POST', '/api/events/' + _eid + '/settings', { name: name }, function(d) {
     document.getElementById('overviewTitle').textContent = name;
-    if (d.slug) _eSlug = d.slug;
+    if (d.slug) { _eSlug = d.slug; refreshQR(); } // auto-update QR when URL changes
     flash('eventNameSaveMsg');
     loadEventsList(); // refreshes _allEvents + sidebar
   });
