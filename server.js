@@ -117,15 +117,9 @@ try {
   console.warn('[icons] could not generate icons:', e.message);
 }
 
-// ─── Middleware ──────────────────────────────────────────────────────────────
+// ─── Dynamic PWA manifest + downloads (must be BEFORE express.static) ────────
 
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(uploadsDir));
-
-// ─── Dynamic PWA manifest per event (for iOS "Add to Home Screen") ───────────
-// Served at /e/:slug/manifest.json  OR  /manifest.json?slug=:slug
-// so the installed app opens directly to the right event page.
 
 const EVENT_THEME_COLORS = {
   wedding:     { bg: '#5c3d2e', theme: '#c9806b' },
@@ -144,7 +138,7 @@ function buildManifest(evt) {
   const slug   = evt ? (evt.slug || '') : '';
   return {
     name:             name + ' · My Memories',
-    short_name:       name.length > 14 ? name.slice(0, 13) + '…' : name,
+    short_name:       name.length > 14 ? name.slice(0, 13) + '\u2026' : name,
     description:      'Upload jouw foto\'s naar ' + name,
     start_url:        slug ? '/e/' + slug : '/',
     display:          'standalone',
@@ -158,29 +152,39 @@ function buildManifest(evt) {
   };
 }
 
-// /e/:slug/manifest.json  – linked from the guest page via relative href="manifest.json"
+// /e/:slug/manifest.json – used by the guest page via relative href="manifest.json"
 app.get('/e/:slug/manifest.json', (req, res) => {
-  const events = readEvents();
-  const evt    = events.find(e => e.slug === req.params.slug) || null;
+  const evt = readEvents().find(e => e.slug === req.params.slug) || null;
   res.setHeader('Content-Type', 'application/manifest+json');
   res.json(buildManifest(evt));
 });
 
-// /manifest.json?slug=:slug  – fallback used by the PWA setup script
+// /manifest.json?slug=xxx – fallback; must be before express.static or static file wins
 app.get('/manifest.json', (req, res) => {
   if (req.query.slug) {
-    const events = readEvents();
-    const evt    = events.find(e => e.slug === req.query.slug) || null;
+    const evt = readEvents().find(e => e.slug === req.query.slug) || null;
     if (evt) {
       res.setHeader('Content-Type', 'application/manifest+json');
       return res.json(buildManifest(evt));
     }
   }
-  // Serve the static default manifest
   res.sendFile(path.join(__dirname, 'public', 'manifest.json'));
 });
 
-// ─── Guest upload page by slug (before other routes) ────────────────────────
+// Download routes – serve installer files from the project root
+app.get('/download/install.bat', (req, res) => {
+  res.download(path.join(__dirname, 'install.bat'), 'My-Memories-install.bat');
+});
+app.get('/download/start.bat', (req, res) => {
+  res.download(path.join(__dirname, 'start.bat'), 'My-Memories-start.bat');
+});
+
+// ─── Static middleware & uploads ─────────────────────────────────────────────
+
+app.use(express.static(path.join(__dirname, 'public')));
+app.use('/uploads', express.static(uploadsDir));
+
+// ─── Guest upload page by slug ───────────────────────────────────────────────
 
 app.get('/e/:slug', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
@@ -201,9 +205,19 @@ app.get('/api/events', auth, (req, res) => {
   res.json(events.map(e => ({
     id: e.id, name: e.name, slug: e.slug || slugify(e.name),
     createdAt: e.createdAt, eventType: e.eventType || '', theme: e.theme || '',
+    archived: e.archived || false,
     totalUploaders: (e.photos || []).length,
     totalPhotos: (e.photos || []).reduce((s, u) => s + u.photos.length, 0)
   })));
+});
+
+app.patch('/api/events/:eid/archive', auth, (req, res) => {
+  const events = readEvents();
+  const ei = events.findIndex(e => e.id === req.params.eid);
+  if (ei === -1) return res.status(404).json({ error: 'Niet gevonden' });
+  events[ei].archived = !events[ei].archived;
+  writeEvents(events);
+  res.json({ success: true, archived: events[ei].archived });
 });
 
 app.post('/api/events', auth, (req, res) => {

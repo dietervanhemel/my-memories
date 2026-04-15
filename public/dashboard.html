@@ -244,6 +244,14 @@
     .tile-icon-btn--danger { border-color: #fca5a5; color: #dc2626; }
     .tile-icon-btn--danger:hover { background: #fef2f2; border-color: #dc2626; }
     .event-tile.tile-hidden { display: none; }
+    .event-tile.tile-archived { opacity: 0.55; }
+    .event-tile.tile-archived .tile-hero::after {
+      content: 'GEARCHIVEERD'; position: absolute; bottom: 8px; right: 8px;
+      background: rgba(0,0,0,0.55); color: #fff; font-size: 0.6rem; font-weight: 700;
+      padding: 2px 8px; border-radius: 20px; letter-spacing: 0.08em;
+    }
+    .tile-icon-btn--archive { border-color: #fbbf24; color: #b45309; }
+    .tile-icon-btn--archive:hover { background: #fffbeb; border-color: #b45309; }
 
     /* ─── Filter bar ─── */
     .filter-bar {
@@ -613,6 +621,11 @@
           <option value="date-asc">Oudste eerst</option>
           <option value="name-asc">A → Z</option>
           <option value="name-desc">Z → A</option>
+        </select>
+        <select class="filter-select" id="eventStatus" onchange="filterEvents()">
+          <option value="active">Actief</option>
+          <option value="archived">Gearchiveerd</option>
+          <option value="all">Alle</option>
         </select>
         <span class="filter-count" id="filterCount"></span>
       </div>
@@ -1086,9 +1099,11 @@ function loadEventsList(highlightId) {
 }
 
 // SVG icon helpers
-var SVG_MANAGE   = '<svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
-var SVG_EXTERNAL = '<svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>';
-var SVG_TRASH    = '<svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>';
+var SVG_MANAGE    = '<svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+var SVG_EXTERNAL  = '<svg viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>';
+var SVG_TRASH     = '<svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>';
+var SVG_ARCHIVE   = '<svg viewBox="0 0 24 24"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>';
+var SVG_UNARCHIVE = '<svg viewBox="0 0 24 24"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><polyline points="10 13 12 11 14 13"/><line x1="12" y1="11" x2="12" y2="17"/></svg>';
 
 function renderEventsList(events, highlightId) {
   // Store full list for sort/filter
@@ -1115,10 +1130,12 @@ function renderSidebarEvents() {
   }
 
   // Group events by eventType, in EVENT_TYPES order, unknowns → '_other'
+  // Only show non-archived events in sidebar (always show the currently active event)
   var grouped = {};
   var typeOrder = Object.keys(EVENT_TYPES).concat(['_other']);
   typeOrder.forEach(function(k) { grouped[k] = []; });
   _allEvents.forEach(function(e) {
+    if (e.archived && e.id !== _eid) return; // hide archived unless active
     var key = (e.eventType && EVENT_TYPES[e.eventType]) ? e.eventType : '_other';
     grouped[key].push(e);
   });
@@ -1197,15 +1214,21 @@ function applyFilter(highlightId) {
     return;
   }
 
-  var q    = (document.getElementById('eventSearch').value || '').toLowerCase().trim();
-  var type = document.getElementById('eventTypeFilter').value;
-  var sort = document.getElementById('eventSort').value;
+  var q      = (document.getElementById('eventSearch').value || '').toLowerCase().trim();
+  var type   = document.getElementById('eventTypeFilter').value;
+  var sort   = document.getElementById('eventSort').value;
+  var status = document.getElementById('eventStatus').value;
 
   // Filter
   var filtered = _allEvents.filter(function(e) {
-    var matchName = !q    || e.name.toLowerCase().indexOf(q) >= 0;
-    var matchType = !type || e.eventType === type;
-    return matchName && matchType;
+    var matchName   = !q    || e.name.toLowerCase().indexOf(q) >= 0;
+    var matchType   = !type || e.eventType === type;
+    var matchStatus = status === 'all'
+      ? true
+      : status === 'archived'
+      ? e.archived === true
+      : e.archived !== true;
+    return matchName && matchType && matchStatus;
   });
 
   // Sort
@@ -1241,7 +1264,8 @@ function applyFilter(highlightId) {
     var date = new Date(e.createdAt).toLocaleDateString('nl-NL', { day:'numeric', month:'long', year:'numeric' });
     var isNew = e.id === highlightId;
     var url   = eventUrl(e.slug || e.id);
-    html += '<div class="event-tile' + (isNew ? ' tile-new' : '') + '" id="elc-' + e.id + '"'
+    var isArchived = e.archived === true;
+    html += '<div class="event-tile' + (isNew ? ' tile-new' : '') + (isArchived ? ' tile-archived' : '') + '" id="elc-' + e.id + '"'
           + ' data-name="' + esc(e.name.toLowerCase()) + '" data-type="' + esc(e.eventType || '') + '">';
     html += '  <div class="tile-hero" style="background:' + grad + '" onclick="openEvent(\'' + e.id + '\')">';
     html += '    ' + icon;
@@ -1261,6 +1285,7 @@ function applyFilter(highlightId) {
     html += '  <div class="tile-actions">';
     html += '    <button class="tile-icon-btn" title="Beheer" onclick="openEvent(\'' + e.id + '\')">' + SVG_MANAGE + '</button>';
     html += '    <a class="tile-icon-btn" title="Gastpagina openen" href="' + esc(url) + '" target="_blank">' + SVG_EXTERNAL + '</a>';
+    html += '    <button class="tile-icon-btn tile-icon-btn--archive" title="' + (isArchived ? 'Herstellen' : 'Archiveren') + '" onclick="doArchiveEvent(\'' + e.id + '\',\'' + esc(e.name) + '\',' + isArchived + ')">' + (isArchived ? SVG_UNARCHIVE : SVG_ARCHIVE) + '</button>';
     html += '    <button class="tile-icon-btn tile-icon-btn--danger" title="Verwijderen" onclick="doDeleteEvent(\'' + e.id + '\',\'' + esc(e.name) + '\')">' + SVG_TRASH + '</button>';
     html += '  </div>';
     html += '</div>';
@@ -1498,6 +1523,17 @@ window.doDeleteEvent = function(id, name) {
   xhr('DELETE', '/api/events/' + id, null,
     function() { loadEventsList(); },
     function(err) { alert('Verwijderen mislukt: ' + err); }
+  );
+};
+
+window.doArchiveEvent = function(id, name, isArchived) {
+  var msg = isArchived
+    ? 'Evenement "' + name + '" herstellen uit archief?'
+    : 'Evenement "' + name + '" archiveren? Het blijft bewaard maar is standaard verborgen.';
+  if (!confirm(msg)) return;
+  xhr('PATCH', '/api/events/' + id + '/archive', null,
+    function() { loadEventsList(); },
+    function(err) { alert('Mislukt: ' + err); }
   );
 };
 

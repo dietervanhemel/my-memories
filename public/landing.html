@@ -6,265 +6,157 @@
   <title>My Memories – Foto-upload voor evenementen</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --green:  #3a7d44;
-      --deep:   #1e4d28;
-      --dark:   #0f1f13;
-      --light:  #e4f0e7;
-      --border: #c8dece;
-      --muted:  #6a9070;
-      --card:   #ffffff;
-      --text:   #1a3320;
-      --radius: 18px;
+      --green:  #3a7d44; --deep: #1e4d28; --dark: #0f1f13;
+      --light:  #e4f0e7; --border: #c8dece; --muted: #6a9070;
+      --card:   #ffffff; --text: #1a3320; --r: 16px;
     }
-
     html { scroll-behavior: smooth; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      color: var(--text); background: #f5faf6; line-height: 1.6;
-    }
-    a { color: var(--green); text-decoration: none; }
-    a:hover { text-decoration: underline; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: var(--text); background: #f5faf6; line-height: 1.6; }
 
     /* ── Nav ── */
     nav {
       position: sticky; top: 0; z-index: 50;
-      background: rgba(15,31,19,0.95); backdrop-filter: blur(10px);
-      padding: 0.9rem 2rem; display: flex; align-items: center;
-      justify-content: space-between; gap: 1rem;
+      background: rgba(15,31,19,0.96); backdrop-filter: blur(12px);
+      padding: 0.85rem 2rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem;
     }
-    .nav-brand { display: flex; align-items: center; gap: 0.6rem; color: #fff; font-weight: 700; font-size: 1.1rem; }
-    .nav-brand span { font-size: 1.4rem; }
+    .nav-brand { display: flex; align-items: center; gap: 0.55rem; color: #fff; font-weight: 700; font-size: 1.05rem; text-decoration: none; }
+    .nav-brand:hover { text-decoration: none; }
     .nav-links { display: flex; gap: 1.5rem; }
-    .nav-links a { color: rgba(255,255,255,0.72); font-size: 0.9rem; transition: color 0.15s; }
-    .nav-links a:hover { color: #fff; text-decoration: none; }
-    .nav-cta {
-      background: var(--green); color: #fff; padding: 0.5rem 1.25rem;
-      border-radius: 8px; font-size: 0.88rem; font-weight: 600;
-      transition: background 0.15s; white-space: nowrap;
-    }
+    .nav-links a { color: rgba(255,255,255,0.65); font-size: 0.88rem; text-decoration: none; transition: color 0.15s; }
+    .nav-links a:hover { color: #fff; }
+    .nav-cta { background: var(--green); color: #fff; padding: 0.48rem 1.2rem; border-radius: 8px; font-size: 0.86rem; font-weight: 600; text-decoration: none; transition: background 0.15s; white-space: nowrap; }
     .nav-cta:hover { background: #2e6338; text-decoration: none; }
+    @media(max-width:640px){ .nav-links { display:none; } nav { padding: 0.85rem 1.25rem; } }
 
     /* ── Hero ── */
     .hero {
-      background: linear-gradient(150deg, var(--dark) 0%, var(--deep) 60%, #2e6338 100%);
-      color: #fff; text-align: center;
-      padding: 5rem 1.5rem 4rem;
-      position: relative; overflow: hidden;
+      background: linear-gradient(148deg, var(--dark) 0%, var(--deep) 55%, #285a30 100%);
+      color: #fff; text-align: center; padding: 5.5rem 1.5rem 4.5rem; position: relative; overflow: hidden;
     }
     .hero::before {
-      content: '';
-      position: absolute; inset: 0; pointer-events: none;
-      background-image: radial-gradient(circle at 20% 30%, rgba(58,125,68,0.18) 0%, transparent 55%),
-                        radial-gradient(circle at 80% 70%, rgba(58,125,68,0.14) 0%, transparent 50%);
+      content: ''; position: absolute; inset: 0; pointer-events: none;
+      background: radial-gradient(ellipse at 20% 25%, rgba(58,125,68,.2) 0%, transparent 55%),
+                  radial-gradient(ellipse at 80% 75%, rgba(58,125,68,.15) 0%, transparent 50%);
     }
-    .hero-inner { position: relative; z-index: 1; max-width: 680px; margin: 0 auto; }
-    .hero-icon { font-size: 3.8rem; display: block; margin-bottom: 1rem; filter: drop-shadow(0 4px 16px rgba(0,0,0,0.3)); }
-    .hero h1 {
-      font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 800;
-      letter-spacing: -1px; line-height: 1.15; margin-bottom: 1.25rem;
-    }
+    .hero-inner { position: relative; z-index: 1; max-width: 700px; margin: 0 auto; }
+    .hero-icon { font-size: 4rem; display: block; margin-bottom: 1rem; filter: drop-shadow(0 4px 18px rgba(0,0,0,.35)); }
+    .hero h1 { font-size: clamp(2.1rem,5.5vw,3.4rem); font-weight: 800; letter-spacing: -1px; line-height: 1.13; margin-bottom: 1.2rem; }
     .hero h1 em { font-style: normal; color: #a8d8b0; }
-    .hero p {
-      font-size: 1.15rem; opacity: 0.82; max-width: 520px; margin: 0 auto 2.25rem;
-      line-height: 1.65;
-    }
-    .hero-btns { display: flex; gap: 0.85rem; justify-content: center; flex-wrap: wrap; }
-    .btn-hero {
-      display: inline-flex; align-items: center; gap: 0.5rem;
-      padding: 0.85rem 1.75rem; border-radius: 12px; font-size: 0.97rem;
-      font-weight: 700; cursor: pointer; transition: transform 0.15s, opacity 0.15s;
-      text-decoration: none; border: none;
-    }
-    .btn-hero:hover { transform: translateY(-2px); opacity: 0.92; text-decoration: none; }
+    .hero p { font-size: 1.1rem; opacity: .82; max-width: 520px; margin: 0 auto 2.25rem; line-height: 1.68; }
+    .hero-btns { display: flex; gap: .8rem; justify-content: center; flex-wrap: wrap; margin-bottom: 2.5rem; }
+    .btn-hero { display: inline-flex; align-items: center; gap: .5rem; padding: .82rem 1.65rem; border-radius: 12px; font-size: .95rem; font-weight: 700; cursor: pointer; transition: transform .15s, opacity .15s; text-decoration: none; border: none; }
+    .btn-hero:hover { transform: translateY(-2px); opacity: .9; text-decoration: none; }
     .btn-hero-primary { background: #fff; color: var(--deep); }
-    .btn-hero-outline { background: transparent; color: #fff; border: 2px solid rgba(255,255,255,0.45); }
-    .hero-badges {
-      margin-top: 2.5rem; display: flex; gap: 1.25rem;
-      justify-content: center; flex-wrap: wrap;
-    }
-    .hero-badge {
-      background: rgba(255,255,255,0.09); border: 1px solid rgba(255,255,255,0.18);
-      color: rgba(255,255,255,0.75); font-size: 0.8rem; padding: 0.35rem 0.85rem;
-      border-radius: 20px; display: flex; align-items: center; gap: 0.4rem;
-    }
+    .btn-hero-outline { background: transparent; color: #fff; border: 2px solid rgba(255,255,255,.4); }
+    .hero-badges { display: flex; gap: .9rem; justify-content: center; flex-wrap: wrap; }
+    .badge { background: rgba(255,255,255,.09); border: 1px solid rgba(255,255,255,.17); color: rgba(255,255,255,.72); font-size: .78rem; padding: .32rem .8rem; border-radius: 20px; }
 
     /* ── Phone mockup ── */
-    .mockup-section {
-      background: linear-gradient(180deg, var(--deep) 0%, #f5faf6 40%);
-      display: flex; justify-content: center; padding: 2rem 1rem 0;
-    }
-    .phone {
-      width: 220px; background: #1a1a1a; border-radius: 36px;
-      padding: 12px; box-shadow: 0 32px 80px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.08);
-      position: relative;
-    }
-    .phone-inner {
-      background: linear-gradient(160deg, var(--deep), var(--green));
-      border-radius: 26px; overflow: hidden; aspect-ratio: 9/19;
-      display: flex; flex-direction: column;
-    }
-    .phone-notch {
-      height: 22px; background: #1a1a1a; border-radius: 0 0 14px 14px;
-      width: 80px; margin: 0 auto;
-    }
-    .phone-header {
-      padding: 1rem 1rem 0.8rem; text-align: center; color: #fff;
-    }
-    .phone-header .ph-icon { font-size: 1.8rem; display: block; margin-bottom: 0.3rem; }
-    .phone-header h4 { font-size: 0.82rem; font-weight: 700; }
-    .phone-header p  { font-size: 0.65rem; opacity: 0.7; }
-    .phone-body { background: #f5faf6; flex: 1; padding: 0.75rem; }
-    .phone-field {
-      background: #fff; border-radius: 8px; padding: 0.5rem 0.65rem;
-      margin-bottom: 0.4rem; font-size: 0.6rem; color: #888;
-      border: 1px solid #e0e0e0;
-    }
-    .phone-field strong { display: block; font-size: 0.55rem; color: #1a3320; font-weight: 700; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
-    .phone-upload-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 0.35rem; margin-bottom: 0.4rem; }
-    .phone-upload-btn {
-      background: #fff; border: 1.5px dashed #b2ddb8; border-radius: 8px;
-      padding: 0.5rem; text-align: center; font-size: 0.7rem;
-    }
-    .phone-submit {
-      background: linear-gradient(135deg, var(--green), var(--deep));
-      color: #fff; border-radius: 8px; padding: 0.5rem; text-align: center;
-      font-size: 0.65rem; font-weight: 700;
-    }
+    .mockup-wrap { background: linear-gradient(180deg, #285a30 0%, #f5faf6 38%); display: flex; justify-content: center; padding: 1.5rem 1rem 0; }
+    .phone { width: 210px; background: #1a1a1a; border-radius: 34px; padding: 11px; box-shadow: 0 28px 70px rgba(0,0,0,.45), 0 0 0 1px rgba(255,255,255,.07); }
+    .phone-inner { background: linear-gradient(160deg, var(--deep), var(--green)); border-radius: 25px; overflow: hidden; aspect-ratio: 9/19; display: flex; flex-direction: column; }
+    .phone-notch { height: 20px; background: #1a1a1a; border-radius: 0 0 12px 12px; width: 72px; margin: 0 auto; }
+    .ph-head { padding: .9rem 1rem .7rem; text-align: center; color: #fff; }
+    .ph-head .phi { font-size: 1.7rem; display: block; margin-bottom: .25rem; }
+    .ph-head h4 { font-size: .78rem; font-weight: 700; }
+    .ph-head p  { font-size: .62rem; opacity: .7; }
+    .ph-body { background: #f5faf6; flex: 1; padding: .65rem; }
+    .ph-field { background: #fff; border-radius: 7px; padding: .45rem .6rem; margin-bottom: .35rem; font-size: .58rem; color: #888; border: 1px solid #e0e0e0; }
+    .ph-field strong { display: block; font-size: .52rem; color: #1a3320; font-weight: 700; margin-bottom: 1px; text-transform: uppercase; letter-spacing: .05em; }
+    .ph-btns { display: grid; grid-template-columns: 1fr 1fr; gap: .3rem; margin-bottom: .35rem; }
+    .ph-btn { background: #fff; border: 1.5px dashed #b2ddb8; border-radius: 7px; padding: .45rem; text-align: center; font-size: .65rem; }
+    .ph-submit { background: linear-gradient(135deg, var(--green), var(--deep)); color: #fff; border-radius: 7px; padding: .45rem; text-align: center; font-size: .62rem; font-weight: 700; }
 
-    /* ── Sections ── */
+    /* ── Generic sections ── */
     section { padding: 5rem 1.5rem; }
-    .container { max-width: 1040px; margin: 0 auto; }
-    .section-label {
-      font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 0.12em; color: var(--green); margin-bottom: 0.65rem;
-    }
-    .section-title {
-      font-size: clamp(1.65rem, 3.5vw, 2.4rem); font-weight: 800;
-      color: var(--deep); letter-spacing: -0.5px; line-height: 1.2;
-      margin-bottom: 1rem;
-    }
-    .section-sub { font-size: 1.05rem; color: var(--muted); max-width: 560px; line-height: 1.65; }
+    .container { max-width: 1060px; margin: 0 auto; }
+    .s-label { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; color: var(--green); margin-bottom: .6rem; }
+    .s-title { font-size: clamp(1.7rem,3.5vw,2.5rem); font-weight: 800; color: var(--deep); letter-spacing: -.5px; line-height: 1.2; margin-bottom: .9rem; }
+    .s-sub { font-size: 1rem; color: var(--muted); max-width: 560px; line-height: 1.65; }
 
-    /* ── Features grid ── */
+    /* ── Features ── */
     .features { background: #fff; }
-    .features-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 1.5rem; margin-top: 3rem;
-    }
-    .feat-card {
-      background: #f5faf6; border-radius: var(--radius); padding: 1.75rem 1.5rem;
-      border: 1px solid var(--border); transition: box-shadow 0.2s, transform 0.2s;
-    }
-    .feat-card:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.09); transform: translateY(-3px); }
-    .feat-icon { font-size: 2.2rem; display: block; margin-bottom: 0.85rem; }
-    .feat-card h3 { font-size: 1.05rem; font-weight: 700; color: var(--deep); margin-bottom: 0.45rem; }
-    .feat-card p  { font-size: 0.88rem; color: var(--muted); line-height: 1.6; }
+    .feat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px,1fr)); gap: 1.35rem; margin-top: 2.75rem; }
+    .feat-card { background: #f5faf6; border-radius: var(--r); padding: 1.65rem 1.4rem; border: 1px solid var(--border); transition: box-shadow .2s, transform .2s; }
+    .feat-card:hover { box-shadow: 0 8px 28px rgba(0,0,0,.09); transform: translateY(-2px); }
+    .feat-icon { font-size: 2rem; display: block; margin-bottom: .75rem; }
+    .feat-card h3 { font-size: 1rem; font-weight: 700; color: var(--deep); margin-bottom: .4rem; }
+    .feat-card p  { font-size: .86rem; color: var(--muted); line-height: 1.6; }
 
     /* ── How it works ── */
     .how { background: linear-gradient(135deg, var(--dark) 0%, var(--deep) 100%); color: #fff; }
-    .how .section-title { color: #fff; }
-    .how .section-sub   { color: rgba(255,255,255,0.68); }
-    .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 2rem; margin-top: 3rem; }
+    .how .s-title { color: #fff; }
+    .how .s-sub   { color: rgba(255,255,255,.65); }
+    .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap: 2rem; margin-top: 3rem; }
     .step { text-align: center; }
-    .step-num {
-      width: 54px; height: 54px; border-radius: 50%;
-      background: rgba(255,255,255,0.12); border: 2px solid rgba(255,255,255,0.25);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.3rem; font-weight: 700; margin: 0 auto 1rem; color: #fff;
-    }
-    .step h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.4rem; }
-    .step p  { font-size: 0.88rem; opacity: 0.68; line-height: 1.6; }
+    .step-num { width: 52px; height: 52px; border-radius: 50%; background: rgba(255,255,255,.12); border: 2px solid rgba(255,255,255,.25); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; font-weight: 700; margin: 0 auto 1rem; color: #fff; }
+    .step h3 { font-size: .97rem; font-weight: 700; margin-bottom: .4rem; }
+    .step p  { font-size: .86rem; opacity: .66; line-height: 1.6; }
 
-    /* ── Event types ── */
-    .types-grid {
-      display: flex; flex-wrap: wrap; gap: 0.65rem; margin-top: 2rem;
-    }
-    .type-pill {
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: 20px; padding: 0.45rem 1rem;
-      font-size: 0.88rem; font-weight: 500; color: var(--deep);
-      display: flex; align-items: center; gap: 0.4rem;
-    }
+    /* ── Install / platform tabs ── */
+    .install { background: #fff; }
+    .platform-tabs { display: flex; gap: .5rem; margin-top: 2.5rem; margin-bottom: 0; flex-wrap: wrap; }
+    .ptab { display: flex; align-items: center; gap: .45rem; padding: .6rem 1.2rem; border-radius: 10px; border: 2px solid var(--border); background: #f5faf6; font-size: .88rem; font-weight: 600; color: var(--muted); cursor: pointer; transition: all .15s; user-select: none; }
+    .ptab:hover { border-color: var(--green); color: var(--deep); }
+    .ptab.active { border-color: var(--green); background: var(--light); color: var(--deep); }
+    .ptab-icon { font-size: 1.1rem; }
+    .platform-panels > .panel { display: none; margin-top: 2rem; }
+    .platform-panels > .panel.active { display: grid; }
 
-    /* ── iOS install ── */
-    .ios-section { background: #fff; }
-    .ios-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; align-items: center; margin-top: 2.5rem; }
-    @media (max-width: 680px) { .ios-grid { grid-template-columns: 1fr; } }
-    .ios-steps { list-style: none; counter-reset: ios; }
-    .ios-steps li {
-      counter-increment: ios;
-      display: flex; align-items: flex-start; gap: 1rem;
-      padding: 1rem 0; border-bottom: 1px solid var(--border);
-    }
-    .ios-steps li:last-child { border-bottom: none; }
-    .ios-steps li::before {
-      content: counter(ios);
-      min-width: 32px; height: 32px; border-radius: 50%;
-      background: var(--deep); color: #fff;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 0.85rem; font-weight: 700; flex-shrink: 0; margin-top: 1px;
-    }
-    .ios-steps li .step-text strong { display: block; font-size: 0.92rem; color: var(--deep); margin-bottom: 0.2rem; }
-    .ios-steps li .step-text span   { font-size: 0.84rem; color: var(--muted); }
-    .ios-mockup-wrap { text-align: center; }
-    .ios-mockup-wrap .phone { margin: 0 auto; }
+    /* Windows panel */
+    #panel-windows { grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start; }
+    @media(max-width:700px){ #panel-windows { grid-template-columns: 1fr; } }
+    .win-steps { list-style: none; }
+    .win-steps li { display: flex; align-items: flex-start; gap: .85rem; padding: .9rem 0; border-bottom: 1px solid var(--border); }
+    .win-steps li:last-child { border-bottom: none; }
+    .win-step-num { min-width: 30px; height: 30px; border-radius: 50%; background: var(--deep); color: #fff; display: flex; align-items: center; justify-content: center; font-size: .8rem; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+    .win-steps li strong { display: block; font-size: .9rem; color: var(--deep); margin-bottom: .15rem; }
+    .win-steps li span   { font-size: .82rem; color: var(--muted); }
+    .dl-box { background: #f5faf6; border: 1px solid var(--border); border-radius: var(--r); padding: 1.75rem; text-align: center; }
+    .dl-box .dl-icon { font-size: 2.8rem; display: block; margin-bottom: .75rem; }
+    .dl-box h3 { font-size: 1.05rem; font-weight: 700; color: var(--deep); margin-bottom: .4rem; }
+    .dl-box p  { font-size: .84rem; color: var(--muted); line-height: 1.55; margin-bottom: 1.25rem; }
+    .btn-dl { display: inline-flex; align-items: center; gap: .45rem; padding: .72rem 1.5rem; border-radius: 10px; font-size: .88rem; font-weight: 700; cursor: pointer; border: none; transition: opacity .15s, transform .1s; text-decoration: none; }
+    .btn-dl:hover { opacity: .88; transform: translateY(-1px); text-decoration: none; }
+    .btn-dl-primary { background: var(--deep); color: #fff; }
+    .btn-dl-secondary { background: #fff; border: 2px solid var(--border); color: var(--deep); margin-top: .6rem; }
+    .dl-note { font-size: .75rem; color: var(--muted); margin-top: .85rem; line-height: 1.5; }
 
-    /* ── Download / Install ── */
-    .download { background: linear-gradient(135deg, var(--dark), var(--deep)); color: #fff; text-align: center; }
-    .download .section-title { color: #fff; }
-    .download .section-sub   { color: rgba(255,255,255,0.68); margin: 0 auto 2.5rem; }
-    .dl-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem; max-width: 720px; margin: 0 auto; }
-    .dl-card {
-      background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.14);
-      border-radius: var(--radius); padding: 2rem 1.5rem; text-align: center;
-      transition: background 0.15s;
-    }
-    .dl-card:hover { background: rgba(255,255,255,0.12); }
-    .dl-card .dl-icon { font-size: 2.5rem; display: block; margin-bottom: 0.85rem; }
-    .dl-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.4rem; }
-    .dl-card p  { font-size: 0.84rem; opacity: 0.65; line-height: 1.55; margin-bottom: 1.25rem; }
-    .btn-dl {
-      display: inline-flex; align-items: center; gap: 0.45rem;
-      padding: 0.7rem 1.4rem; border-radius: 10px; font-size: 0.88rem;
-      font-weight: 700; cursor: pointer; border: none; transition: opacity 0.15s, transform 0.1s;
-      text-decoration: none;
-    }
-    .btn-dl:hover { opacity: 0.88; transform: translateY(-1px); text-decoration: none; }
-    .btn-dl-primary { background: #fff; color: var(--deep); }
-    .btn-dl-outline { background: transparent; color: #fff; border: 2px solid rgba(255,255,255,0.4); }
-    .install-note {
-      margin-top: 2rem; font-size: 0.8rem; color: rgba(255,255,255,0.45);
-      max-width: 480px; margin-left: auto; margin-right: auto;
-    }
+    /* iOS / Android panel */
+    #panel-ios, #panel-android { grid-template-columns: 1fr 1fr; gap: 2.5rem; align-items: center; }
+    @media(max-width:700px){ #panel-ios, #panel-android { grid-template-columns: 1fr; } }
+    .mob-steps { list-style: none; counter-reset: mob; }
+    .mob-steps li { counter-increment: mob; display: flex; align-items: flex-start; gap: .85rem; padding: .9rem 0; border-bottom: 1px solid var(--border); }
+    .mob-steps li:last-child { border-bottom: none; }
+    .mob-steps li::before { content: counter(mob); min-width: 30px; height: 30px; border-radius: 50%; background: var(--deep); color: #fff; display: flex; align-items: center; justify-content: center; font-size: .8rem; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+    .mob-steps li strong { display: block; font-size: .9rem; color: var(--deep); margin-bottom: .15rem; }
+    .mob-steps li span   { font-size: .82rem; color: var(--muted); }
+    .mob-visual { text-align: center; }
+    .mob-visual .phone { margin: 0 auto; }
+    .mob-tip { background: var(--light); border: 1px solid var(--border); border-radius: 10px; padding: .85rem 1rem; font-size: .84rem; color: var(--deep); margin-top: 1.5rem; line-height: 1.55; }
+    .mob-tip strong { font-weight: 700; }
+
+    /* event types */
+    .type-pills { display: flex; flex-wrap: wrap; gap: .55rem; margin-top: 1.75rem; }
+    .type-pill { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: .4rem .9rem; font-size: .86rem; color: var(--deep); }
 
     /* ── Footer ── */
-    footer {
-      background: #0a1a0e; color: rgba(255,255,255,0.42);
-      text-align: center; padding: 2rem 1.5rem; font-size: 0.82rem;
-    }
-    footer strong { color: rgba(255,255,255,0.7); }
-
-    @media (max-width: 640px) {
-      .nav-links { display: none; }
-      .hero { padding: 3.5rem 1.25rem 2.5rem; }
-      section { padding: 3.5rem 1.25rem; }
-    }
+    footer { background: #0a1a0e; color: rgba(255,255,255,.38); text-align: center; padding: 2rem 1.5rem; font-size: .8rem; }
+    footer strong { color: rgba(255,255,255,.68); }
   </style>
 </head>
 <body>
 
 <!-- Nav -->
 <nav>
-  <div class="nav-brand"><span>🌿</span> My Memories</div>
+  <a class="nav-brand" href="#">🌿 My Memories</a>
   <div class="nav-links">
     <a href="#features">Functies</a>
     <a href="#how">Hoe werkt het</a>
-    <a href="#ios">iPhone</a>
-    <a href="#download">Download</a>
+    <a href="#install">Installeren</a>
   </div>
-  <a href="#download" class="nav-cta">Download gratis →</a>
+  <a href="#install" class="nav-cta">Download →</a>
 </nav>
 
 <!-- Hero -->
@@ -272,38 +164,38 @@
   <div class="hero-inner">
     <span class="hero-icon">📸</span>
     <h1>Foto's delen tijdens<br/><em>elk bijzonder moment</em></h1>
-    <p>My Memories is een gratis, lokale foto-upload app voor bruiloften, verjaardagen en andere evenementen. Gasten uploaden foto's via hun telefoon — jij hebt alles direct in je eigen beheer.</p>
+    <p>My Memories is een gratis, lokale foto-upload app voor bruiloften, verjaardagen en andere evenementen. Gasten uploaden via hun telefoon — alle foto's blijven op jouw eigen computer.</p>
     <div class="hero-btns">
-      <a href="#download" class="btn-hero btn-hero-primary">⬇ Download voor Windows</a>
-      <a href="#how" class="btn-hero btn-hero-outline">Meer info</a>
+      <a href="/download/install.bat" class="btn-hero btn-hero-primary">⬇ Download voor Windows</a>
+      <a href="#install" class="btn-hero btn-hero-outline">iPhone &amp; Android</a>
     </div>
     <div class="hero-badges">
-      <span class="hero-badge">🔒 Geen cloud, 100% lokaal</span>
-      <span class="hero-badge">📱 iPhone-installeerbaar</span>
-      <span class="hero-badge">🆓 Volledig gratis</span>
-      <span class="hero-badge">🌐 Werkt op WiFi</span>
+      <span class="badge">🔒 Geen cloud, 100% lokaal</span>
+      <span class="badge">📱 iPhone &amp; Android app</span>
+      <span class="badge">🆓 Volledig gratis</span>
+      <span class="badge">🌐 Werkt op WiFi</span>
     </div>
   </div>
 </section>
 
 <!-- Phone mockup -->
-<div class="mockup-section">
+<div class="mockup-wrap">
   <div class="phone">
     <div class="phone-inner">
       <div class="phone-notch"></div>
-      <div class="phone-header">
-        <span class="ph-icon">💍</span>
+      <div class="ph-head">
+        <span class="phi">💍</span>
         <h4>Deel jouw foto's</h4>
         <p>Help ons deze dag onvergetelijk te maken</p>
       </div>
-      <div class="phone-body">
-        <div class="phone-field"><strong>Jouw naam</strong>Jan &amp; Marie</div>
-        <div class="phone-field"><strong>Berichtje</strong>Wat een prachtige dag!</div>
-        <div class="phone-upload-btns">
-          <div class="phone-upload-btn">🖼️<br/>Bibliotheek</div>
-          <div class="phone-upload-btn">📷<br/>Camera</div>
+      <div class="ph-body">
+        <div class="ph-field"><strong>Jouw naam</strong>Jan &amp; Marie</div>
+        <div class="ph-field"><strong>Berichtje</strong>Wat een prachtige dag!</div>
+        <div class="ph-btns">
+          <div class="ph-btn">🖼️<br/>Bibliotheek</div>
+          <div class="ph-btn">📷<br/>Camera</div>
         </div>
-        <div class="phone-submit">Verstuur foto's →</div>
+        <div class="ph-submit">Verstuur foto's →</div>
       </div>
     </div>
   </div>
@@ -312,65 +204,24 @@
 <!-- Features -->
 <section class="features" id="features">
   <div class="container">
-    <div class="section-label">Functies</div>
-    <h2 class="section-title">Alles wat je nodig hebt</h2>
-    <p class="section-sub">Van QR-code tot foto-overzicht — My Memories regelt het allemaal, volledig op je eigen netwerk.</p>
-
-    <div class="features-grid">
-      <div class="feat-card">
-        <span class="feat-icon">📱</span>
-        <h3>Upload via iPhone of Android</h3>
-        <p>Gasten openen de uploadpagina via QR-code of link en uploaden foto's rechtstreeks vanuit hun camera of fotobibliotheek.</p>
-      </div>
-      <div class="feat-card">
-        <span class="feat-icon">🏠</span>
-        <h3>Installeer als app op iPhone</h3>
-        <p>Via "Zet op beginscherm" in Safari wordt de uploadpagina een volwaardige app — geen App Store nodig.</p>
-      </div>
-      <div class="feat-card">
-        <span class="feat-icon">🗓</span>
-        <h3>Meerdere evenementen</h3>
-        <p>Maak onbeperkt evenementen aan, elk met eigen naam, kleurenthema, wachtwoord en uploadpagina.</p>
-      </div>
-      <div class="feat-card">
-        <span class="feat-icon">📊</span>
-        <h3>Beheer dashboard</h3>
-        <p>Bekijk alle gasten en foto's per evenement in een overzichtelijk dashboard. Filter, sorteer en download alles.</p>
-      </div>
-      <div class="feat-card">
-        <span class="feat-icon">📷</span>
-        <h3>QR-code generator</h3>
-        <p>Genereer en download een QR-code voor elk evenement. Print hem op tafelkaartjes of projecteer hem op het scherm.</p>
-      </div>
-      <div class="feat-card">
-        <span class="feat-icon">🔒</span>
-        <h3>Wachtwoord bescherming</h3>
-        <p>Stel optioneel een wachtwoord in voor het uploaden zodat alleen genodigden toegang hebben.</p>
-      </div>
-      <div class="feat-card">
-        <span class="feat-icon">🎨</span>
-        <h3>Thema per evenement</h3>
-        <p>Kies het type evenement en een kleurenthema — de gastpagina past zich automatisch aan met passende kleuren en iconen.</p>
-      </div>
-      <div class="feat-card">
-        <span class="feat-icon">💾</span>
-        <h3>Alles op jouw computer</h3>
-        <p>Foto's worden opgeslagen op je eigen Windows-pc. Geen maandelijkse kosten, geen afhankelijkheid van externe diensten.</p>
-      </div>
+    <div class="s-label">Functies</div>
+    <h2 class="s-title">Alles wat je nodig hebt</h2>
+    <p class="s-sub">Van QR-code tot foto-overzicht — My Memories regelt het allemaal, volledig op je eigen netwerk.</p>
+    <div class="feat-grid">
+      <div class="feat-card"><span class="feat-icon">📱</span><h3>Upload via telefoon</h3><p>Gasten openen de pagina via QR-code en uploaden foto's direct vanuit camera of bibliotheek.</p></div>
+      <div class="feat-card"><span class="feat-icon">🏠</span><h3>Installeer als app</h3><p>iPhone via Safari, Android via Chrome — één tik en My Memories staat als app op het beginscherm.</p></div>
+      <div class="feat-card"><span class="feat-icon">🗓</span><h3>Meerdere evenementen</h3><p>Onbeperkt evenementen met elk eigen naam, kleurenthema, wachtwoord en uploadpagina.</p></div>
+      <div class="feat-card"><span class="feat-icon">📊</span><h3>Beheer dashboard</h3><p>Bekijk gasten en foto's per evenement. Filter, sorteer en download alles via het dashboard.</p></div>
+      <div class="feat-card"><span class="feat-icon">📷</span><h3>QR-code generator</h3><p>Genereer en download een QR-code per evenement voor op tafelkaartjes of het scherm.</p></div>
+      <div class="feat-card"><span class="feat-icon">🔒</span><h3>Wachtwoord bescherming</h3><p>Optioneel wachtwoord zodat alleen genodigden foto's kunnen uploaden.</p></div>
+      <div class="feat-card"><span class="feat-icon">🎨</span><h3>Thema per evenement</h3><p>Kies het type evenement en kleurenthema — de gastpagina past zich automatisch aan.</p></div>
+      <div class="feat-card"><span class="feat-icon">💾</span><h3>Alles op jouw pc</h3><p>Foto's staan op je eigen Windows-pc. Geen maandelijkse kosten, geen externe diensten.</p></div>
     </div>
-
-    <div style="margin-top: 2.5rem;">
-      <p style="font-size:0.9rem; color: var(--muted); margin-bottom: 0.75rem; font-weight: 600;">Beschikbare evenementtypen</p>
-      <div class="types-grid">
-        <span class="type-pill">💍 Bruiloft</span>
-        <span class="type-pill">🎂 Verjaardag</span>
-        <span class="type-pill">👶 Baby Shower</span>
-        <span class="type-pill">🥂 Jubileum</span>
-        <span class="type-pill">🎓 Afstuderen</span>
-        <span class="type-pill">🎄 Kerst</span>
-        <span class="type-pill">🏢 Bedrijfsfeest</span>
-        <span class="type-pill">🎆 Nieuwjaar</span>
-      </div>
+    <div class="type-pills">
+      <span class="type-pill">💍 Bruiloft</span><span class="type-pill">🎂 Verjaardag</span>
+      <span class="type-pill">👶 Baby Shower</span><span class="type-pill">🥂 Jubileum</span>
+      <span class="type-pill">🎓 Afstuderen</span><span class="type-pill">🎄 Kerst</span>
+      <span class="type-pill">🏢 Bedrijfsfeest</span><span class="type-pill">🎆 Nieuwjaar</span>
     </div>
   </div>
 </section>
@@ -378,116 +229,146 @@
 <!-- How it works -->
 <section class="how" id="how">
   <div class="container">
-    <div class="section-label" style="color: rgba(255,255,255,0.5)">Aan de slag</div>
-    <h2 class="section-title">In drie stappen klaar</h2>
-    <p class="section-sub">My Memories is ontworpen om in minuten operationeel te zijn, ook als je niet technisch bent.</p>
+    <div class="s-label" style="color:rgba(255,255,255,.45)">Aan de slag</div>
+    <h2 class="s-title">In drie stappen klaar</h2>
+    <p class="s-sub">Ontworpen om in minuten operationeel te zijn, ook zonder technische kennis.</p>
     <div class="steps">
       <div class="step">
         <div class="step-num">1</div>
         <h3>Installeer op Windows</h3>
-        <p>Download de installer, voer hem uit en de app start automatisch. Node.js wordt automatisch meegeïnstalleerd als het nog niet aanwezig is.</p>
+        <p>Download <code style="background:rgba(255,255,255,.1);padding:1px 5px;border-radius:4px">install.bat</code>, voer uit als administrator en de app is in minder dan twee minuten klaar.</p>
       </div>
       <div class="step">
         <div class="step-num">2</div>
-        <h3>Maak een evenement aan</h3>
-        <p>Open het dashboard op <code style="background:rgba(255,255,255,0.1);padding:1px 5px;border-radius:4px;font-size:0.85em">localhost:3000/dashboard</code>, maak een evenement en pas het uiterlijk aan.</p>
+        <h3>Maak een evenement</h3>
+        <p>Open het dashboard, maak een evenement aan en kies het kleurenthema dat bij de gelegenheid past.</p>
       </div>
       <div class="step">
         <div class="step-num">3</div>
         <h3>Deel de QR-code</h3>
-        <p>Print of projecteer de QR-code. Gasten scannen hem, openen de uploadpagina en kunnen direct foto's toevoegen via hun telefoon.</p>
+        <p>Print of projecteer de QR-code. Gasten scannen, openen de pagina en uploaden direct via hun telefoon.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- iOS install guide -->
-<section class="ios-section" id="ios">
+<!-- Install / Platform tabs -->
+<section class="install" id="install">
   <div class="container">
-    <div class="section-label">iPhone &amp; iPad</div>
-    <h2 class="section-title">Installeer als app op iOS</h2>
-    <p class="section-sub">Gasten kunnen de uploadpagina als app op hun beginscherm zetten — snel te openen, fullscreen, geen browser-chrome.</p>
+    <div class="s-label">Installatie</div>
+    <h2 class="s-title">Installeer op elk apparaat</h2>
+    <p class="s-sub">My Memories draait op Windows en is installeerbaar als app op iPhone en Android.</p>
 
-    <div class="ios-grid">
-      <ol class="ios-steps">
-        <li>
-          <div class="step-text">
-            <strong>Open Safari op de iPhone</strong>
-            <span>Ga naar de uploadlink van het evenement (via QR-code of via het dashboard).</span>
-          </div>
-        </li>
-        <li>
-          <div class="step-text">
-            <strong>Tik op het Deel-icoon</strong>
-            <span>Het vierkantje met het pijltje omhoog onderaan het scherm.</span>
-          </div>
-        </li>
-        <li>
-          <div class="step-text">
-            <strong>Kies "Zet op beginscherm"</strong>
-            <span>Scrol omlaag in het deelmenu en tik op "Zet op beginscherm" (Add to Home Screen).</span>
-          </div>
-        </li>
-        <li>
-          <div class="step-text">
-            <strong>Bevestig met "Voeg toe"</strong>
-            <span>De app verschijnt op je beginscherm en opent fullscreen — precies als een echte app.</span>
-          </div>
-        </li>
-      </ol>
+    <div class="platform-tabs">
+      <div class="ptab active" data-tab="windows"><span class="ptab-icon">🖥️</span> Windows</div>
+      <div class="ptab" data-tab="ios"><span class="ptab-icon">🍎</span> iPhone / iPad</div>
+      <div class="ptab" data-tab="android"><span class="ptab-icon">🤖</span> Android</div>
+    </div>
 
-      <div class="ios-mockup-wrap">
-        <div class="phone" style="width:200px">
-          <div class="phone-inner">
-            <div class="phone-notch"></div>
-            <div style="flex:1; background: #1a1a2e; display:flex; flex-direction:column; align-items:center; justify-content:center; padding: 1rem; gap:0.6rem;">
-              <div style="width:58px;height:58px;background:linear-gradient(135deg,#1e4d28,#3a7d44);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.8rem;box-shadow:0 4px 16px rgba(0,0,0,0.4)">🌿</div>
-              <div style="color:#fff;font-size:0.75rem;font-weight:700;text-align:center">My Memories</div>
-              <div style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:8px;padding:0.5rem 1rem;color:rgba(255,255,255,0.8);font-size:0.62rem;text-align:center;margin-top:0.5rem">
-                ⬆ Tik Delen<br/>→ Zet op beginscherm
+    <div class="platform-panels">
+
+      <!-- Windows -->
+      <div class="panel active" id="panel-windows">
+        <div>
+          <ul class="win-steps">
+            <li><div class="win-step-num">1</div><div><strong>Download install.bat</strong><span>Klik op de knop rechts en sla het bestand op je computer op.</span></div></li>
+            <li><div class="win-step-num">2</div><div><strong>Uitvoeren als administrator</strong><span>Klik rechts op install.bat → "Uitvoeren als administrator". Node.js wordt automatisch geïnstalleerd als het nog niet aanwezig is.</span></div></li>
+            <li><div class="win-step-num">3</div><div><strong>App wordt gestart</strong><span>Na installatie staat er een snelkoppeling "My Memories" op je bureaublad. Dubbelklik om de app te starten.</span></div></li>
+            <li><div class="win-step-num">4</div><div><strong>Open het dashboard</strong><span>Ga naar <code style="background:#f0f0f0;padding:1px 5px;border-radius:4px;font-size:.85em">localhost:3000/dashboard.html</code> in je browser.</span></div></li>
+          </ul>
+          <p style="font-size:.8rem;color:var(--muted);margin-top:1rem">Vereisten: Windows 10 of 11 · Node.js wordt automatisch meegeïnstalleerd via winget</p>
+        </div>
+        <div class="dl-box">
+          <span class="dl-icon">🖥️</span>
+          <h3>Windows Installer</h3>
+          <p>Installeert Node.js, pakketten, app-iconen en een bureaublad-snelkoppeling automatisch.</p>
+          <a href="/download/install.bat" class="btn-dl btn-dl-primary" download>⬇ Download install.bat</a>
+          <br/>
+          <a href="/download/start.bat" class="btn-dl btn-dl-secondary" download>▶ Alleen start.bat</a>
+          <p class="dl-note">start.bat is alleen nodig als Node.js al geïnstalleerd is en je de app handmatig wilt starten.</p>
+        </div>
+      </div>
+
+      <!-- iOS -->
+      <div class="panel" id="panel-ios">
+        <div>
+          <ol class="mob-steps">
+            <li><strong>Open Safari op je iPhone</strong><span>Navigeer naar de upload-link van het evenement via de QR-code of een gedeelde link.</span></li>
+            <li><strong>Tik op het Deel-icoon ⬆</strong><span>Het vierkantje met het pijltje omhoog onderaan het scherm in Safari.</span></li>
+            <li><strong>Kies "Zet op beginscherm"</strong><span>Scrol omlaag in het deelmenu. Pas eventueel de naam aan en tik op "Voeg toe".</span></li>
+            <li><strong>App staat op beginscherm</strong><span>My Memories opent voortaan volledig scherm — precies als een echte app, zonder adresbalk.</span></li>
+          </ol>
+          <div class="mob-tip">
+            <strong>Let op:</strong> gebruik <strong>Safari</strong> op iPhone — Chrome op iOS ondersteunt "Zet op beginscherm" nog niet.
+            Het icoon en de naam worden automatisch ingesteld op de naam van het evenement.
+          </div>
+        </div>
+        <div class="mob-visual">
+          <div class="phone" style="width:195px">
+            <div class="phone-inner">
+              <div class="phone-notch"></div>
+              <div style="flex:1;background:#1a1a2e;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1rem;gap:.7rem">
+                <div style="width:60px;height:60px;background:linear-gradient(135deg,#1e4d28,#3a7d44);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.9rem;box-shadow:0 4px 18px rgba(0,0,0,.4)">🌿</div>
+                <div style="color:#fff;font-size:.72rem;font-weight:700">My Memories</div>
+                <div style="background:rgba(255,255,255,.11);border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:.55rem .9rem;color:rgba(255,255,255,.8);font-size:.6rem;text-align:center;line-height:1.5">
+                  Safari → ⬆ Delen<br/>→ Zet op beginscherm
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  </div>
-</section>
 
-<!-- Download / Install -->
-<section class="download" id="download">
-  <div class="container">
-    <div class="section-label" style="color: rgba(255,255,255,0.4)">Download</div>
-    <h2 class="section-title">Gratis te downloaden</h2>
-    <p class="section-sub">My Memories draait lokaal op Windows en heeft geen internetverbinding nodig na de installatie.</p>
-
-    <div class="dl-cards">
-      <div class="dl-card">
-        <span class="dl-icon">🖥️</span>
-        <h3>Windows Installer</h3>
-        <p>Automatische installatie van Node.js, afhankelijkheden en app-iconen. Klaar in &lt;2 minuten.</p>
-        <a href="install.bat" download class="btn-dl btn-dl-primary">⬇ install.bat</a>
+      <!-- Android -->
+      <div class="panel" id="panel-android">
+        <div>
+          <ol class="mob-steps">
+            <li><strong>Open Chrome op je Android</strong><span>Navigeer naar de upload-link van het evenement via de QR-code of een gedeelde link.</span></li>
+            <li><strong>Tik op de drie stippen ⋮</strong><span>Rechtsboven in Chrome — dit opent het browsermenu.</span></li>
+            <li><strong>Kies "Toevoegen aan startscherm"</strong><span>Of tik op de installatie-banner die Chrome mogelijk automatisch toont onderin het scherm.</span></li>
+            <li><strong>Bevestig met "Installeren"</strong><span>My Memories wordt als app toegevoegd aan je startscherm en app-lade.</span></li>
+          </ol>
+          <div class="mob-tip">
+            <strong>Tip:</strong> Chrome op Android toont automatisch een installatiebanner wanneer je de eventpagina opent. Tik op <strong>"Installeren"</strong> voor de snelste installatie.
+            Werkt ook via Samsung Internet via menu → "Pagina toevoegen aan" → "Startscherm".
+          </div>
+        </div>
+        <div class="mob-visual">
+          <div class="phone" style="width:195px">
+            <div class="phone-inner">
+              <div class="phone-notch"></div>
+              <div style="flex:1;background:#202124;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1rem;gap:.7rem">
+                <div style="width:60px;height:60px;background:linear-gradient(135deg,#1e4d28,#3a7d44);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.9rem;box-shadow:0 4px 18px rgba(0,0,0,.4)">🌿</div>
+                <div style="color:#fff;font-size:.72rem;font-weight:700">My Memories</div>
+                <div style="background:rgba(255,255,255,.11);border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:.55rem .9rem;color:rgba(255,255,255,.8);font-size:.6rem;text-align:center;line-height:1.5">
+                  Chrome → ⋮ Menu<br/>→ Toevoegen aan startscherm
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="dl-card">
-        <span class="dl-icon">📂</span>
-        <h3>Handmatig starten</h3>
-        <p>Als Node.js al geïnstalleerd is: download de app, voer <code style="font-size:0.8em;background:rgba(255,255,255,0.1);padding:1px 4px;border-radius:3px">npm install</code> uit en start met <code style="font-size:0.8em;background:rgba(255,255,255,0.1);padding:1px 4px;border-radius:3px">start.bat</code>.</p>
-        <a href="start.bat" download class="btn-dl btn-dl-outline">start.bat</a>
-      </div>
-    </div>
 
-    <p class="install-note">
-      Vereisten: Windows 10/11. Node.js wordt automatisch geïnstalleerd als het nog niet aanwezig is.
-      De app draait uitsluitend op je lokale netwerk — foto's verlaten nooit jouw computer.
-    </p>
+    </div><!-- /platform-panels -->
   </div>
 </section>
 
 <!-- Footer -->
 <footer>
   <strong>My Memories</strong> — Lokale foto-upload app voor evenementen<br/>
-  <span>Draait op Node.js · Werkt op WiFi · Volledig gratis &amp; open source</span>
+  <span>Draait op Node.js · Werkt op WiFi · Volledig gratis</span>
 </footer>
 
+<script>
+  // Platform tab switcher
+  document.querySelectorAll('.ptab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.ptab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.platform-panels .panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+    });
+  });
+</script>
 </body>
 </html>
